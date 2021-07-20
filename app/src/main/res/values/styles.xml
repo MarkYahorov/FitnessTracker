@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Login_And_Register_Screen_Edit_Texts">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.login_field">
+        <item name="android:layout_marginTop">70dp</item>
+        <item name="android:layout_marginEnd">24dp</item>
+        <item name="android:layout_marginStart">24dp</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.password_field">
+        <item name="android:layout_marginTop">40dp</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.register_fields">
+        <item name="android:layout_marginTop">40dp</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.password_field_in_login">
+        <item name="android:layout_marginTop">20dp</item>
+    </style>
+
+    <style name="login_btn">
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+    </style>
+
+    <style name="register_btn">
+        <item name="android:layout_marginTop">40dp</item>
+        <item name="android:layout_marginBottom">150dp</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:layout_marginStart">6dp</item>
+    </style>
+</resources>

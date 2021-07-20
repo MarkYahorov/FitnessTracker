@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".screens.loginAndRegister.fragments.RegisterFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/open_login_views_btn"
+            style="@style/login_btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/login_btn_text"
+            app:layout_constraintBottom_toBottomOf="@+id/registr_btn"
+            app:layout_constraintEnd_toStartOf="@+id/registr_btn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/registr_btn" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/registr_btn"
+            style="@style/register_btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/registr_btn_text"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/open_login_views_btn"
+            app:layout_constraintTop_toBottomOf="@id/last_name_edit_text" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/email_edit_text_to_login"
+            style="@style/Login_And_Register_Screen_Edit_Texts.login_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/email_text_hint"
+            android:inputType="textEmailAddress"
+            app:layout_constraintBottom_toTopOf="@+id/password_edit_text_to_login"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/first_screen_text" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/password_edit_text_to_login"
+            style="@style/Login_And_Register_Screen_Edit_Texts.password_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/password_text_hint"
+            android:inputType="textPassword"
+            app:layout_constraintBottom_toTopOf="@id/repeat_edit_text"
+            app:layout_constraintEnd_toEndOf="@+id/email_edit_text_to_login"
+            app:layout_constraintStart_toStartOf="@+id/email_edit_text_to_login"
+            app:layout_constraintTop_toBottomOf="@+id/email_edit_text_to_login" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/repeat_edit_text"
+            style="@style/Login_And_Register_Screen_Edit_Texts.register_fields"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/repeat_password_hint"
+            android:inputType="textPassword"
+            app:layout_constraintBottom_toTopOf="@+id/first_name_edit_text"
+            app:layout_constraintEnd_toEndOf="@+id/password_edit_text_to_login"
+            app:layout_constraintStart_toStartOf="@+id/password_edit_text_to_login"
+            app:layout_constraintTop_toBottomOf="@id/password_edit_text_to_login" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/first_name_edit_text"
+            style="@style/Login_And_Register_Screen_Edit_Texts.register_fields"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:hint="@string/first_name_text_hint"
+            app:layout_constraintBottom_toTopOf="@id/last_name_edit_text"
+            app:layout_constraintEnd_toEndOf="@+id/repeat_edit_text"
+            app:layout_constraintStart_toStartOf="@+id/repeat_edit_text"
+            app:layout_constraintTop_toBottomOf="@+id/repeat_edit_text" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/last_name_edit_text"
+            style="@style/Login_And_Register_Screen_Edit_Texts.register_fields"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/last_name_text_hint"
+            android:inputType="textPersonName"
+            app:layout_constraintBottom_toTopOf="@id/registr_btn"
+            app:layout_constraintEnd_toEndOf="@+id/first_name_edit_text"
+            app:layout_constraintStart_toStartOf="@+id/first_name_edit_text"
+            app:layout_constraintTop_toBottomOf="@+id/first_name_edit_text" />
+
+
+        <TextView
+            android:id="@+id/first_screen_text"
+            android:layout_width="wrap_content"
+            android:layout_height="90dp"
+            android:layout_marginTop="48dp"
+            android:gravity="center"
+            android:text="@string/hello_text"
+            android:textSize="35sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

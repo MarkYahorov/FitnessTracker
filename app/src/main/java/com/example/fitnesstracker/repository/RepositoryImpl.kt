@@ -6,6 +6,8 @@ import com.example.fitnesstracker.models.login.LoginRequest
 import com.example.fitnesstracker.models.login.LoginResponse
 import com.example.fitnesstracker.models.registration.RegistrationRequest
 import com.example.fitnesstracker.models.registration.RegistrationResponse
+import com.example.fitnesstracker.models.tracks.TrackRequest
+import com.example.fitnesstracker.models.tracks.TrackResponse
 
 class RepositoryImpl : Repository {
     override fun login(loginRequest: LoginRequest): Task<LoginResponse> {
@@ -19,6 +21,13 @@ class RepositoryImpl : Repository {
         return Task.callInBackground {
             val execute =
                 RetrofitBuilder().apiService.registration(registrationRequest = registrationRequest)
+            execute.execute().body()
+        }
+    }
+
+    override fun getTracks(trackRequest: TrackRequest): Task<TrackResponse> {
+        return Task.callInBackground{
+            val execute = RetrofitBuilder().apiService.getTracks(trackRequest)
             execute.execute().body()
         }
     }

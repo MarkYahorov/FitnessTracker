@@ -9,9 +9,11 @@ data class LoginResponse(
     @SerializedName("status")
     val status: String,
     @SerializedName("token")
-    val token: String,
+    val token: String?,
     @SerializedName("firstName")
-    val firstName: String,
+    val firstName: String?,
     @SerializedName("lastName")
-    val lastName: String
+    val lastName: String?,
+    @SerializedName("code")
+    val error: String?
 ): Parcelable

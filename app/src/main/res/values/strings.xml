@@ -14,4 +14,16 @@
     <string name="begin_time">Begin Time</string>
     <string name="time_running">Time Running</string>
     <string name="distance">Distance</string>
+    <string name="welcome_login_text">Welcome to login screen</string>
+    <string name="welcome_registr_text">Welcome to registration screen</string>
+    <string name="error">Error</string>
+    <string name="Ok">Okay</string>
+    <string name="error_message_email">Invalid email</string>
+    <string name="error_message_password">Must be only letters or numbers</string>
+    <string name="error_message_repeat_password">Password not matching</string>
+    <string name="navigation_drawer_open">open</string>
+    <string name="navigation_drawer_close">close</string>
+    <string name="main_screen">Main Screen</string>
+    <string name="navigation">Navigation</string>
+    <string name="logout">LogOut</string>
 </resources>

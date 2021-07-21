@@ -17,6 +17,6 @@ class RetrofitBuilder {
     }
 
     companion object{
-        private const val BASE_URL = "http://pub.zame-dev.org/senla-training-addition/"
+        private const val BASE_URL = "https://pub.zame-dev.org/senla-training-addition/"
     }
 }

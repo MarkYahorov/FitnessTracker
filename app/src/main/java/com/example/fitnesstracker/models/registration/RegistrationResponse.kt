@@ -9,5 +9,7 @@ data class RegistrationResponse(
     @SerializedName("status")
     val status: String,
     @SerializedName("token")
-    val token: String
-): Parcelable
+    val token: String,
+    @SerializedName("code")
+    val error: String,
+) : Parcelable

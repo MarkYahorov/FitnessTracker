@@ -1,24 +1,26 @@
 package com.example.fitnesstracker.screens.main
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.screens.NotificationFragment
-import com.example.fitnesstracker.screens.RunningFragment
-import com.example.fitnesstracker.screens.TrackFragment
+import com.example.fitnesstracker.screens.main.notification.NotificationFragment
+import com.example.fitnesstracker.screens.main.running.RunningFragment
+import com.example.fitnesstracker.screens.main.track.TrackFragment
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
+import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
+import com.example.fitnesstracker.screens.main.list.TrackListFragment
 import com.google.android.material.navigation.NavigationView
 
 class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
@@ -28,6 +30,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         private const val TRACK = "TRACK"
         private const val RUNNING = "RUNNING"
         private const val LIST_FRAGMENT = "LIST_FRAGMENT"
+        private const val EMPTY_VALUE = ""
     }
 
     private lateinit var toolbar: Toolbar
@@ -54,7 +57,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     private fun getTokenFromSharedPref(): String {
         return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .getString(CURRENT_TOKEN, null).toString()
+            .getString(CURRENT_TOKEN, EMPTY_VALUE).toString()
     }
 
     private fun initAll() {
@@ -74,7 +77,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     private fun setToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
     }
 
     private fun createDrawer() {
@@ -96,25 +98,31 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     private fun createNavListener() = NavigationView.OnNavigationItemSelectedListener {
         when (it.itemId) {
             R.id.go_to_main_screen -> {
-                supportFragmentManager.popBackStackImmediate("", POP_BACK_STACK_INCLUSIVE)
-                Log.e("key", "MAIN SCREEN ${supportFragmentManager.backStackEntryCount}")
+                removeTransaction()
+                onBackPressed()
             }
             R.id.go_to_notification_screen -> {
                 replaceFragment(NotificationFragment(), NOTIFICATION)
-                Log.e("key", "NOTIFICATION SCREEN ${supportFragmentManager.backStackEntryCount}")
+                onBackPressed()
             }
         }
         true
     }
 
-    private fun setLogoutBtnListener(){
+    private fun setLogoutBtnListener() {
         logout.setOnClickListener {
-            Toast.makeText(this, "LOG OUT", Toast.LENGTH_LONG).show()
+            startActivity(Intent(this, LoginAndRegisterActivity::class.java))
+            getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+                .edit()
+                .putString(CURRENT_TOKEN, EMPTY_VALUE)
+                .apply()
+            finish()
         }
     }
 
     private fun updateToolbarBtn() {
-        toggle.isDrawerIndicatorEnabled = supportFragmentManager.backStackEntryCount <= 1
+        toggle.isDrawerIndicatorEnabled =
+            !supportFragmentManager.popBackStackImmediate(RUNNING, POP_BACK_STACK_INCLUSIVE)
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -144,18 +152,33 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             || supportFragmentManager.popBackStackImmediate(TRACK, POP_BACK_STACK_INCLUSIVE)
             || supportFragmentManager.popBackStackImmediate(RUNNING, POP_BACK_STACK_INCLUSIVE)
         ) {
-            supportFragmentManager.popBackStackImmediate("", POP_BACK_STACK_INCLUSIVE)
+            supportFragmentManager.popBackStackImmediate(EMPTY_VALUE, POP_BACK_STACK_INCLUSIVE)
         }
     }
 
     override fun goToRunningScreen() {
-        replaceFragment(RunningFragment(), NOTIFICATION)
-        Log.e("key", "NOTIFICATION SCREEN ${supportFragmentManager.backStackEntryCount}")
+        replaceFragment(RunningFragment(), RUNNING)
+        toggle.isDrawerIndicatorEnabled = false
     }
 
+
     override fun goToTrackScreen(id: Int) {
-        val trackFragment = TrackFragment.newInstance(id)
-        replaceFragment(trackFragment, TRACK)
-        Log.e("key", "TRACK SCREEN ${supportFragmentManager.backStackEntryCount}")
+        replaceFragment(TrackFragment.newInstance(id), TRACK)
+    }
+
+    override fun onBackPressed() {
+        if (navDrawer.isDrawerVisible(GravityCompat.START)) {
+            navDrawer.closeDrawer(GravityCompat.START)
+            return
+        }
+        if (supportFragmentManager.backStackEntryCount > 1){
+            removeTransaction()
+            updateToolbarBtn()
+            return
+        }
+        if (supportFragmentManager.backStackEntryCount == 1) {
+            finish()
+        }
+        super.onBackPressed()
     }
 }

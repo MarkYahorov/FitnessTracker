@@ -1,4 +1,4 @@
-package com.example.fitnesstracker.screens
+package com.example.fitnesstracker.screens.main.track
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -12,7 +12,7 @@ class TrackFragment : Fragment() {
 
     companion object{
         private const val CURRENT_TRACK_ID = "CURRENT_TRACK_ID"
-        fun newInstance(id:Int): TrackFragment{
+        fun newInstance(id:Int): TrackFragment {
             val fragment = TrackFragment()
             val bundle = Bundle()
             bundle.putInt(CURRENT_TRACK_ID, id)

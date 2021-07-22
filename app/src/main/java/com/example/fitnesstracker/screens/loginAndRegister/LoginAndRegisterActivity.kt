@@ -56,7 +56,16 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_and_register)
 
+        if (getTokenFromSharedPref() != ""){
+            startActivity(Intent(this,MainActivity::class.java))
+            finish()
+        }
         initAllViews()
+    }
+
+    private fun getTokenFromSharedPref(): String {
+        return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            .getString(CURRENT_TOKEN, "").toString()
     }
 
     private fun initAllViews() {

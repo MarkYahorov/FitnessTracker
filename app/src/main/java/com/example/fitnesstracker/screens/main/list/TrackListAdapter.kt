@@ -1,4 +1,4 @@
-package com.example.fitnesstracker.screens.main
+package com.example.fitnesstracker.screens.main.list
 
 import android.view.LayoutInflater
 import android.view.View

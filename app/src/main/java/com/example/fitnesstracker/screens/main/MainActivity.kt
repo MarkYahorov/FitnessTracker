@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment
 import com.example.fitnesstracker.screens.main.running.RunningFragment
@@ -43,8 +45,13 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if (savedInstanceState == null) {
+            addListFragment()
+        }
         initAll()
-        addListFragment()
+        setToolbar()
+        createDrawer()
+        setLogoutBtnListener()
     }
 
     private fun addListFragment() {
@@ -67,13 +74,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         logout = findViewById(R.id.logout_item)
     }
 
-    override fun onStart() {
-        super.onStart()
-        setToolbar()
-        createDrawer()
-        setLogoutBtnListener()
-    }
-
     private fun setToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -92,7 +92,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         }
         navDrawer.addDrawerListener(toggle)
         navigationView.setNavigationItemSelectedListener(createNavListener())
-        updateToolbarBtn()
     }
 
     private fun createNavListener() = NavigationView.OnNavigationItemSelectedListener {
@@ -152,18 +151,25 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             || supportFragmentManager.popBackStackImmediate(TRACK, POP_BACK_STACK_INCLUSIVE)
             || supportFragmentManager.popBackStackImmediate(RUNNING, POP_BACK_STACK_INCLUSIVE)
         ) {
-            supportFragmentManager.popBackStackImmediate(EMPTY_VALUE, POP_BACK_STACK_INCLUSIVE)
+            supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
         }
     }
 
-    override fun goToRunningScreen() {
-        replaceFragment(RunningFragment(), RUNNING)
+    override fun goToRunningScreen(token:String) {
+        replaceFragment(RunningFragment.newInstance(token), RUNNING)
         toggle.isDrawerIndicatorEnabled = false
     }
 
 
-    override fun goToTrackScreen(id: Int) {
-        replaceFragment(TrackFragment.newInstance(id), TRACK)
+    override fun goToTrackScreen(id: Int,
+                                 beginTime: Long,
+                                 runningTime: Long,
+                                 distance: Int,
+                                 token: String,) {
+        replaceFragment(TrackFragment.newInstance(id,beginTime,
+            runningTime,
+            distance,
+            token), TRACK)
     }
 
     override fun onBackPressed() {
@@ -171,7 +177,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             navDrawer.closeDrawer(GravityCompat.START)
             return
         }
-        if (supportFragmentManager.backStackEntryCount > 1){
+        if (supportFragmentManager.backStackEntryCount > 1) {
             removeTransaction()
             updateToolbarBtn()
             return
@@ -180,5 +186,10 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             finish()
         }
         super.onBackPressed()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.e("key", "DESTROY")
     }
 }

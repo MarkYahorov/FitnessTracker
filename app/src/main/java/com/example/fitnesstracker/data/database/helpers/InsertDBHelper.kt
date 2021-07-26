@@ -12,8 +12,8 @@ class InsertDBHelper {
         return this
     }
 
-    fun addFieldsAndValuesToInsert(nameOfField: String, insertingValue: String): InsertDBHelper {
-        selectedFieldsInTable[nameOfField] = insertingValue
+    fun addFieldsAndValuesToInsert(nameOfField: String, insertingValue: String?): InsertDBHelper {
+        insertingValue?.let { selectedFieldsInTable.put(nameOfField, it) }
         return this
     }
 
@@ -21,11 +21,11 @@ class InsertDBHelper {
         val selectedFields = selectedFieldsInTable.keys.joinToString()
         val questionList = mutableListOf<String>()
         val size = selectedFieldsInTable.size
-        while (questionList.size!= size){
+        while (questionList.size != size) {
             questionList.add("?")
         }
         val stringBuilderForQuestion = questionList.joinToString()
-        if (tableName == "" || selectedFieldsInTable.isEmpty()){
+        if (tableName == "" || selectedFieldsInTable.isEmpty()) {
             error("Введи нормальные данные")
         } else {
             val statement =

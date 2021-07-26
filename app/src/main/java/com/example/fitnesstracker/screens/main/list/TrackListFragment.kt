@@ -3,6 +3,7 @@ package com.example.fitnesstracker.screens.main.list
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,8 @@ import com.example.fitnesstracker.models.tracks.Track
 import com.example.fitnesstracker.models.tracks.TrackRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class TrackListFragment : Fragment() {
@@ -31,8 +34,14 @@ class TrackListFragment : Fragment() {
     }
 
     interface Navigator {
-        fun goToRunningScreen()
-        fun goToTrackScreen(id: Int)
+        fun goToRunningScreen(token: String)
+        fun goToTrackScreen(
+            id: Int,
+            beginTime: Long,
+            runningTime: Long,
+            distance: Int,
+            token: String,
+        )
     }
 
     private lateinit var trackRecyclerView: RecyclerView
@@ -89,14 +98,18 @@ class TrackListFragment : Fragment() {
                         val sortedList = response.result.tracks.sortedBy { it.beginTime }
                         trackList.addAll(sortedList)
                         trackRecyclerView.adapter?.notifyDataSetChanged()
+                        Log.e("key", "${sortedList[1].beginTime}")
+                        Log.e("key", "${SimpleDateFormat("dd,MM,yyyy hh:mm:ss").format(Date(sortedList[1].beginTime))}")
+                        Log.e("key", "${sortedList[1].time}")
                     }
                 }
+                swipeRefreshLayout.isRefreshing = false
             }, Task.UI_THREAD_EXECUTOR)
     }
 
     private fun setFABListener() {
         fab.setOnClickListener {
-            navigator?.goToRunningScreen()
+            navigator?.goToRunningScreen(arguments?.getString(CURRENT_TOKEN)!!)
         }
     }
 
@@ -110,7 +123,7 @@ class TrackListFragment : Fragment() {
         builder = AlertDialog.Builder(requireContext())
     }
 
-    private fun setSwipeLayoutListener(){
+    private fun setSwipeLayoutListener() {
         swipeRefreshLayout.setOnRefreshListener {
             getTacksFromServer()
         }
@@ -119,7 +132,8 @@ class TrackListFragment : Fragment() {
     private fun initTrackRecycler() {
         with(trackRecyclerView) {
             adapter = TrackListAdapter(listOfTracks = trackList, goToCurrentTrack = {
-                navigator?.goToTrackScreen(it.id)
+                navigator?.goToTrackScreen(it.id, it.beginTime.toString().toLong(), it.time, it.distance, arguments?.getString(
+                    CURRENT_TOKEN)!!)
             })
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)

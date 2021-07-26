@@ -16,14 +16,14 @@ class CreateDBHelper {
         return this
     }
 
-    fun create(db: SQLiteDatabase) {
+    fun create(db: SQLiteDatabase?) {
         val stringBuilder = fields.entries.joinToString {
             "${it.key} ${it.value}"
         }
         if (name == "" || fields.isEmpty()) {
             error("Заполнить имя или поля")
         } else {
-            db.execSQL("CREATE TABLE $name ($stringBuilder)")
+            db?.execSQL("CREATE TABLE $name ($stringBuilder)")
         }
     }
 }

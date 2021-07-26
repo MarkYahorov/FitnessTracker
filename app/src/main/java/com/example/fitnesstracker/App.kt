@@ -1,7 +1,10 @@
 package com.example.fitnesstracker
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.database.sqlite.SQLiteDatabase
+import android.os.Build
 import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.repository.Repository
 import com.example.fitnesstracker.repository.RepositoryImpl
@@ -12,6 +15,7 @@ class App: Application() {
         lateinit var INSTANCE: App
     }
 
+    var whatFragment = 0
     lateinit var db: SQLiteDatabase
     val repositoryImpl: Repository = RepositoryImpl()
 

@@ -22,8 +22,8 @@ class TrackListAdapter(
         private val distance: TextView = item.findViewById(R.id.distance)
 
         fun bind(track: Track) {
-            beginTime.text = track.beginTime.toString()
             val date = SimpleDateFormat("hh:mm:ss", Locale.getDefault())
+            beginTime.text = date.format(Date(track.beginTime))
             time.text = date.format(Date(track.time))
             distance.text = track.distance.toString()
             item.setOnClickListener {

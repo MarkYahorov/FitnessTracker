@@ -7,7 +7,7 @@ data class Track(
     @SerializedName("id")
     val id: Int,
     @SerializedName("beginsAt")
-    val beginTime: Date,
+    val beginTime: Long,
     @SerializedName("time")
     val time: Long,
     @SerializedName("distance")

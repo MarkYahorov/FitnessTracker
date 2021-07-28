@@ -22,9 +22,12 @@ class TrackListAdapter(
         private val distance: TextView = item.findViewById(R.id.distance)
 
         fun bind(track: Track) {
-            val date = SimpleDateFormat("hh:mm:ss", Locale.getDefault())
-            beginTime.text = date.format(Date(track.beginTime))
-            time.text = date.format(Date(track.time))
+            val date = SimpleDateFormat("dd.MM.yyyy HH:mm:ss,SS", Locale.getDefault())
+            val currentTimeFormat = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
+            val timeZone = SimpleTimeZone.getTimeZone("UTC")
+            currentTimeFormat.timeZone = timeZone
+            beginTime.text = date.format(track.beginTime)
+            time.text = currentTimeFormat.format(track.time)
             distance.text = track.distance.toString()
             item.setOnClickListener {
                 goToCurrentTrack(track)

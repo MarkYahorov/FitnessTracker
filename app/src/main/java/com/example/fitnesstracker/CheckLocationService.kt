@@ -11,8 +11,6 @@ import android.net.ConnectivityManager
 import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
-import com.example.fitnesstracker.data.database.FitnessDatabase
-import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
 import com.example.fitnesstracker.models.points.Point
 import java.util.*
 
@@ -23,7 +21,7 @@ class CheckLocationService : Service() {
     private var currentLongitude: Double = 0.0
     private var oldLatitude: Double? = null
     private var oldLongitude: Double? = null
-    private val lostOfPoints = mutableListOf<Point>()
+    private val listOfPoints = mutableListOf<Point>()
     private val distanceList = FloatArray(1)
     private val allDistanceList = mutableListOf<Float>()
     private lateinit var locationManager: LocationManager
@@ -31,7 +29,7 @@ class CheckLocationService : Service() {
     private val listener = LocationListener { location ->
         currentLatitude = location.latitude
         currentLongitude = location.longitude
-        lostOfPoints.add(Point(currentLongitude, currentLatitude))
+        listOfPoints.add(Point(currentLongitude, currentLatitude))
         if (oldLatitude == null || oldLongitude == null) {
             oldLatitude = location.latitude
             oldLongitude = location.longitude
@@ -42,7 +40,7 @@ class CheckLocationService : Service() {
         oldLongitude = currentLongitude
     }
 
-    private fun calculateDistance(){
+    private fun calculateDistance() {
         Location.distanceBetween(currentLatitude,
             currentLongitude,
             oldLatitude!!,
@@ -55,22 +53,23 @@ class CheckLocationService : Service() {
         super.onCreate()
         createNotifyChanel()
         createNotify()
-        locationManager = applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager =
+            applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
-    private fun createNotify(){
+    private fun createNotify() {
         val pendingIntent: PendingIntent =
             Intent(this, CheckLocationService::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)
             }
         val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, "exampleServiceChanel")
-                    .setContentTitle(getText(R.string.error_message_repeat_password))
-                    .setContentText(getText(R.string.error_message_password))
-                    .setSmallIcon(R.drawable.ic_baseline_error_outline_24)
-                    .setContentIntent(pendingIntent)
-                    .setTicker(getText(R.string.error_message_email))
-                    .build()
+                .setContentTitle(getText(R.string.error_message_repeat_password))
+                .setContentText(getText(R.string.error_message_password))
+                .setSmallIcon(R.drawable.ic_baseline_error_outline_24)
+                .setContentIntent(pendingIntent)
+                .setTicker(getText(R.string.error_message_email))
+                .build()
         } else {
             TODO("VERSION.SDK_INT < O")
         }
@@ -80,11 +79,11 @@ class CheckLocationService : Service() {
     @RequiresApi(Build.VERSION_CODES.M)
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.extras?.get("Bool") == true){
+        if (intent?.extras?.get("Bool") == true) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 5F, listener)
         } else {
             val endIntent = Intent("location_update")
-                .putExtra("allCoordinates", lostOfPoints as ArrayList<Point>)
+                .putExtra("allCoordinates", listOfPoints as ArrayList<Point>)
                 .putExtra("distance", allDistanceList.toFloatArray())
             sendBroadcast(endIntent)
             stopSelf()
@@ -93,15 +92,17 @@ class CheckLocationService : Service() {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun checkInternetConnection(context: Context) :Boolean{
+    private fun checkInternetConnection(context: Context): Boolean {
         val cm = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         val netInfo = cm.activeNetworkInfo
         return netInfo != null && netInfo.isConnected
     }
 
-    private fun createNotifyChanel(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            val notChan = NotificationChannel("exampleServiceChanel", "example Service Chanel", NotificationManager.IMPORTANCE_DEFAULT)
+    private fun createNotifyChanel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notChan = NotificationChannel("exampleServiceChanel",
+                "example Service Chanel",
+                NotificationManager.IMPORTANCE_HIGH)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(notChan)
         }

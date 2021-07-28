@@ -17,8 +17,8 @@ import com.example.fitnesstracker.R
 import com.example.fitnesstracker.models.tracks.Track
 import com.example.fitnesstracker.models.tracks.TrackRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
+import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -52,6 +52,8 @@ class TrackListFragment : Fragment() {
     private val repositoryImpl = App.INSTANCE.repositoryImpl
     private var navigator: Navigator? = null
     private var builder: AlertDialog.Builder? = null
+    private var isFirstInApp: Boolean = true
+    private var isLoading = false
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -63,6 +65,8 @@ class TrackListFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track_list, container, false)
+        isFirstInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            ?.getBoolean("IS_FIRST", true)!!
         initAll(view)
         return view
     }
@@ -70,9 +74,18 @@ class TrackListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initTrackRecycler()
-        getTacksFromServer()
+        if (isFirstInApp) {
+            getTracksFromServer()
+        } else {
+            getTracksFromDb()
+        }
         setFABListener()
         setSwipeLayoutListener()
+        trackRecyclerView.adapter?.notifyDataSetChanged()
+        activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            ?.edit()
+            ?.putBoolean("IS_FIRST", false)
+            ?.apply()
     }
 
     private fun createAlertDialog(error: String?) {
@@ -84,26 +97,51 @@ class TrackListFragment : Fragment() {
         builder?.show()
     }
 
-    private fun getTacksFromServer() {
-        repositoryImpl.getTracks(createTrackRequest())
-            .continueWith({ response ->
-                when {
-                    response.error != null -> {
-                        createAlertDialog(response.error.message)
+    private fun getTracksFromServer() {
+        if (!isLoading) {
+            isLoading = true
+            repositoryImpl.getTracks(createTrackRequest())
+                .continueWith({ response ->
+                    when {
+                        response.error != null -> {
+                            createAlertDialog(response.error.message)
+                        }
+                        response.result.status == "error" -> {
+                            createAlertDialog(response.result.status)
+                        }
+                        else -> {
+                            val sortedList = response.result.tracks.sortedByDescending { it.beginTime }
+                            var raznica = sortedList.size - trackList.size
+                            if (raznica>0){
+                                trackList.clear()
+                                while (raznica!=0){
+                                    trackList.add(sortedList[sortedList.size-(raznica--)])
+                                }
+                            }
+
+                            trackRecyclerView.adapter?.notifyDataSetChanged()
+                            isLoading = false
+                        }
                     }
-                    response.result.status == "error" -> {
-                        createAlertDialog(response.result.status)
-                    }
-                    else -> {
-                        val sortedList = response.result.tracks.sortedBy { it.beginTime }
-                        trackList.addAll(sortedList)
-                        trackRecyclerView.adapter?.notifyDataSetChanged()
-                        Log.e("key", "${sortedList[1].beginTime}")
-                        Log.e("key", "${SimpleDateFormat("dd,MM,yyyy hh:mm:ss").format(Date(sortedList[1].beginTime))}")
-                        Log.e("key", "${sortedList[1].time}")
-                    }
+                    swipeRefreshLayout.isRefreshing = false
+                }, Task.UI_THREAD_EXECUTOR)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.e("key", "${trackList.size}")
+    }
+
+    private fun getTracksFromDb() {
+        repositoryImpl.getListOfTrack()
+            .continueWith({
+                if (it.error != null) {
+                    Log.e("key", "${it.error.message}")
+                } else {
+                    trackList.addAll(it.result)
+                    getTracksFromServer()
                 }
-                swipeRefreshLayout.isRefreshing = false
             }, Task.UI_THREAD_EXECUTOR)
     }
 
@@ -125,15 +163,23 @@ class TrackListFragment : Fragment() {
 
     private fun setSwipeLayoutListener() {
         swipeRefreshLayout.setOnRefreshListener {
-            getTacksFromServer()
+            if (!isLoading) {
+                getTracksFromServer()
+            } else {
+                swipeRefreshLayout.isRefreshing = false
+            }
         }
     }
 
     private fun initTrackRecycler() {
         with(trackRecyclerView) {
             adapter = TrackListAdapter(listOfTracks = trackList, goToCurrentTrack = {
-                navigator?.goToTrackScreen(it.id, it.beginTime.toString().toLong(), it.time, it.distance, arguments?.getString(
-                    CURRENT_TOKEN)!!)
+                navigator?.goToTrackScreen(it.id,
+                    it.beginTime.toString().toLong(),
+                    it.time,
+                    it.distance,
+                    arguments?.getString(
+                        CURRENT_TOKEN)!!)
             })
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)

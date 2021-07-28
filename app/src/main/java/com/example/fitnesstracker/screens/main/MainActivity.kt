@@ -14,16 +14,17 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
-import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.screens.main.notification.NotificationFragment
-import com.example.fitnesstracker.screens.main.running.RunningFragment
-import com.example.fitnesstracker.screens.main.track.TrackFragment
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
+import com.example.fitnesstracker.screens.main.notification.NotificationFragment
+import com.example.fitnesstracker.screens.main.running.RunningActivity
+import com.example.fitnesstracker.screens.main.track.TrackFragment
 import com.google.android.material.navigation.NavigationView
+
+const val IS_FROM_NOTIFICATION = "IS FROM NOTIFICATION"
 
 class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
@@ -155,18 +156,21 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         }
     }
 
-    override fun goToRunningScreen(token:String) {
-        replaceFragment(RunningFragment.newInstance(token), RUNNING)
-        toggle.isDrawerIndicatorEnabled = false
+    override fun goToRunningScreen(token: String) {
+        val intent = Intent(this, RunningActivity::class.java)
+            .putExtra(IS_FROM_NOTIFICATION, false)
+        startActivity(intent)
     }
 
 
-    override fun goToTrackScreen(id: Int,
-                                 beginTime: Long,
-                                 runningTime: Long,
-                                 distance: Int,
-                                 token: String,) {
-        replaceFragment(TrackFragment.newInstance(id,beginTime,
+    override fun goToTrackScreen(
+        id: Int,
+        beginTime: Long,
+        runningTime: Long,
+        distance: Int,
+        token: String,
+    ) {
+        replaceFragment(TrackFragment.newInstance(id, beginTime,
             runningTime,
             distance,
             token), TRACK)
@@ -180,12 +184,20 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         if (supportFragmentManager.backStackEntryCount > 1) {
             removeTransaction()
             updateToolbarBtn()
+            saveInSharedPref(this, false)
             return
         }
         if (supportFragmentManager.backStackEntryCount == 1) {
             finish()
         }
         super.onBackPressed()
+    }
+
+    private fun saveInSharedPref(context: Context, isFromNotification: Boolean) {
+        context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(IS_FROM_NOTIFICATION, isFromNotification)
+            .apply()
     }
 
     override fun onDestroy() {

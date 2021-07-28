@@ -108,14 +108,14 @@ class TrackFragment : Fragment() {
                         val finishLatLng = LatLng(finishCoordinate.lat,finishCoordinate.lng)
                         googleMap?.addMarker(MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(
                             BitmapDescriptorFactory.HUE_RED)).position(startLatLng).title("Start"))
-                        googleMap?.moveCamera(CameraUpdateFactory.newLatLng(startLatLng))
                         googleMap?.addPolyline(PolylineOptions()
                             .clickable(false)
                             .addAll(allPointsInLatLng))
                         googleMap?.addMarker(MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(
                             BitmapDescriptorFactory.HUE_BLUE)).position(finishLatLng).title("Finish"))
-
-                        googleMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(LatLngBounds(startLatLng,finishLatLng),25))
+                        val builder = LatLngBounds.Builder()
+                        builder.include(startLatLng).include(finishLatLng)
+                        googleMap?.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100))
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)

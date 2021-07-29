@@ -15,6 +15,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
         const val ID_FROM_SERVER = "_id"
         const val BEGIN_TIME = "beginAt"
         const val RUNNING_TIME = "time"
+        const val NOTIFICATION_TIME = "time"
         const val DISTANCE = "distance"
         const val LATITUDE = "latitude"
         const val LONGITUDE = "longitude"
@@ -30,6 +31,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
     override fun onCreate(db: SQLiteDatabase?) {
         createTrackersTable(db = db)
         createPointsTable(db = db)
+        createNotificationDb(db = db)
     }
 
     private fun createTrackersTable(db: SQLiteDatabase?) {
@@ -50,6 +52,14 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
             .addField(ID_FROM_SERVER, INTEGER)
             .addField(LATITUDE, REAL_NOT_NULL)
             .addField(LONGITUDE, REAL_NOT_NULL)
+            .create(db = db)
+    }
+
+    private fun createNotificationDb(db: SQLiteDatabase?){
+        CreateDBHelper()
+            .setName("NotificationTime")
+            .addField(ID, INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
+            .addField(NOTIFICATION_TIME, LONG_NOT_NULL)
             .create(db = db)
     }
 

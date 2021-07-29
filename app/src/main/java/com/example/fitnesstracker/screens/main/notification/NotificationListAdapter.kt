@@ -36,10 +36,8 @@ class NotificationListAdapter(
             }
             enabledNotificationSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (isChecked) {
-                    buttonView.isChecked = false
                     enableNotification(notification)
                 } else {
-                    buttonView.isChecked = true
                     closeNotification(notification)
                 }
             }

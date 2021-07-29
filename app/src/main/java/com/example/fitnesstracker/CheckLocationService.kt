@@ -91,12 +91,12 @@ class CheckLocationService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    private fun checkInternetConnection(context: Context): Boolean {
-        val cm = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        val netInfo = cm.activeNetworkInfo
-        return netInfo != null && netInfo.isConnected
-    }
+//    @RequiresApi(Build.VERSION_CODES.M)
+//    private fun checkInternetConnection(context: Context): Boolean {
+//        val cm = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+//        val netInfo = cm.activeNetworkInfo
+//        return netInfo != null && netInfo.isConnected
+//    }
 
     private fun createNotifyChanel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

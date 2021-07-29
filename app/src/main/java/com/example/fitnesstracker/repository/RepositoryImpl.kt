@@ -7,9 +7,10 @@ import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
 import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
 import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
-import com.example.fitnesstracker.models.ColumnIndexFromDb
+import com.example.fitnesstracker.models.TrackColumnIndexFromDb
 import com.example.fitnesstracker.models.login.LoginRequest
 import com.example.fitnesstracker.models.login.LoginResponse
+import com.example.fitnesstracker.models.notification.Notification
 import com.example.fitnesstracker.models.points.PointsRequest
 import com.example.fitnesstracker.models.points.PointsResponse
 import com.example.fitnesstracker.models.registration.RegistrationRequest
@@ -70,6 +71,35 @@ class RepositoryImpl : Repository {
         }
     }
 
+    override fun getListOfNotification(): Task<List<Notification>> {
+        return Task.callInBackground{
+            getListOfNotificationFromDb()
+        }
+    }
+
+    private fun getListOfNotificationFromDb():List<Notification> {
+        var cursor:Cursor? = null
+        val listOfNotification = mutableListOf<Notification>()
+        try {
+            cursor = SelectDbHelper()
+                .selectParams("*")
+                .nameOfTable("NotificationTime")
+                .select(App.INSTANCE.db)
+            if (cursor.moveToFirst()) {
+                val timeId = cursor.getColumnIndexOrThrow(FitnessDatabase.NOTIFICATION_TIME)
+                val idColumn = cursor.getColumnIndexOrThrow(FitnessDatabase.ID)
+                do {
+                    val time = cursor.getString(timeId).toLong()
+                    val id = cursor.getInt(idColumn)
+                    listOfNotification.add(Notification(id, time))
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+        }
+        return listOfNotification
+    }
+
     private fun getListOfTracks(): List<Track> {
         var cursor: Cursor? = null
         val listOfTracks = mutableListOf<Track>()
@@ -90,14 +120,14 @@ class RepositoryImpl : Repository {
         return listOfTracks
     }
 
-    private fun createTrack(cursor: Cursor, index: ColumnIndexFromDb) = Track (
+    private fun createTrack(cursor: Cursor, index: TrackColumnIndexFromDb) = Track (
         id = cursor.getInt(index._id),
         beginTime = cursor.getLong(index.beginAt),
         time = cursor.getLong(index.time),
         distance = cursor.getInt(index.distance)
     )
 
-    private fun getColumnIndex(cursor: Cursor) = ColumnIndexFromDb(
+    private fun getColumnIndex(cursor: Cursor) = TrackColumnIndexFromDb(
         _id = cursor.getColumnIndexOrThrow("_id"),
         beginAt = cursor.getColumnIndexOrThrow("beginAt"),
         time = cursor.getColumnIndexOrThrow("time"),

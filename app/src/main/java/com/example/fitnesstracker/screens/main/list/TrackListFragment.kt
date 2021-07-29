@@ -118,13 +118,13 @@ class TrackListFragment : Fragment() {
                                     trackList.add(sortedList[sortedList.size-(raznica--)])
                                 }
                             }
-
                             trackRecyclerView.adapter?.notifyDataSetChanged()
                             isLoading = false
                         }
                     }
-                    swipeRefreshLayout.isRefreshing = false
                 }, Task.UI_THREAD_EXECUTOR)
+        } else {
+            swipeRefreshLayout.isRefreshing = false
         }
     }
 

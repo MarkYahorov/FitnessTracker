@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import com.example.fitnesstracker.screens.main.IS_FROM_NOTIFICATION
 import com.example.fitnesstracker.screens.main.running.RunningActivity
@@ -15,8 +16,10 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val asd = Intent(context, RunningActivity::class.java)
             .putExtra(IS_FROM_NOTIFICATION, true)
+        val currentRequestCode = intent.getIntExtra("NEW_REQUEST_CODE",1)
+        Log.e("key", "$currentRequestCode")
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent = PendingIntent.getActivity(context, 0, asd, 0)
+        val pendingIntent = PendingIntent.getActivity(context, currentRequestCode, asd, 0)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val builder = Notification.Builder(context, "alarmChanel")
@@ -28,7 +31,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setTicker(context.getText(R.string.password_text_hint))
                 .build()
             val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(123, builder)
+            notificationManager.notify(currentRequestCode, builder)
         }
     }
 }

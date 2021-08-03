@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Point(
+data class PointForData(
     @SerializedName("lng")
     val lng: Double,
     @SerializedName("lat")

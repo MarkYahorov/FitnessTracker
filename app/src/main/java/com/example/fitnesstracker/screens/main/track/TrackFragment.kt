@@ -12,8 +12,10 @@ import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LATITUDE
 import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
-import com.example.fitnesstracker.models.points.Point
+import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.points.PointsRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -21,6 +23,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class TrackFragment : Fragment() {
@@ -30,9 +34,11 @@ class TrackFragment : Fragment() {
         private const val CURRENT_BEGIN_TIME = "CURRENT_BEGIN_TIME"
         private const val CURRENT_RUNNING_TIME = "CURRENT_RUNNING_TIME"
         private const val CURRENT_DISTANCE = "CURRENT_DISTANCE"
+        private const val CURRENT_DB_ID = "CURRENT_ID"
 
         fun newInstance(
             id: Int,
+            serverId: Int,
             beginTime: Long,
             runningTime: Long,
             distance: Int,
@@ -40,7 +46,8 @@ class TrackFragment : Fragment() {
         ): TrackFragment {
             val trackFragment = TrackFragment()
             val bundle = Bundle()
-            bundle.putInt(CURRENT_TRACK_ID, id)
+            bundle.putInt(CURRENT_DB_ID, id)
+            bundle.putInt(CURRENT_TRACK_ID, serverId)
             bundle.putLong(CURRENT_BEGIN_TIME, beginTime)
             bundle.putLong(CURRENT_RUNNING_TIME, runningTime)
             bundle.putInt(CURRENT_DISTANCE, distance)
@@ -55,7 +62,7 @@ class TrackFragment : Fragment() {
 
     private var googleMap: GoogleMap? = null
     private var trackFragment: SupportMapFragment? = null
-    private val allDistanceOfTrack = mutableListOf<Point>()
+    private val allDistanceOfTrack = mutableListOf<PointForData>()
     private val allPointsInLatLng = mutableListOf<LatLng>()
     private val repo = App.INSTANCE.repositoryImpl
 
@@ -81,14 +88,32 @@ class TrackFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         trackFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
         trackFragment?.getMapAsync(callback)
-        runningTime.text = arguments?.getLong(CURRENT_RUNNING_TIME).toString()
+        val format = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
+        val timeZone = SimpleTimeZone.getTimeZone("UTC")
+        format.timeZone = timeZone
+        runningTime.text = format.format(arguments?.getLong(CURRENT_RUNNING_TIME))
         distance.text = arguments?.getInt(CURRENT_DISTANCE).toString()
     }
 
     override fun onResume() {
         super.onResume()
-        getTrackFromServer()
+        if (!checkThisPointIntoDb(arguments?.getInt(CURRENT_DB_ID)!!)) {
+            getTrackFromServer()
+        } else {
+            getListOfPointsFromDb(arguments?.getInt(CURRENT_DB_ID)!!)
+        }
     }
+
+    private fun getListOfPointsFromDb(id: Int) {
+        repo.getPointsForCurrentTrackFromDb(id)
+            .continueWith ({ listFromDb ->
+                listFromDb.result.forEach {
+                    allDistanceOfTrack.add(PointForData(it.lng, it.lat))
+                }
+                processResult(allDistanceOfTrack, allPointsInLatLng)
+            },Task.UI_THREAD_EXECUTOR)
+    }
+
 
     private fun getTrackFromServer() {
         repo.getPointsForCurrentTrack(createPointsRequest())
@@ -98,66 +123,82 @@ class TrackFragment : Fragment() {
                         Log.e("key", "it.error")
                     }
                     it.result.status == "error" -> {
-                        Log.e("key", "status == error")
+                        Log.e("key", "${it.result.error}")
                     }
                     else -> {
-                        allDistanceOfTrack.addAll(it.result.points)
-                        allDistanceOfTrack.forEach { point ->
-                            allPointsInLatLng.add(LatLng(point.lat, point.lng))
-                            if(!checkThisPointIntoDb(arguments?.getInt(CURRENT_TRACK_ID)!!)){
-                                InsertDBHelper()
-                                    .setTableName("allPoints")
-                                    .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER,
-                                        arguments?.getInt(CURRENT_TRACK_ID)!!.toString())
-                                    .addFieldsAndValuesToInsert(FitnessDatabase.LATITUDE, point.lat.toString())
-                                    .addFieldsAndValuesToInsert(FitnessDatabase.LONGITUDE, point.lng.toString())
-                                    .insertTheValues(App.INSTANCE.db)
-                            }
-                        }
-                        val startCoordinate = allDistanceOfTrack[0]
-                        val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
-                        val finishCoordinate = allDistanceOfTrack[allDistanceOfTrack.lastIndex]
-                        val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)
-                        googleMap?.addMarker(
-                            MarkerOptions().icon(
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_RED
-                                )
-                            ).position(startLatLng).title("Start")
-                        )
-                        googleMap?.addPolyline(
-                            PolylineOptions()
-                                .clickable(false)
-                                .addAll(allPointsInLatLng)
-                        )
-                        googleMap?.addMarker(
-                            MarkerOptions().icon(
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_BLUE
-                                )
-                            ).position(finishLatLng).title("Finish")
-                        )
-                        val builder = LatLngBounds.Builder()
-                        builder.include(startLatLng).include(finishLatLng)
-                        googleMap?.moveCamera(
-                            CameraUpdateFactory.newLatLngBounds(
-                                builder.build(),
-                                100
-                            )
-                        )
+                        allDistanceOfTrack.addAll(it.result.pointForData)
+                        insertPointsIntoDb(allDistanceOfTrack = allDistanceOfTrack)
+                        processResult(allDistanceOfTrack, allPointsInLatLng)
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)
     }
 
+    private fun insertPointsIntoDb(allDistanceOfTrack: List<PointForData>) {
+        allDistanceOfTrack.forEach {
+            InsertDBHelper()
+                .setTableName("allPoints")
+                .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER, arguments?.getInt(CURRENT_TRACK_ID)!!.toString())
+                .addFieldsAndValuesToInsert(CURRENT_TRACK, arguments?.getInt(CURRENT_DB_ID)!!.toString())
+                .addFieldsAndValuesToInsert(LATITUDE, it.lat.toString())
+                .addFieldsAndValuesToInsert(FitnessDatabase.LONGITUDE, it.lng.toString())
+                .insertTheValues(App.INSTANCE.db)
+        }
+    }
+
+    private fun processResult(
+        allDistanceOfTrack: List<PointForData>,
+        allPointsInLatLng: MutableList<LatLng>
+    ) {
+        val startCoordinate = allDistanceOfTrack[0]
+        val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
+        val finishCoordinate = allDistanceOfTrack[allDistanceOfTrack.lastIndex]
+        val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)
+        allDistanceOfTrack.forEach { points ->
+            allPointsInLatLng.add(LatLng(points.lat, points.lng))
+        }
+        addMarker(BitmapDescriptorFactory.HUE_RED, startLatLng, "Start")
+        addPolyline(allPointsInLatLng = allPointsInLatLng)
+        addMarker(BitmapDescriptorFactory.HUE_BLUE, finishLatLng, "Finish")
+        val builder = LatLngBounds.Builder()
+        builder.include(startLatLng).include(finishLatLng)
+        googleMap?.moveCamera(
+            CameraUpdateFactory.newLatLngBounds(
+                builder.build(),
+                500
+            )
+        )
+    }
+
+    private fun addMarker(iconColor: Float, position: LatLng, title: String) {
+        googleMap?.addMarker(
+            MarkerOptions().icon(
+                BitmapDescriptorFactory.defaultMarker(
+                    iconColor
+                )
+            ).position(position).title(title)
+        )
+    }
+
+    private fun addPolyline(allPointsInLatLng: MutableList<LatLng>) {
+        googleMap?.addPolyline(
+            PolylineOptions()
+                .clickable(false)
+                .addAll(allPointsInLatLng)
+        )
+    }
+
+
     private fun checkThisPointIntoDb(id: Int): Boolean {
         var cursor: Cursor? = null
+        val haveData: Boolean?
         try {
-            cursor = App.INSTANCE.db.rawQuery("SELECT * FROM allPoints WHERE _id=id", null)
+            cursor = App.INSTANCE.db.rawQuery("SELECT * FROM allPoints WHERE currentTrack=$id", null)
+            haveData = cursor.moveToFirst()
         } finally {
             cursor?.close()
         }
-        return cursor!!.moveToFirst()
+        return haveData!!
     }
 
     private fun createPointsRequest() = PointsRequest(

@@ -19,6 +19,8 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
         const val DISTANCE = "distance"
         const val LATITUDE = "latitude"
         const val LONGITUDE = "longitude"
+        const val CURRENT_TRACK = "currentTrack"
+        const val IS_SEND = "isSend"
         private const val INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT =
             "INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
         private const val INTEGER = "INTEGER"
@@ -42,6 +44,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
             .addField(BEGIN_TIME, TEXT_NOT_NULL)
             .addField(RUNNING_TIME, LONG_NOT_NULL)
             .addField(DISTANCE, INTEGER_NOT_NULL)
+            .addField(IS_SEND, INTEGER_NOT_NULL) // 1 or 0, 1- false, 0 true
             .create(db = db)
     }
 
@@ -50,6 +53,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
             .setName("allPoints")
             .addField(ID, INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(ID_FROM_SERVER, INTEGER)
+            .addField(CURRENT_TRACK, INTEGER_NOT_NULL)
             .addField(LATITUDE, REAL_NOT_NULL)
             .addField(LONGITUDE, REAL_NOT_NULL)
             .create(db = db)

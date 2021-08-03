@@ -3,13 +3,13 @@ package com.example.fitnesstracker.models.tracks
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
-data class Track(
+data class TrackForData(
     @SerializedName("id")
-    val id: Int,
+    var serverId: Int?,
     @SerializedName("beginsAt")
-    val beginTime: Long,
+    var beginTime: Long,
     @SerializedName("time")
-    val time: Long,
+    var time: Long,
     @SerializedName("distance")
-    val distance: Int
+    var distance: Int
 )

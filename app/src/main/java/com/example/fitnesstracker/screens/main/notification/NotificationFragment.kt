@@ -1,10 +1,8 @@
 package com.example.fitnesstracker.screens.main.notification
 
-import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context.ALARM_SERVICE
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -36,6 +34,7 @@ class NotificationFragment : Fragment() {
     private lateinit var alarmManager: AlarmManager
 
     private val notificationList = mutableListOf<Notification>()
+    private var builder: AlertDialog.Builder? = null
     private val repo = App.INSTANCE.repositoryImpl
     private var currentDate = 0L
     private var currentTime = 0L
@@ -80,6 +79,7 @@ class NotificationFragment : Fragment() {
     private fun initAll(view: View) {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler)
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
+        builder = AlertDialog.Builder(requireContext())
     }
 
     private fun initRecycler() {
@@ -88,13 +88,29 @@ class NotificationFragment : Fragment() {
                 enableNotification = {
                     setAlarmManager(it.id, it.time)
                 }, closeNotification = {
-                    setCancelAlarmBtnClickListener()
+                    createAlertDialog(it)
                 }, setTime = {
                     updateAlarm(it.id)
                 })
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
+    }
+
+    private fun createAlertDialog(notification: Notification) {
+        builder?.setPositiveButton("YES") { dialog, _ ->
+            setCancelAlarmBtnClickListener(notification.id)
+            dialog.dismiss()
+            dialog.cancel()
+        }
+        builder?.setNegativeButton("NO") { dialog, _ ->
+            dialog.dismiss()
+            dialog.cancel()
+        }
+        builder?.setTitle("ALARM")
+        builder?.setMessage("Sure?")
+        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        builder?.show()
     }
 
     private fun updateAlarm(currentId: Int) {
@@ -112,8 +128,8 @@ class NotificationFragment : Fragment() {
                         .show()
                 } else {
                     updateNotificationsInDb(currentAlarmTime, currentId)
-                    setAlarmManager(currentId+1, currentAlarmTime)
-                    notificationList[currentId-1].time = currentAlarmTime
+                    setAlarmManager(currentId + 1, currentAlarmTime)
+                    notificationList[currentId - 1].time = currentAlarmTime
                     notificationRecyclerView.adapter?.notifyDataSetChanged()
                 }
             }
@@ -221,10 +237,10 @@ class NotificationFragment : Fragment() {
         }
     }
 
-    private fun setCancelAlarmBtnClickListener() {
+    private fun setCancelAlarmBtnClickListener(channelMustHave: Int) {
         alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, 0)
+        val pendingIntent = PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
         alarmManager.cancel(pendingIntent)
     }
 }

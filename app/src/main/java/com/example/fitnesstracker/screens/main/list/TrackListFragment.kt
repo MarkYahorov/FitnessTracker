@@ -14,8 +14,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.models.tracks.Track
 import com.example.fitnesstracker.models.tracks.TrackRequest
+import com.example.fitnesstracker.models.tracks.Tracks
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -34,9 +34,10 @@ class TrackListFragment : Fragment() {
     }
 
     interface Navigator {
-        fun goToRunningScreen(token: String)
+        fun goToRunningScreen(token: String, trackId: Int)
         fun goToTrackScreen(
             id: Int,
+            serverId: Int,
             beginTime: Long,
             runningTime: Long,
             distance: Int,
@@ -48,7 +49,8 @@ class TrackListFragment : Fragment() {
     private lateinit var fab: FloatingActionButton
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
-    private val trackList = mutableListOf<Track>()
+    private var trackList = mutableListOf<Tracks>()
+    private var oldListSize = 0
     private val repositoryImpl = App.INSTANCE.repositoryImpl
     private var navigator: Navigator? = null
     private var builder: AlertDialog.Builder? = null
@@ -73,15 +75,19 @@ class TrackListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initTrackRecycler()
-        if (isFirstInApp) {
-            getTracksFromServer()
+        if (savedInstanceState == null) {
+            if (isFirstInApp) {
+                getTracksFromServer()
+            } else {
+                getTracksFromDb()
+            }
         } else {
-            getTracksFromDb()
+            oldListSize = savedInstanceState.getInt("OLD_LIST_SIZE")
+            trackList = savedInstanceState.getParcelableArrayList<Tracks>("TRACK_LIST")!!.toMutableList()
         }
+        initTrackRecycler()
         setFABListener()
         setSwipeLayoutListener()
-        trackRecyclerView.adapter?.notifyDataSetChanged()
         activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             ?.edit()
             ?.putBoolean("IS_FIRST", false)
@@ -110,44 +116,62 @@ class TrackListFragment : Fragment() {
                             createAlertDialog(response.result.status)
                         }
                         else -> {
-                            val sortedList = response.result.tracks.sortedByDescending { it.beginTime }
-                            var raznica = sortedList.size - trackList.size
-                            if (raznica>0){
+                            val sortedList =
+                                response.result.trackForData.sortedByDescending { it.beginTime }
+                            if (sortedList.size > trackList.size) {
+                                oldListSize = sortedList.size - trackList.size
                                 trackList.clear()
-                                while (raznica!=0){
-                                    trackList.add(sortedList[sortedList.size-(raznica--)])
+                                trackRecyclerView.adapter?.notifyItemRangeRemoved(0, trackList.size)
+                                sortedList.forEach {
+                                    var id = sortedList.size
+                                    trackList.add(
+                                        Tracks(
+                                            id,
+                                            it.serverId!!,
+                                            it.beginTime,
+                                            it.time,
+                                            it.distance
+                                        )
+                                    )
+                                    id-=1
+                                    Log.e("key", "$it")
                                 }
+                                trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
+                                trackRecyclerView.scrollToPosition(0)
+                                oldListSize = trackList.size
                             }
-                            trackRecyclerView.adapter?.notifyDataSetChanged()
-                            isLoading = false
                         }
                     }
+                    isLoading = false
+                    swipeRefreshLayout.isRefreshing = false
                 }, Task.UI_THREAD_EXECUTOR)
         } else {
             swipeRefreshLayout.isRefreshing = false
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.e("key", "${trackList.size}")
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("OLD_LIST_SIZE", oldListSize)
+        outState.putParcelableArrayList("TRACK_LIST", trackList as ArrayList<Tracks>)
     }
 
     private fun getTracksFromDb() {
         repositoryImpl.getListOfTrack()
-            .continueWith({
-                if (it.error != null) {
-                    Log.e("key", "${it.error.message}")
-                } else {
-                    trackList.addAll(it.result)
-                    getTracksFromServer()
+            .continueWith({ listOfTracks ->
+                oldListSize = listOfTracks.result.size - trackList.size
+                if (trackList.size<listOfTracks.result.size) {
+                    trackList.addAll(listOfTracks.result)
+                    trackList.sortByDescending { it.beginTime }
                 }
+                trackRecyclerView.adapter?.notifyItemRangeInserted(0,oldListSize)
+                getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
     }
 
     private fun setFABListener() {
         fab.setOnClickListener {
-            navigator?.goToRunningScreen(arguments?.getString(CURRENT_TOKEN)!!)
+            navigator?.goToRunningScreen(arguments?.getString(CURRENT_TOKEN)!!, trackList.size + 1)
         }
     }
 
@@ -173,13 +197,17 @@ class TrackListFragment : Fragment() {
 
     private fun initTrackRecycler() {
         with(trackRecyclerView) {
-            adapter = TrackListAdapter(listOfTracks = trackList, goToCurrentTrack = {
-                navigator?.goToTrackScreen(it.id,
+            adapter = TrackListAdapter(listOfTrackForData = trackList, goToCurrentTrack = {
+                navigator?.goToTrackScreen(
+                    it.id!!,
+                    it.serverId,
                     it.beginTime.toString().toLong(),
                     it.time,
                     it.distance,
                     arguments?.getString(
-                        CURRENT_TOKEN)!!)
+                        CURRENT_TOKEN
+                    )!!
+                )
             })
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)

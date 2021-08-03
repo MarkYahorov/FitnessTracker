@@ -1,6 +1,6 @@
 package com.example.fitnesstracker.models.save
 
-import com.example.fitnesstracker.models.points.Point
+import com.example.fitnesstracker.models.points.PointForData
 import com.google.gson.annotations.SerializedName
 
 data class SaveTrackRequest(
@@ -15,5 +15,5 @@ data class SaveTrackRequest(
     @SerializedName("distance")
     val distance: Int,
     @SerializedName("points")
-    val points: List<Point>
+    val pointForData: List<PointForData>
 )

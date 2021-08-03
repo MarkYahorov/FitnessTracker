@@ -6,31 +6,32 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.models.tracks.Track
+import com.example.fitnesstracker.models.tracks.TrackForData
+import com.example.fitnesstracker.models.tracks.Tracks
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TrackListAdapter(
-    private val listOfTracks: MutableList<Track>,
-    private val goToCurrentTrack: (Track) -> Unit,
+    private val listOfTrackForData: MutableList<Tracks>,
+    private val goToCurrentTrack: (Tracks) -> Unit,
 ) : RecyclerView.Adapter<TrackListAdapter.ViewHolder>() {
 
-    class ViewHolder(private val item: View, private val goToCurrentTrack: (Track) -> Unit) :
+    class ViewHolder(private val item: View, private val goToCurrentTrack: (Tracks) -> Unit) :
         RecyclerView.ViewHolder(item) {
         private val beginTime: TextView = item.findViewById(R.id.begin_time)
         private val time: TextView = item.findViewById(R.id.time_running)
         private val distance: TextView = item.findViewById(R.id.distance)
 
-        fun bind(track: Track) {
-            val date = SimpleDateFormat("dd.MM.yyyy HH:mm:ss,SS", Locale.getDefault())
+        fun bind(trackForData: Tracks) {
+            val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
             val currentTimeFormat = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
             val timeZone = SimpleTimeZone.getTimeZone("UTC")
             currentTimeFormat.timeZone = timeZone
-            beginTime.text = date.format(track.beginTime)
-            time.text = currentTimeFormat.format(track.time)
-            distance.text = track.distance.toString()
+            beginTime.text = date.format(trackForData.beginTime)
+            time.text = currentTimeFormat.format(trackForData.time)
+            distance.text = trackForData.distance.toString()
             item.setOnClickListener {
-                goToCurrentTrack(track)
+                goToCurrentTrack(trackForData)
             }
         }
     }
@@ -42,8 +43,8 @@ class TrackListAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(listOfTracks[position])
+        holder.bind(listOfTrackForData[position])
     }
 
-    override fun getItemCount(): Int = listOfTracks.size
+    override fun getItemCount(): Int = listOfTrackForData.size
 }

@@ -1,5 +1,6 @@
 package com.example.fitnesstracker.screens.main.notification
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,24 +26,17 @@ class NotificationListAdapter(
         private val setTime: (Notification) -> Unit,
     ) : RecyclerView.ViewHolder(item) {
         private val timeText = item.findViewById<TextView>(R.id.notification_time)
-        private val enabledNotificationSwitch =
-            item.findViewById<SwitchCompat>(R.id.enabled_notification_switch)
 
         fun bind(notification: Notification) {
-            val date = SimpleDateFormat("dd.MM.yyyy HH:mm:ss,SS", Locale.getDefault())
+            val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
             timeText.text = date.format(notification.time)
-            if (enabledNotificationSwitch.isChecked) {
-                enableNotification(notification)
-            }
-            enabledNotificationSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (isChecked) {
-                    enableNotification(notification)
-                } else {
-                    closeNotification(notification)
-                }
-            }
+            enableNotification(notification)
             item.setOnClickListener {
                 setTime(notification)
+            }
+            item.setOnLongClickListener {
+                closeNotification(notification)
+                true
             }
         }
     }

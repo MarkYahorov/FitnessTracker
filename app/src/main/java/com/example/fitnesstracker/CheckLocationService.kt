@@ -7,11 +7,10 @@ import android.content.Intent
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
-import com.example.fitnesstracker.models.points.Point
+import com.example.fitnesstracker.models.points.PointForData
 import java.util.*
 
 
@@ -21,15 +20,16 @@ class CheckLocationService : Service() {
     private var currentLongitude: Double = 0.0
     private var oldLatitude: Double? = null
     private var oldLongitude: Double? = null
-    private val listOfPoints = mutableListOf<Point>()
+    private val listOfPoints = mutableListOf<PointForData>()
     private val distanceList = FloatArray(1)
     private val allDistanceList = mutableListOf<Float>()
     private lateinit var locationManager: LocationManager
+    private var countOfTap = 0
 
     private val listener = LocationListener { location ->
         currentLatitude = location.latitude
         currentLongitude = location.longitude
-        listOfPoints.add(Point(currentLongitude, currentLatitude))
+        listOfPoints.add(PointForData(currentLongitude, currentLatitude))
         if (oldLatitude == null || oldLongitude == null) {
             oldLatitude = location.latitude
             oldLongitude = location.longitude
@@ -80,10 +80,11 @@ class CheckLocationService : Service() {
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.extras?.get("Bool") == true) {
+            countOfTap = intent.getIntExtra("countOfTap",1)
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 5F, listener)
         } else {
             val endIntent = Intent("location_update")
-                .putExtra("allCoordinates", listOfPoints as ArrayList<Point>)
+                .putExtra("allCoordinates", listOfPoints as ArrayList<PointForData>)
                 .putExtra("distance", allDistanceList.toFloatArray())
             sendBroadcast(endIntent)
             stopSelf()

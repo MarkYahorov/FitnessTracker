@@ -14,6 +14,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
@@ -116,6 +117,13 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
                 .edit()
                 .putString(CURRENT_TOKEN, EMPTY_VALUE)
                 .apply()
+            getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("IS_FIRST", true)
+                .apply()
+            App.INSTANCE.db.execSQL("DELETE FROM trackers")
+            App.INSTANCE.db.execSQL("DELETE FROM allPoints")
+            App.INSTANCE.db.execSQL("DELETE FROM NotificationTime")
             finish()
         }
     }
@@ -156,21 +164,23 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         }
     }
 
-    override fun goToRunningScreen(token: String) {
+    override fun goToRunningScreen(token: String, trackId:Int) {
         val intent = Intent(this, RunningActivity::class.java)
             .putExtra(IS_FROM_NOTIFICATION, false)
+            .putExtra("track_id", trackId)
         startActivity(intent)
     }
 
 
     override fun goToTrackScreen(
         id: Int,
+        serverId: Int,
         beginTime: Long,
         runningTime: Long,
         distance: Int,
         token: String,
     ) {
-        replaceFragment(TrackFragment.newInstance(id, beginTime,
+        replaceFragment(TrackFragment.newInstance(id,serverId, beginTime,
             runningTime,
             distance,
             token), TRACK)

@@ -2,24 +2,24 @@ package com.example.fitnesstracker.screens.main.running
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.location.LocationManager
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.SystemClock
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
@@ -29,13 +29,19 @@ import com.example.fitnesstracker.App
 import com.example.fitnesstracker.CheckLocationService
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.IS_SEND
 import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
-import com.example.fitnesstracker.models.points.Point
+import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
+import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.save.SaveTrackRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.main.IS_FROM_NOTIFICATION
 import com.example.fitnesstracker.screens.main.MainActivity
+import java.text.SimpleDateFormat
+import java.util.*
 
 class RunningActivity : AppCompatActivity() {
 
@@ -50,13 +56,15 @@ class RunningActivity : AppCompatActivity() {
 
     private var builder: AlertDialog.Builder? = null
     private var handler: Handler? = null
-    private val coordinationList = mutableListOf<Point>()
+    private val coordinationList = mutableListOf<PointForData>()
     private val repo = App.INSTANCE.repositoryImpl
+    private var calendar = Calendar.getInstance()
+    private val timeZone = SimpleTimeZone.getTimeZone("UTC")
     private var isFinish = true
-    private var currentChronometerTime = 0L
     private var distance = 0
     private var beginTime = 0L
     private var endTime = 0L
+    private var trackIdInDb = 0
 
     private var tMilliSec = 0L
     private var tStart = 0L
@@ -72,27 +80,31 @@ class RunningActivity : AppCompatActivity() {
             val distanceFromBroadcast = intent?.getFloatArrayExtra("distance")
             distance = distanceFromBroadcast?.sum()!!.toInt()
             distanceTextView.text = distanceFromBroadcast.sum().toLong().toString()
-            coordinationList.addAll(intent.getParcelableArrayListExtra<Point>("allCoordinates")!!
-                .toMutableList())
+            coordinationList.addAll(
+                intent.getParcelableArrayListExtra<PointForData>("allCoordinates")!!
+                    .toMutableList()
+            )
 
             if (coordinationList.size > 1) {
                 repo.saveTrack(createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
                         when {
                             saveTrackResponse.error != null -> {
-                                insertTheTrack(null)
-                                insertThePoints(null)
+                                insertTheTrack(null, 1)
+                                val id = getLastTrackInDb()
+                                insertThePoints(null, id!!)
                                 createAlertDialog("Lost Internet Connection")
                             }
                             saveTrackResponse.result.status == "error" -> {
-                                if (saveTrackResponse.result.error == "NO_POINTS") {
-                                    createAlertDialog(saveTrackResponse.result.error)
-                                }
+                                insertTheTrack(null, 1)
+                                val id = getLastTrackInDb()
+                                insertThePoints(null, id!!)
                                 createAlertDialog(saveTrackResponse.result.error)
                             }
                             else -> {
-                                insertTheTrack(saveTrackResponse.result.serverId)
-                                insertThePoints(saveTrackResponse.result.serverId)
+                                insertTheTrack(saveTrackResponse.result.serverId, 0)
+                                val id = getLastTrackInDb()
+                                insertThePoints(saveTrackResponse.result.serverId, id!!)
                             }
                         }
                     }, Task.UI_THREAD_EXECUTOR)
@@ -101,6 +113,26 @@ class RunningActivity : AppCompatActivity() {
                 createAlertDialog("YOU DON'T MOVING")
             }
         }
+    }
+
+    private fun getLastTrackInDb(): Int? {
+        var cursor: Cursor? = null
+        var id: Int? = null
+        try {
+            cursor = SelectDbHelper()
+                .nameOfTable("trackers")
+                .selectParams("max($ID) as $ID")
+                .select(App.INSTANCE.db)
+            if (cursor.moveToFirst()) {
+                val idIndex = cursor.getColumnIndexOrThrow(ID)
+                do {
+                    id = cursor.getInt(idIndex)
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+        }
+        return id
     }
 
     private val timer = object : Runnable {
@@ -113,12 +145,18 @@ class RunningActivity : AppCompatActivity() {
             hours = sec / 3600
             sec %= 60
             millis = (tUpdate % 100).toInt()
+            calendar[Calendar.HOUR_OF_DAY] = hours
+            calendar[Calendar.MINUTE] = min
+            calendar[Calendar.SECOND] = sec
+            calendar[Calendar.MILLISECOND] = millis
             timeRunning.text = "${String.format("%02d", hours)}: ${
-                String.format("%02d",
-                    min)
+                String.format(
+                    "%02d",
+                    min
+                )
             }: ${String.format("%02d", sec)}: ${String.format("%02d", millis)}"
             endTime = SystemClock.elapsedRealtime()
-            handler?.postDelayed(this, 10)
+            handler?.postDelayed(this, 40)
         }
     }
 
@@ -130,10 +168,10 @@ class RunningActivity : AppCompatActivity() {
 
         checkPermissions()
         initAll()
+        trackIdInDb = intent.getIntExtra("track_id", 0)
         if (savedInstanceState != null) {
             beginTime = savedInstanceState.getLong("BEGIN_TIME")
             isFinish = savedInstanceState.getBoolean("IS_FINISH")
-            currentChronometerTime = savedInstanceState.getLong("current_time")
             distanceTextView.text = savedInstanceState.getString("DISTANCE")
             finishTimeRunning.text = savedInstanceState.getString("FINISH_TIME")
             startBtn.isVisible = savedInstanceState.getBoolean("BOOL")
@@ -143,25 +181,26 @@ class RunningActivity : AppCompatActivity() {
             finishTimeRunning.isVisible = savedInstanceState.getBoolean("FTV")
             tStart = savedInstanceState.getLong("start")
             handler?.postDelayed(timer, 0)
-        } else {
-            currentChronometerTime = SystemClock.elapsedRealtime()
         }
     }
 
     @SuppressLint("SetTextI18n")
     private fun setButtonsClickListeners() {
+        calendar.timeZone = timeZone
         startBtn.setOnClickListener {
-            val intent = Intent(this, CheckLocationService::class.java)
-                .putExtra("Bool", true)
-            isFinish = false
-            beginTime = System.currentTimeMillis()
-            startService(intent)
-            finishBtn.isVisible = true
-            startBtn.isVisible = false
-            timeRunning.isVisible = true
-            tStart = SystemClock.elapsedRealtime()
-            handler?.postDelayed(timer, 0)
-            setIsFromNotificationInSharedPref()
+            if (isGpsEnabled()) {
+                val intent = Intent(this, CheckLocationService::class.java)
+                    .putExtra("Bool", true)
+                isFinish = false
+                beginTime = System.currentTimeMillis()
+                startService(intent)
+                finishBtn.isVisible = true
+                startBtn.isVisible = false
+                timeRunning.isVisible = true
+                tStart = SystemClock.elapsedRealtime()
+                handler?.postDelayed(timer, 0)
+                setIsFromNotificationInSharedPref()
+            }
         }
         finishBtn.setOnClickListener {
             isFinish = true
@@ -173,11 +212,10 @@ class RunningActivity : AppCompatActivity() {
             timeRunning.isVisible = false
             finishTimeRunning.isVisible = true
             handler?.removeCallbacks(timer)
-            endTime -= tStart
-            finishTimeRunning.text = "${String.format("%02d", hours)}: ${
-                String.format("%02d",
-                    min)
-            }: ${String.format("%02d", sec)}: ${String.format("%02d", millis)}"
+            val format = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
+            format.timeZone = timeZone
+            finishTimeRunning.text = format.format(calendar.time.time)
+            Log.e("key", "${calendar.time.time}")
         }
     }
 
@@ -207,27 +245,37 @@ class RunningActivity : AppCompatActivity() {
             .apply()
     }
 
-    private fun insertTheTrack(id: Int?) {
+    private fun insertTheTrack(id: Int?, isSend: Int) {
         InsertDBHelper()
             .setTableName("trackers")
             .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER, id.toString())
             .addFieldsAndValuesToInsert(FitnessDatabase.BEGIN_TIME, beginTime.toString())
-            .addFieldsAndValuesToInsert(FitnessDatabase.RUNNING_TIME,
-                currentChronometerTime.toString())
+            .addFieldsAndValuesToInsert(
+                FitnessDatabase.RUNNING_TIME,
+                calendar.time.time.toString()
+            )
+            .addFieldsAndValuesToInsert(IS_SEND, isSend.toString())
             .addFieldsAndValuesToInsert(FitnessDatabase.DISTANCE, distance.toString())
             .insertTheValues(App.INSTANCE.db)
     }
 
-    private fun insertThePoints(id: Int?) {
+    private fun insertThePoints(id: Int?, trackIdInDb: Int) {
         coordinationList.forEach {
             InsertDBHelper()
                 .setTableName("allPoints")
-                .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER,
-                    id.toString())
-                .addFieldsAndValuesToInsert(FitnessDatabase.LATITUDE,
-                    it.lat.toString())
-                .addFieldsAndValuesToInsert(FitnessDatabase.LONGITUDE,
-                    it.lng.toString())
+                .addFieldsAndValuesToInsert(
+                    FitnessDatabase.ID_FROM_SERVER,
+                    id.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    FitnessDatabase.LATITUDE,
+                    it.lat.toString()
+                )
+                .addFieldsAndValuesToInsert(CURRENT_TRACK, trackIdInDb.toString())
+                .addFieldsAndValuesToInsert(
+                    FitnessDatabase.LONGITUDE,
+                    it.lng.toString()
+                )
                 .insertTheValues(App.INSTANCE.db)
         }
     }
@@ -237,12 +285,14 @@ class RunningActivity : AppCompatActivity() {
             .getString(CURRENT_TOKEN, "").toString()
     }
 
-    private fun createSaveTrackRequest() = SaveTrackRequest(getTokenFromSharedPref(),
-        null,
-        beginTime,
-        endTime,
-        distance,
-        coordinationList)
+    private fun createSaveTrackRequest() = SaveTrackRequest(
+        token = getTokenFromSharedPref(),
+        serverId = null,
+        beginTime = beginTime,
+        time = calendar.time.time,
+        distance = distance,
+        pointForData = coordinationList
+    )
 
     override fun onStart() {
         super.onStart()
@@ -250,6 +300,16 @@ class RunningActivity : AppCompatActivity() {
         setToolbar()
         createDrawer()
         toggle.isDrawerIndicatorEnabled = false
+    }
+
+    private fun isGpsEnabled(): Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            true
+        } else {
+            createAlertDialog("GPS IS NOT ENABLED")
+            false
+        }
     }
 
     override fun onResume() {
@@ -286,8 +346,10 @@ class RunningActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun checkPermissions(): Boolean {
-        return if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        return if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
             true

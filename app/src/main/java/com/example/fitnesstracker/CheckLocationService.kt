@@ -9,12 +9,13 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.fitnesstracker.models.points.PointForData
 import java.util.*
 
 
-class CheckLocationService : Service() {
+class CheckLocationService : Service(), LocationListener {
 
     private var currentLatitude: Double = 0.0
     private var currentLongitude: Double = 0.0
@@ -26,19 +27,19 @@ class CheckLocationService : Service() {
     private lateinit var locationManager: LocationManager
     private var countOfTap = 0
 
-    private val listener = LocationListener { location ->
-        currentLatitude = location.latitude
-        currentLongitude = location.longitude
-        listOfPoints.add(PointForData(currentLongitude, currentLatitude))
-        if (oldLatitude == null || oldLongitude == null) {
-            oldLatitude = location.latitude
-            oldLongitude = location.longitude
-        }
-        calculateDistance()
-        allDistanceList.add(distanceList[0])
-        oldLatitude = currentLatitude
-        oldLongitude = currentLongitude
-    }
+//    private val listener = LocationListener { location ->
+//        currentLatitude = location.latitude
+//        currentLongitude = location.longitude
+//        listOfPoints.add(PointForData(currentLongitude, currentLatitude))
+//        if (oldLatitude == null || oldLongitude == null) {
+//            oldLatitude = location.latitude
+//            oldLongitude = location.longitude
+//        }
+//        calculateDistance()
+//        allDistanceList.add(distanceList[0])
+//        oldLatitude = currentLatitude
+//        oldLongitude = currentLongitude
+//    }
 
     private fun calculateDistance() {
         Location.distanceBetween(
@@ -83,23 +84,18 @@ class CheckLocationService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.extras?.get("Bool") == true) {
             countOfTap = intent.getIntExtra("countOfTap", 1)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000L, 5F, listener)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000L, 5F, this)
         } else {
             val endIntent = Intent("location_update")
                 .putExtra("allCoordinates", listOfPoints as ArrayList<PointForData>)
                 .putExtra("distance", allDistanceList.toFloatArray())
+            Log.e("key", "ИНТЕНТ ОТПРАВЛЕН")
             sendBroadcast(endIntent)
-            stopSelf()
+            Log.e("key", "БРОДКАСТ ОТПРАВЛЕН")
+            stopSelf(startId)
         }
-        return super.onStartCommand(intent, flags, startId)
+        return START_NOT_STICKY
     }
-
-//    @RequiresApi(Build.VERSION_CODES.M)
-//    private fun checkInternetConnection(context: Context): Boolean {
-//        val cm = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-//        val netInfo = cm.activeNetworkInfo
-//        return netInfo != null && netInfo.isConnected
-//    }
 
     private fun createNotifyChanel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -115,5 +111,24 @@ class CheckLocationService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? {
         TODO("Not yet implemented")
+    }
+
+    override fun onLocationChanged(location: Location) {
+        currentLatitude = location.latitude
+        currentLongitude = location.longitude
+        listOfPoints.add(PointForData(currentLongitude, currentLatitude))
+        if (oldLatitude == null || oldLongitude == null) {
+            oldLatitude = location.latitude
+            oldLongitude = location.longitude
+        }
+        calculateDistance()
+        allDistanceList.add(distanceList[0])
+        oldLatitude = currentLatitude
+        oldLongitude = currentLongitude
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.e("key", "СЕРВИС УНИЧТОЖЕН")
     }
 }

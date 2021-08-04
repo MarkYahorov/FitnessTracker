@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -118,6 +119,7 @@ class TrackListFragment : Fragment() {
                         else -> {
                             val sortedList =
                                 response.result.trackForData.sortedByDescending { it.beginTime }
+                            Toast.makeText(requireContext(),"${sortedList.size}", Toast.LENGTH_SHORT).show()
                             if (sortedList.size > trackList.size) {
                                 oldListSize = sortedList.size - trackList.size
                                 trackList.clear()

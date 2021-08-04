@@ -65,6 +65,7 @@ class RunningActivity : AppCompatActivity() {
     private var beginTime = 0L
     private var endTime = 0L
     private var trackIdInDb = 0
+    private var count = 0
 
     private var tMilliSec = 0L
     private var tStart = 0L
@@ -84,7 +85,9 @@ class RunningActivity : AppCompatActivity() {
                 intent.getParcelableArrayListExtra<PointForData>("allCoordinates")!!
                     .toMutableList()
             )
-
+            Log.e("key", "${intent.getParcelableArrayListExtra<PointForData>("allCoordinates")!!
+                .toMutableList()}")
+            Log.e("key", "БРОДКАСТ ПРИНЯТ")
             if (coordinationList.size > 1) {
                 repo.saveTrack(createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
@@ -108,11 +111,11 @@ class RunningActivity : AppCompatActivity() {
                             }
                         }
                     }, Task.UI_THREAD_EXECUTOR)
-                Log.e("key", "${coordinationList.size}")
             } else {
                 createAlertDialog("YOU DON'T MOVING")
             }
         }
+
     }
 
     private fun getLastTrackInDb(): Int? {
@@ -204,7 +207,7 @@ class RunningActivity : AppCompatActivity() {
                 tStart = SystemClock.elapsedRealtime()
                 handler?.postDelayed(timer, 0)
                 setIsFromNotificationInSharedPref()
-            } else if (!isGpsEnabled()){
+            } else if (!isGpsEnabled()) {
                 createAlertDialog("ENABLE GPS")
             } else {
                 createAlertDialog("ENABLE PERMISSIONS")
@@ -212,6 +215,7 @@ class RunningActivity : AppCompatActivity() {
         }
         finishBtn.setOnClickListener {
             if (isGpsEnabled()) {
+                finishBtn.isEnabled = false
                 isFinish = true
                 val intent = Intent(this, CheckLocationService::class.java)
                     .putExtra("Bool", false)
@@ -228,7 +232,6 @@ class RunningActivity : AppCompatActivity() {
                     .edit()
                     .putInt("CURRENT_ACTIVITY", 0)
                     .apply()
-                Log.e("key", "${calendar.time.time}")
             } else {
                 createAlertDialog("ENABLE GPS")
             }
@@ -397,5 +400,10 @@ class RunningActivity : AppCompatActivity() {
             return
         }
         super.onBackPressed()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(broadcastReceiver)
     }
 }

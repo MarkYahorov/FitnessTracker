@@ -1,4 +1,4 @@
-package com.example.fitnesstracker.screens.main.running
+package com.example.fitnesstracker.screens.running
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -165,7 +165,6 @@ class RunningActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_running)
-
         checkPermissions()
         initAll()
         trackIdInDb = intent.getIntExtra("track_id", 0)
@@ -184,13 +183,18 @@ class RunningActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     @SuppressLint("SetTextI18n")
     private fun setButtonsClickListeners() {
         calendar.timeZone = timeZone
         startBtn.setOnClickListener {
-            if (isGpsEnabled()) {
+            if (!checkPermissions() && isGpsEnabled()) {
                 val intent = Intent(this, CheckLocationService::class.java)
                     .putExtra("Bool", true)
+                getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("CURRENT_ACTIVITY", 1)
+                    .apply()
                 isFinish = false
                 beginTime = System.currentTimeMillis()
                 startService(intent)
@@ -200,22 +204,34 @@ class RunningActivity : AppCompatActivity() {
                 tStart = SystemClock.elapsedRealtime()
                 handler?.postDelayed(timer, 0)
                 setIsFromNotificationInSharedPref()
+            } else if (!isGpsEnabled()){
+                createAlertDialog("ENABLE GPS")
+            } else {
+                createAlertDialog("ENABLE PERMISSIONS")
             }
         }
         finishBtn.setOnClickListener {
-            isFinish = true
-            val intent = Intent(this, CheckLocationService::class.java)
-                .putExtra("Bool", false)
-            startService(intent)
-            finishBtn.isVisible = false
-            distanceTextView.isVisible = true
-            timeRunning.isVisible = false
-            finishTimeRunning.isVisible = true
-            handler?.removeCallbacks(timer)
-            val format = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
-            format.timeZone = timeZone
-            finishTimeRunning.text = format.format(calendar.time.time)
-            Log.e("key", "${calendar.time.time}")
+            if (isGpsEnabled()) {
+                isFinish = true
+                val intent = Intent(this, CheckLocationService::class.java)
+                    .putExtra("Bool", false)
+                startService(intent)
+                finishBtn.isVisible = false
+                distanceTextView.isVisible = true
+                timeRunning.isVisible = false
+                finishTimeRunning.isVisible = true
+                handler?.removeCallbacks(timer)
+                val format = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
+                format.timeZone = timeZone
+                finishTimeRunning.text = format.format(calendar.time.time)
+                getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+                    .edit()
+                    .putInt("CURRENT_ACTIVITY", 0)
+                    .apply()
+                Log.e("key", "${calendar.time.time}")
+            } else {
+                createAlertDialog("ENABLE GPS")
+            }
         }
     }
 
@@ -294,6 +310,7 @@ class RunningActivity : AppCompatActivity() {
         pointForData = coordinationList
     )
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
         setButtonsClickListeners()
@@ -304,7 +321,7 @@ class RunningActivity : AppCompatActivity() {
 
     private fun isGpsEnabled(): Boolean {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+        return if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             true
         } else {
             createAlertDialog("GPS IS NOT ENABLED")

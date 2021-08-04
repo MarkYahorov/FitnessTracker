@@ -21,7 +21,7 @@ import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment
-import com.example.fitnesstracker.screens.main.running.RunningActivity
+import com.example.fitnesstracker.screens.running.RunningActivity
 import com.example.fitnesstracker.screens.main.track.TrackFragment
 import com.google.android.material.navigation.NavigationView
 
@@ -46,14 +46,18 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        if (savedInstanceState == null) {
-            addListFragment()
-        }
+        supportActionBar?.show()
+        getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            .edit()
+            .putInt("CURRENT_ACTIVITY", 0)
+            .apply()
         initAll()
         setToolbar()
         createDrawer()
         setLogoutBtnListener()
+        if (savedInstanceState == null) {
+            addListFragment()
+        }
     }
 
     private fun addListFragment() {

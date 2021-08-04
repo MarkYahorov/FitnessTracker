@@ -28,8 +28,12 @@ class NotificationListAdapter(
         private val timeText = item.findViewById<TextView>(R.id.notification_time)
 
         fun bind(notification: Notification) {
+            val calendar = Calendar.getInstance()
+            calendar.time = Date(notification.date)
+            calendar[Calendar.HOUR_OF_DAY] = notification.hours
+            calendar[Calendar.MINUTE] = notification.minutes
             val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-            timeText.text = date.format(notification.time)
+            timeText.text = date.format(calendar.time)
             enableNotification(notification)
             item.setOnClickListener {
                 setTime(notification)

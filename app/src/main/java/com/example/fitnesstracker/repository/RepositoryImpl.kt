@@ -4,7 +4,10 @@ import android.database.Cursor
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_HOUR
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_MINUTE
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.IS_SEND
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.POSITION_IN_LIST
 import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
 import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
 import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
@@ -130,10 +133,16 @@ class RepositoryImpl : Repository {
             if (cursor.moveToFirst()) {
                 val timeId = cursor.getColumnIndexOrThrow(FitnessDatabase.NOTIFICATION_TIME)
                 val idColumn = cursor.getColumnIndexOrThrow(FitnessDatabase.ID)
+                val positionIndex = cursor.getColumnIndexOrThrow(POSITION_IN_LIST)
+                val hoursIndex = cursor.getColumnIndexOrThrow(CURRENT_HOUR)
+                val minutesIndex = cursor.getColumnIndexOrThrow(CURRENT_MINUTE)
                 do {
                     val time = cursor.getString(timeId).toLong()
                     val id = cursor.getInt(idColumn)
-                    listOfNotification.add(Notification(id, time))
+                    val position = cursor.getString(positionIndex).toInt()
+                    val hour = cursor.getString(hoursIndex).toInt()
+                    val minute = cursor.getString(minutesIndex).toInt()
+                    listOfNotification.add(Notification(id = id, date = time, position =  position, hours = hour, minutes = minute))
                 } while (cursor.moveToNext())
             }
         } finally {

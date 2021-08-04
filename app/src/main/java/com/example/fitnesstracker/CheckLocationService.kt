@@ -41,11 +41,13 @@ class CheckLocationService : Service() {
     }
 
     private fun calculateDistance() {
-        Location.distanceBetween(currentLatitude,
+        Location.distanceBetween(
+            currentLatitude,
             currentLongitude,
             oldLatitude!!,
             oldLongitude!!,
-            distanceList)
+            distanceList
+        )
     }
 
     @SuppressLint("MissingPermission")
@@ -80,8 +82,8 @@ class CheckLocationService : Service() {
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.extras?.get("Bool") == true) {
-            countOfTap = intent.getIntExtra("countOfTap",1)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 5F, listener)
+            countOfTap = intent.getIntExtra("countOfTap", 1)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000L, 5F, listener)
         } else {
             val endIntent = Intent("location_update")
                 .putExtra("allCoordinates", listOfPoints as ArrayList<PointForData>)
@@ -101,9 +103,11 @@ class CheckLocationService : Service() {
 
     private fun createNotifyChanel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notChan = NotificationChannel("exampleServiceChanel",
+            val notChan = NotificationChannel(
+                "exampleServiceChanel",
                 "example Service Chanel",
-                NotificationManager.IMPORTANCE_HIGH)
+                NotificationManager.IMPORTANCE_HIGH
+            )
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(notChan)
         }

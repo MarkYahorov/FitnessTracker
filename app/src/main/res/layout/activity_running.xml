@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/running_drawer"
-    tools:context=".screens.main.running.RunningActivity">
+    tools:context=".screens.running.RunningActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

@@ -21,6 +21,9 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
         const val LONGITUDE = "longitude"
         const val CURRENT_TRACK = "currentTrack"
         const val IS_SEND = "isSend"
+        const val POSITION_IN_LIST = "position"
+        const val CURRENT_HOUR = "hour"
+        const val CURRENT_MINUTE = "minute"
         private const val INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT =
             "INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
         private const val INTEGER = "INTEGER"
@@ -64,6 +67,9 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
             .setName("NotificationTime")
             .addField(ID, INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(NOTIFICATION_TIME, LONG_NOT_NULL)
+            .addField(POSITION_IN_LIST, INTEGER_NOT_NULL)
+            .addField(CURRENT_HOUR, INTEGER_NOT_NULL)
+            .addField(CURRENT_MINUTE, INTEGER_NOT_NULL)
             .create(db = db)
     }
 

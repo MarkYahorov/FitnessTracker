@@ -2,20 +2,35 @@ package com.example.fitnesstracker
 
 import android.annotation.SuppressLint
 import android.app.*
+import android.app.Notification.CATEGORY_SERVICE
+import android.app.NotificationManager.IMPORTANCE_HIGH
 import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.location.LocationManager.GPS_PROVIDER
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.PRIORITY_HIGH
 import com.example.fitnesstracker.models.points.PointForData
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.ALL_COORDINATES
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.DISTANCE_FROM_SERVICE
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.IS_START
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.LOCATION_UPDATE
 import java.util.*
 
 
 class CheckLocationService : Service(), LocationListener {
+
+    companion object {
+        private const val EXAMPLE_SERVICE_CHANNEL_ID = "exampleServiceChanel"
+        private const val EXAMPLE_SERVICE_CHANNEL_NAME = "example Service Chanel"
+        private const val MIN_TIME_MS = 3000L
+        private const val MIN_DISTANCE_M = 5F
+    }
 
     private var currentLatitude: Double = 0.0
     private var currentLongitude: Double = 0.0
@@ -24,22 +39,7 @@ class CheckLocationService : Service(), LocationListener {
     private val listOfPoints = mutableListOf<PointForData>()
     private val distanceList = FloatArray(1)
     private val allDistanceList = mutableListOf<Float>()
-    private lateinit var locationManager: LocationManager
-    private var countOfTap = 0
-
-//    private val listener = LocationListener { location ->
-//        currentLatitude = location.latitude
-//        currentLongitude = location.longitude
-//        listOfPoints.add(PointForData(currentLongitude, currentLatitude))
-//        if (oldLatitude == null || oldLongitude == null) {
-//            oldLatitude = location.latitude
-//            oldLongitude = location.longitude
-//        }
-//        calculateDistance()
-//        allDistanceList.add(distanceList[0])
-//        oldLatitude = currentLatitude
-//        oldLongitude = currentLongitude
-//    }
+    private var locationManager: LocationManager? = null
 
     private fun calculateDistance() {
         Location.distanceBetween(
@@ -66,11 +66,18 @@ class CheckLocationService : Service(), LocationListener {
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)
             }
         val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(this, "exampleServiceChanel")
+            NotificationCompat.Builder(this, EXAMPLE_SERVICE_CHANNEL_ID)
+                .setOngoing(true)
                 .setContentTitle(getText(R.string.error_message_repeat_password))
                 .setContentText(getText(R.string.error_message_password))
                 .setSmallIcon(R.drawable.ic_baseline_error_outline_24)
                 .setContentIntent(pendingIntent)
+                .setPriority(
+                    when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> IMPORTANCE_HIGH
+                    else -> PRIORITY_HIGH
+                })
+                .setCategory(CATEGORY_SERVICE)
                 .setTicker(getText(R.string.error_message_email))
                 .build()
         } else {
@@ -82,16 +89,16 @@ class CheckLocationService : Service(), LocationListener {
     @RequiresApi(Build.VERSION_CODES.M)
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.extras?.get("Bool") == true) {
-            countOfTap = intent.getIntExtra("countOfTap", 1)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000L, 5F, this)
+        if (intent?.extras?.get(IS_START) == true) {
+            locationManager?.requestLocationUpdates(GPS_PROVIDER, MIN_TIME_MS, MIN_DISTANCE_M, this)
         } else {
-            val endIntent = Intent("location_update")
-                .putExtra("allCoordinates", listOfPoints as ArrayList<PointForData>)
-                .putExtra("distance", allDistanceList.toFloatArray())
-            Log.e("key", "ИНТЕНТ ОТПРАВЛЕН")
+            locationManager?.requestLocationUpdates(GPS_PROVIDER, 0L, 0F, this)
+            val endIntent = Intent(LOCATION_UPDATE)
+                .putExtra(ALL_COORDINATES, listOfPoints as ArrayList<PointForData>)
+                .putExtra(DISTANCE_FROM_SERVICE, allDistanceList.toFloatArray())
+            locationManager = null
             sendBroadcast(endIntent)
-            Log.e("key", "БРОДКАСТ ОТПРАВЛЕН")
+            stopForeground(true)
             stopSelf(startId)
         }
         return START_NOT_STICKY
@@ -100,11 +107,12 @@ class CheckLocationService : Service(), LocationListener {
     private fun createNotifyChanel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notChan = NotificationChannel(
-                "exampleServiceChanel",
-                "example Service Chanel",
-                NotificationManager.IMPORTANCE_HIGH
+                EXAMPLE_SERVICE_CHANNEL_ID,
+                EXAMPLE_SERVICE_CHANNEL_NAME,
+                IMPORTANCE_HIGH
             )
-            val manager = getSystemService(NotificationManager::class.java)
+            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notChan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
             manager.createNotificationChannel(notChan)
         }
     }
@@ -125,10 +133,5 @@ class CheckLocationService : Service(), LocationListener {
         allDistanceList.add(distanceList[0])
         oldLatitude = currentLatitude
         oldLongitude = currentLongitude
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.e("key", "СЕРВИС УНИЧТОЖЕН")
     }
 }

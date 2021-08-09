@@ -31,4 +31,21 @@
     <string name="cancel_alarm">Cancel alarm</string>
     <string name="_12_30">12:30</string>
     <string name="name_app">Run and fun</string>
+    <string name="finish">Finish</string>
+    <string name="start">Start</string>
+    <string name="ok_thanks">Okay, thanks</string>
+    <string name="gps_enabled">GPS IS NOT ENABLED</string>
+    <string name="permissions_enabled">ENABLE PERMISSIONS</string>
+    <string name="press_finish">Press the finish button before exiting</string>
+    <string name="not_moving">YOU DO NOT MOVING</string>
+    <string name="not_internet">Lost Internet Connection</string>
+    <string name="select_alarm_time">Select Alarm Time</string>
+    <string name="toast_waring">Select a future date</string>
+    <string name="alarm">ALARM</string>
+    <string name="sure">Sure?</string>
+    <string name="no">NO</string>
+    <string name="yes">YES</string>
+    <string name="successfully">Track successfully save in server</string>
+    <string name="waring">For normal operation of the application, go to settings -> applications -> our application -> battery saver -> disable</string>
+    <string name="attention">Attention</string>
 </resources>

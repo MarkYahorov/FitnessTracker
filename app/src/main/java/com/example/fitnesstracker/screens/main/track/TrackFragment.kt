@@ -1,8 +1,8 @@
 package com.example.fitnesstracker.screens.main.track
 
+import android.app.AlertDialog
 import android.database.Cursor
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,12 +12,16 @@ import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LATITUDE
 import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
+import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.points.PointsRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.PATTERN
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.UTC
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -35,6 +39,7 @@ class TrackFragment : Fragment() {
         private const val CURRENT_RUNNING_TIME = "CURRENT_RUNNING_TIME"
         private const val CURRENT_DISTANCE = "CURRENT_DISTANCE"
         private const val CURRENT_DB_ID = "CURRENT_ID"
+        private const val ERROR = "error"
 
         fun newInstance(
             id: Int,
@@ -61,6 +66,7 @@ class TrackFragment : Fragment() {
     private lateinit var distance: TextView
 
     private var googleMap: GoogleMap? = null
+    private var builder: AlertDialog.Builder? = null
     private var trackFragment: SupportMapFragment? = null
     private val allDistanceOfTrack = mutableListOf<PointForData>()
     private val allPointsInLatLng = mutableListOf<LatLng>()
@@ -82,14 +88,15 @@ class TrackFragment : Fragment() {
     private fun initAll(view: View) {
         runningTime = view.findViewById(R.id.current_track_running_time)
         distance = view.findViewById(R.id.current_track_distance)
+        builder = AlertDialog.Builder(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         trackFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
         trackFragment?.getMapAsync(callback)
-        val format = SimpleDateFormat("HH:mm:ss,SS", Locale.getDefault())
-        val timeZone = SimpleTimeZone.getTimeZone("UTC")
+        val format = SimpleDateFormat(PATTERN, Locale.getDefault())
+        val timeZone = SimpleTimeZone.getTimeZone(UTC)
         format.timeZone = timeZone
         runningTime.text = format.format(arguments?.getLong(CURRENT_RUNNING_TIME))
         distance.text = arguments?.getInt(CURRENT_DISTANCE).toString()
@@ -120,24 +127,35 @@ class TrackFragment : Fragment() {
             .continueWith({
                 when {
                     it.error != null -> {
-                        Log.e("key", "it.error")
+                        createAlertDialog(it.error.message)
                     }
-                    it.result.status == "error" -> {
-                        Log.e("key", "${it.result.error}")
+                    it.result.status == ERROR -> {
+                        createAlertDialog(it.result.error)
                     }
                     else -> {
                         allDistanceOfTrack.addAll(it.result.pointForData)
-                        insertPointsIntoDb(allDistanceOfTrack = allDistanceOfTrack)
                         processResult(allDistanceOfTrack, allPointsInLatLng)
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)
+            .onSuccess ({
+                insertPointsIntoDb(allDistanceOfTrack = allDistanceOfTrack)
+            }, Task.BACKGROUND_EXECUTOR)
+    }
+
+    private fun createAlertDialog(error: String?) {
+        builder?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        }
+        builder?.setTitle(R.string.error)
+        builder?.setMessage(error)
+        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        builder?.show()
     }
 
     private fun insertPointsIntoDb(allDistanceOfTrack: List<PointForData>) {
         allDistanceOfTrack.forEach {
             InsertDBHelper()
-                .setTableName("allPoints")
+                .setTableName(ALL_POINTS)
                 .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER, arguments?.getInt(CURRENT_TRACK_ID)!!.toString())
                 .addFieldsAndValuesToInsert(CURRENT_TRACK, arguments?.getInt(CURRENT_DB_ID)!!.toString())
                 .addFieldsAndValuesToInsert(LATITUDE, it.lat.toString())
@@ -157,9 +175,9 @@ class TrackFragment : Fragment() {
         allDistanceOfTrack.forEach { points ->
             allPointsInLatLng.add(LatLng(points.lat, points.lng))
         }
-        addMarker(BitmapDescriptorFactory.HUE_RED, startLatLng, "Start")
+        addMarker(BitmapDescriptorFactory.HUE_RED, startLatLng, getString(R.string.start))
         addPolyline(allPointsInLatLng = allPointsInLatLng)
-        addMarker(BitmapDescriptorFactory.HUE_BLUE, finishLatLng, "Finish")
+        addMarker(BitmapDescriptorFactory.HUE_BLUE, finishLatLng, getString(R.string.finish))
         val builder = LatLngBounds.Builder()
         builder.include(startLatLng).include(finishLatLng)
         googleMap?.moveCamera(
@@ -188,12 +206,15 @@ class TrackFragment : Fragment() {
         )
     }
 
-
     private fun checkThisPointIntoDb(id: Int): Boolean {
         var cursor: Cursor? = null
         val haveData: Boolean?
         try {
-            cursor = App.INSTANCE.db.rawQuery("SELECT * FROM allPoints WHERE currentTrack=$id", null)
+            cursor = SelectDbHelper()
+                .nameOfTable(ALL_POINTS)
+                .selectParams("*")
+                .where("$CURRENT_TRACK = $id")
+                .select(App.INSTANCE.db)
             haveData = cursor.moveToFirst()
         } finally {
             cursor?.close()
@@ -206,4 +227,11 @@ class TrackFragment : Fragment() {
             CURRENT_TRACK_ID
         )!!
     )
+
+    override fun onStop() {
+        super.onStop()
+        googleMap = null
+        builder = null
+        trackFragment = null
+    }
 }

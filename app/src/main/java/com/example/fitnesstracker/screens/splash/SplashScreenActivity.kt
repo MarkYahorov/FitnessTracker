@@ -11,7 +11,9 @@ import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
 import com.example.fitnesstracker.screens.main.MainActivity
+import com.example.fitnesstracker.screens.main.list.TrackListFragment.Companion.IS_FIRST
 import com.example.fitnesstracker.screens.running.RunningActivity
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.CURRENT_ACTIVITY
 
 class SplashScreenActivity : AppCompatActivity() {
 
@@ -24,7 +26,7 @@ class SplashScreenActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash_screen)
         logo = findViewById(R.id.logo_image)
         isFirst = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .getBoolean("IS_FIRST", true)
+            .getBoolean(IS_FIRST, true)
     }
 
     override fun onStart() {
@@ -42,7 +44,7 @@ class SplashScreenActivity : AppCompatActivity() {
                 finish()
             } else {
                 val currentActivity = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                    .getInt("CURRENT_ACTIVITY", 0)
+                    .getInt(CURRENT_ACTIVITY, 0)
                 if(currentActivity == 0) {
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()

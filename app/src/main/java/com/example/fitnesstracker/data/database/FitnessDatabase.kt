@@ -24,6 +24,9 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
         const val POSITION_IN_LIST = "position"
         const val CURRENT_HOUR = "hour"
         const val CURRENT_MINUTE = "minute"
+        const val TRACKERS = "trackers"
+        const val ALL_POINTS = "allPoints"
+        const val NOTIFICATION_TIME_NAME = "NotificationTime"
         private const val INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT =
             "INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT"
         private const val INTEGER = "INTEGER"
@@ -41,7 +44,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
 
     private fun createTrackersTable(db: SQLiteDatabase?) {
         CreateDBHelper()
-            .setName("trackers")
+            .setName(TRACKERS)
             .addField(ID, INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(ID_FROM_SERVER, INTEGER)
             .addField(BEGIN_TIME, TEXT_NOT_NULL)
@@ -53,7 +56,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
 
     private fun createPointsTable(db: SQLiteDatabase?) {
         CreateDBHelper()
-            .setName("allPoints")
+            .setName(ALL_POINTS)
             .addField(ID, INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(ID_FROM_SERVER, INTEGER)
             .addField(CURRENT_TRACK, INTEGER_NOT_NULL)
@@ -64,7 +67,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
 
     private fun createNotificationDb(db: SQLiteDatabase?){
         CreateDBHelper()
-            .setName("NotificationTime")
+            .setName(NOTIFICATION_TIME_NAME)
             .addField(ID, INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(NOTIFICATION_TIME, LONG_NOT_NULL)
             .addField(POSITION_IN_LIST, INTEGER_NOT_NULL)

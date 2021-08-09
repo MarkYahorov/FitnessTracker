@@ -9,7 +9,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/background_splash">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/running_toolbar"
@@ -23,30 +24,35 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/start_btn"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:text="Start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?attr/materialButtonOutlinedStyle"
+            android:textColor="@color/colorTextInList"
+            android:text="@string/start"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/running_toolbar" />
+            android:layout_marginBottom="64dp"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/finish_btn"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="64dp"
+            android:text="@string/finish"
+            android:textColor="@color/colorTextInList"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/distance_running"
             android:layout_width="58dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="140dp"
+            android:layout_marginBottom="196dp"
+            android:textColor="@color/colorTextInList"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/finish_btn"
             app:layout_constraintEnd_toEndOf="parent"
@@ -57,6 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="132dp"
+            android:textColor="@color/colorTextInList"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -66,6 +73,7 @@
             android:id="@+id/finish_trunning_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@color/colorTextInList"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@+id/distance_running"
             app:layout_constraintEnd_toStartOf="@+id/distance_running"

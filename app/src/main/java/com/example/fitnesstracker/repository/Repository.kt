@@ -1,5 +1,6 @@
 package com.example.fitnesstracker.repository
 
+import android.content.Context
 import bolts.Task
 import com.example.fitnesstracker.models.login.LoginRequest
 import com.example.fitnesstracker.models.login.LoginResponse
@@ -25,4 +26,8 @@ interface Repository {
     fun getListOfTrack():Task<List<Tracks>>
     fun getListOfNotification(): Task<List<Notification>>
     fun getPointsForCurrentTrackFromDb(id:Int): Task<List<PointForData>>
+    fun insertNotification(alarmDate: Long, alarmHours: Int, alarmMinutes: Int, list:List<Notification>):Task<Int>
+    fun updateNotifications(updateValue: Long, hours: Int, minutes: Int, id: Int):Task<Unit>
+    fun clearDb(context: Context): Task<Unit>
+    fun clearDbWithWereArgs(name:String, whereArgs:String): Task<Unit>
 }

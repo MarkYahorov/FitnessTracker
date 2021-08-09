@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +13,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
@@ -21,8 +21,10 @@ import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment
-import com.example.fitnesstracker.screens.running.RunningActivity
 import com.example.fitnesstracker.screens.main.track.TrackFragment
+import com.example.fitnesstracker.screens.running.RunningActivity
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.CURRENT_ACTIVITY
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.TRACK_ID
 import com.google.android.material.navigation.NavigationView
 
 const val IS_FROM_NOTIFICATION = "IS FROM NOTIFICATION"
@@ -34,7 +36,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         private const val TRACK = "TRACK"
         private const val RUNNING = "RUNNING"
         private const val LIST_FRAGMENT = "LIST_FRAGMENT"
-        private const val EMPTY_VALUE = ""
+        const val EMPTY_VALUE = ""
     }
 
     private lateinit var toolbar: Toolbar
@@ -49,12 +51,11 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         supportActionBar?.show()
         getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
-            .putInt("CURRENT_ACTIVITY", 0)
+            .putInt(CURRENT_ACTIVITY, 0)
             .apply()
         initAll()
         setToolbar()
         createDrawer()
-        setLogoutBtnListener()
         if (savedInstanceState == null) {
             addListFragment()
         }
@@ -62,8 +63,10 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     private fun addListFragment() {
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container_view,
-                TrackListFragment.newInstance(getTokenFromSharedPref()))
+            .add(
+                R.id.fragment_container_view,
+                TrackListFragment.newInstance(getTokenFromSharedPref())
+            )
             .addToBackStack(LIST_FRAGMENT)
             .commit()
     }
@@ -93,11 +96,20 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             R.string.navigation_drawer_open,
             R.string.navigation_drawer_close
         )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setListeners()
+    }
+
+    private fun setListeners() {
         toggle.setToolbarNavigationClickListener {
             onBackPressed()
         }
         navDrawer.addDrawerListener(toggle)
         navigationView.setNavigationItemSelectedListener(createNavListener())
+        setLogoutBtnListener()
     }
 
     private fun createNavListener() = NavigationView.OnNavigationItemSelectedListener {
@@ -116,19 +128,11 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     private fun setLogoutBtnListener() {
         logout.setOnClickListener {
-            startActivity(Intent(this, LoginAndRegisterActivity::class.java))
-            getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                .edit()
-                .putString(CURRENT_TOKEN, EMPTY_VALUE)
-                .apply()
-            getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean("IS_FIRST", true)
-                .apply()
-            App.INSTANCE.db.execSQL("DELETE FROM trackers")
-            App.INSTANCE.db.execSQL("DELETE FROM allPoints")
-            App.INSTANCE.db.execSQL("DELETE FROM NotificationTime")
-            finish()
+            App.INSTANCE.repositoryImpl.clearDb(this)
+                .continueWith({
+                    startActivity(Intent(this, LoginAndRegisterActivity::class.java))
+                    finish()
+                }, Task.UI_THREAD_EXECUTOR)
         }
     }
 
@@ -168,10 +172,10 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         }
     }
 
-    override fun goToRunningScreen(token: String, trackId:Int) {
+    override fun goToRunningScreen(token: String, trackId: Int) {
         val intent = Intent(this, RunningActivity::class.java)
             .putExtra(IS_FROM_NOTIFICATION, false)
-            .putExtra("track_id", trackId)
+            .putExtra(TRACK_ID, trackId)
         startActivity(intent)
     }
 
@@ -184,10 +188,14 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         distance: Int,
         token: String,
     ) {
-        replaceFragment(TrackFragment.newInstance(id,serverId, beginTime,
-            runningTime,
-            distance,
-            token), TRACK)
+        replaceFragment(
+            TrackFragment.newInstance(
+                id, serverId, beginTime,
+                runningTime,
+                distance,
+                token
+            ), TRACK
+        )
     }
 
     override fun onBackPressed() {
@@ -198,7 +206,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         if (supportFragmentManager.backStackEntryCount > 1) {
             removeTransaction()
             updateToolbarBtn()
-            saveInSharedPref(this, false)
+            saveInSharedPref()
             return
         }
         if (supportFragmentManager.backStackEntryCount == 1) {
@@ -207,15 +215,18 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         super.onBackPressed()
     }
 
-    private fun saveInSharedPref(context: Context, isFromNotification: Boolean) {
-        context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+    private fun saveInSharedPref() {
+        getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
-            .putBoolean(IS_FROM_NOTIFICATION, isFromNotification)
+            .putBoolean(IS_FROM_NOTIFICATION, false)
             .apply()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.e("key", "DESTROY")
+    override fun onStop() {
+        super.onStop()
+        toggle.toolbarNavigationClickListener = null
+        navDrawer.removeDrawerListener(toggle)
+        navigationView.setNavigationItemSelectedListener(null)
+        logout.setOnClickListener(null)
     }
 }

@@ -25,6 +25,7 @@ const val CURRENT_TOKEN = "CURRENT_TOKEN"
 class LoginAndRegisterActivity : AppCompatActivity() {
 
     companion object {
+        private const val ERROR = "error"
         private const val CURRENT_STATE_OF_BTNS = "CURRENT_STATE_OF_BTNS"
         private const val CURRENT_EMAIL = "CURRENT_EMAIL"
         private const val CURRENT_PASSWORD = "CURRENT_PASSWORD"
@@ -106,7 +107,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                                 it.error != null -> {
                                     createAlertDialog(it.error.message)?.show()
                                 }
-                                it.result.status == "error" -> {
+                                it.result.status == ERROR -> {
                                     createAlertDialog(it.result.error)?.show()
                                 }
                                 else -> {
@@ -134,7 +135,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                                 response.error != null -> {
                                     createAlertDialog(response.error.message)?.show()
                                 }
-                                response.result.status == "error" -> {
+                                response.result.status == ERROR -> {
                                     createAlertDialog(response.result.error)?.show()
                                 }
                                 else -> {

@@ -9,7 +9,7 @@ class UpdateDbHelper {
 
     fun setName(tableName:String): UpdateDbHelper{
         this.tableName = tableName
-        return UpdateDbHelper()
+        return this
     }
 
     fun updatesValues(nameOfField:String, updateValue:Int): UpdateDbHelper{

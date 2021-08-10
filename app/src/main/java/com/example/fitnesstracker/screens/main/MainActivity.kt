@@ -48,7 +48,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        supportActionBar?.show()
         getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
             .putInt(CURRENT_ACTIVITY, 0)
@@ -186,7 +185,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         beginTime: Long,
         runningTime: Long,
         distance: Int,
-        token: String,
+        token: String
     ) {
         replaceFragment(
             TrackFragment.newInstance(

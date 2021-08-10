@@ -1,11 +1,9 @@
 package com.example.fitnesstracker
 
-import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.SystemClock
 import android.widget.TextView
 import java.util.*
-import java.util.concurrent.Executor
 
 class Utils {
 

@@ -32,7 +32,7 @@ class AlarmReceiver : BroadcastReceiver() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent = PendingIntent.getActivity(context, currentRequestCode, asd, 0)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notification = createNotification(context, pendingIntent)
+           val notification = createNotification(context, pendingIntent)
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.notify(currentRequestCode, notification)
         }
@@ -40,13 +40,12 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun createNotification(context: Context, pendingIntent: PendingIntent): Notification {
         return NotificationCompat.Builder(context, ALARM_CHANNEL)
-            .setContentTitle(context.getText(R.string.welcome_registr_text))
-            .setContentText(context.getText(R.string.login_btn_text))
-            .setSmallIcon(R.drawable.ic_baseline_home_24)
+            .setContentTitle(context.getText(R.string.run))
+            .setContentText(context.getText(R.string.must_run))
+            .setSmallIcon(R.drawable.ic_run)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setPriority(PRIORITY_HIGH)
-            .setTicker(context.getText(R.string.password_text_hint))
             .build()
     }
 

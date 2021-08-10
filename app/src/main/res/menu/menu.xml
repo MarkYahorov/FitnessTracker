@@ -8,7 +8,7 @@
             android:icon="@drawable/ic_baseline_home_24"
             />
         <item
-            android:title="@string/navigation"
+            android:title="@string/notification"
             android:id="@+id/go_to_notification_screen"
             android:icon="@drawable/ic_baseline_navigation_24"
             />

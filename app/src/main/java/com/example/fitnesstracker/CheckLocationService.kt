@@ -70,13 +70,12 @@ class CheckLocationService : Service(), LocationListener {
         startForeground(1, notification)
     }
 
-    private fun createNotification(pendingIntent: PendingIntent): Notification? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    @SuppressLint("InlinedApi")
+    private fun createNotification(pendingIntent: PendingIntent): Notification {
            return NotificationCompat.Builder(this, EXAMPLE_SERVICE_CHANNEL_ID)
                 .setOngoing(true)
-                .setContentTitle(getText(R.string.error_message_repeat_password))
-                .setContentText(getText(R.string.error_message_password))
-                .setSmallIcon(R.drawable.ic_baseline_error_outline_24)
+                .setContentTitle(getText(R.string.check_gps))
+                .setSmallIcon(R.drawable.ic_baseline_run_circle_24)
                 .setContentIntent(pendingIntent)
                 .setPriority(
                     when {
@@ -84,11 +83,7 @@ class CheckLocationService : Service(), LocationListener {
                         else -> PRIORITY_HIGH
                     })
                 .setCategory(CATEGORY_SERVICE)
-                .setTicker(getText(R.string.error_message_email))
                 .build()
-        } else {
-            return null
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.M)

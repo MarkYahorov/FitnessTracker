@@ -24,7 +24,7 @@
     <string name="navigation_drawer_open">open</string>
     <string name="navigation_drawer_close">close</string>
     <string name="main_screen">Main Screen</string>
-    <string name="navigation">Navigation</string>
+    <string name="notification">Notification</string>
     <string name="logout">LogOut</string>
     <string name="select_time">Select time</string>
     <string name="set_alarm">Set alarm</string>
@@ -48,4 +48,7 @@
     <string name="successfully">Track successfully save in server</string>
     <string name="waring">For normal operation of the application, go to settings -> applications -> our application -> battery saver -> disable</string>
     <string name="attention">Attention</string>
+    <string name="run">run bitch run</string>
+    <string name="must_run">you must run</string>
+    <string name="check_gps">Check GPS</string>
 </resources>

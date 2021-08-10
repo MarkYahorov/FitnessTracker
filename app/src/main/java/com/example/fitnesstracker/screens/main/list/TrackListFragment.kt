@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,6 +55,7 @@ class TrackListFragment : Fragment() {
     private lateinit var trackRecyclerView: RecyclerView
     private lateinit var addTrackBtn: FloatingActionButton
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var progressBar: ProgressBar
 
     private var trackList = mutableListOf<Tracks>()
     private var oldListSize = 0
@@ -72,16 +75,21 @@ class TrackListFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track_list, container, false)
-        isFirstInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            ?.getBoolean(IS_FIRST, true)!!
+        setIsFirst()
         initAll(view)
         return view
+    }
+
+    private fun setIsFirst(){
+        isFirstInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            ?.getBoolean(IS_FIRST, true)!!
     }
 
     private fun initAll(view: View) {
         trackRecyclerView = view.findViewById(R.id.track_recycler)
         addTrackBtn = view.findViewById(R.id.open_screen_running_btn)
         swipeRefreshLayout = view.findViewById(R.id.swipe_layout)
+        progressBar = view.findViewById(R.id.loading_progress)
         builder = AlertDialog.Builder(requireContext())
     }
 
@@ -116,11 +124,13 @@ class TrackListFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         if (isFirstInApp) {
+            progressBar.isVisible = true
             createAlertDialogToDisableBatterySaver()
             getTracksFromServer()
         } else {
             getTracksFromDb()
         }
+        setIsFirst()
         setFABListener()
         setSwipeLayoutListener()
         addScrollListener()
@@ -171,6 +181,7 @@ class TrackListFragment : Fragment() {
                         }
                     }
                     isLoading = false
+                    progressBar.isVisible = false
                     swipeRefreshLayout.isRefreshing = false
                 }, Task.UI_THREAD_EXECUTOR)
         } else {

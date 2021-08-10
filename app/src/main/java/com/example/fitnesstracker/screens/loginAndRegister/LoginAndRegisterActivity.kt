@@ -32,6 +32,13 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         private const val CURRENT_REPEAT_PASSWORD = "CURRENT_REPEAT_PASSWORD"
         private const val CURRENT_FIRST_NAME = "CURRENT_FIRST_NAME"
         private const val CURRENT_LAST_NAME = "CURRENT_LAST_NAME"
+        private const val UNDERLINE_LOGIN = "UNDERLINE_LOGIN"
+        private const val UNDERLINE_REGISTR = "UNDERLINE_REGISTR"
+        private const val ENABLED_LOGIN_BTN = "ENABLED_LOGIN_BTN"
+        private const val ENABLED_REGISTR_BTN = "ENABLED_REGISTR_BTN"
+        private const val REPEAT_PASSWORD_VISIBLE = "REPEAT_PASSWORD_VISIBLE"
+        private const val FIRST_NAME_VISIBLE = "FIRST_NAME_VISIBLE"
+        private const val LAST_NAME_VISIBLE = "LAST_NAME_VISIBLE"
         private const val CHECK_EMAIL_VALIDATE =
             "^[_A-Za-z0-9+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"
         private const val CHECK_PASSWORD_VALIDATE = "^[a-zA-Z0-9]+$"
@@ -62,6 +69,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
             finish()
         }
         initAllViews()
+        registerBtn.paint.isUnderlineText = true
     }
 
     private fun getTokenFromSharedPref(): String {
@@ -96,6 +104,8 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     private fun setRegistrBtnListener() {
         registerBtn.setOnClickListener {
             if (isLoadingBtnActive) {
+                openLoginWindowBtn.paint.isUnderlineText = true
+                registerBtn.paint.isUnderlineText = false
                 setVisibilityViews(isVisible = true)
                 welcomeText.text = getString(R.string.welcome_registr_text)
                 openLoginWindowBtn.isEnabled = true
@@ -150,6 +160,8 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                     createErrorMessageForLogin()
                 }
             } else {
+                registerBtn.paint.isUnderlineText = true
+                openLoginWindowBtn.paint.isUnderlineText = false
                 setVisibilityViews(isVisible = false)
                 welcomeText.text = getString(R.string.welcome_login_text)
                 openLoginWindowBtn.isEnabled = false
@@ -209,6 +221,13 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         outState.putString(CURRENT_REPEAT_PASSWORD, repeatPassword.text.toString())
         outState.putString(CURRENT_FIRST_NAME, firstName.text.toString())
         outState.putString(CURRENT_LAST_NAME, lastName.text.toString())
+        outState.putBoolean(UNDERLINE_LOGIN, openLoginWindowBtn.paint.isUnderlineText)
+        outState.putBoolean(UNDERLINE_REGISTR, registerBtn.paint.isUnderlineText)
+        outState.putBoolean(ENABLED_LOGIN_BTN, openLoginWindowBtn.isEnabled)
+        outState.putBoolean(ENABLED_REGISTR_BTN, registerBtn.isEnabled)
+        outState.putBoolean(REPEAT_PASSWORD_VISIBLE, repeatPassword.isVisible)
+        outState.putBoolean(FIRST_NAME_VISIBLE, firstName.isVisible)
+        outState.putBoolean(LAST_NAME_VISIBLE, lastName.isVisible)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -219,6 +238,13 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         repeatPassword.setText(savedInstanceState.getString(CURRENT_REPEAT_PASSWORD))
         firstName.setText(savedInstanceState.getString(CURRENT_FIRST_NAME))
         lastName.setText(savedInstanceState.getString(CURRENT_LAST_NAME))
+        openLoginWindowBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_LOGIN)
+        registerBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_REGISTR)
+        openLoginWindowBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_LOGIN_BTN)
+        registerBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_REGISTR_BTN)
+        repeatPassword.isVisible = savedInstanceState.getBoolean(REPEAT_PASSWORD_VISIBLE)
+        firstName.isVisible = savedInstanceState.getBoolean(FIRST_NAME_VISIBLE)
+        lastName.isVisible = savedInstanceState.getBoolean(LAST_NAME_VISIBLE)
     }
 
     private fun createLoginRequest() =

@@ -41,10 +41,11 @@ import com.example.fitnesstracker.models.tracks.TrackResponse
 import com.example.fitnesstracker.models.tracks.Tracks
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
-import com.example.fitnesstracker.screens.main.MainActivity
 import com.example.fitnesstracker.screens.main.MainActivity.Companion.EMPTY_VALUE
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment.Companion.MAX
+import com.example.fitnesstracker.screens.running.RunningActivity.Companion.ERROR
+import java.util.*
 
 class RepositoryImpl : Repository {
 
@@ -65,7 +66,6 @@ class RepositoryImpl : Repository {
 
     override fun getTracks(trackRequest: TrackRequest): Task<TrackResponse> {
         return Task.callInBackground {
-            val trackForData = TrackForData(0, 0, 0, 0)
             val execute = RetrofitBuilder().apiService.getTracks(trackRequest = trackRequest)
             val body = execute.execute().body()
             val list = getListOfTracks()
@@ -73,6 +73,7 @@ class RepositoryImpl : Repository {
                 insertDataInDb(body.trackForData)
             }
             if (body != null && getListNotSendTracksFromDb().isNotEmpty()) {
+                val trackForData = TrackForData(0, 0, 0, 0)
                 val listOfNotSendTracks = getListNotSendTracksFromDb()
                 listOfNotSendTracks.forEach {
                     trackForData.beginTime = it.beginTime
@@ -80,14 +81,14 @@ class RepositoryImpl : Repository {
                     trackForData.distance = it.distance
                     trackForData.time = it.time
                     val serverID = saveTracksWithNullId(trackRequest, trackForData, it)
-                    updateOneElement(TRACKERS, ID_FROM_SERVER, serverID!!, "$ID = ${it.id}")
-                    updateOneElement(
+                    updateOneField(TRACKERS, ID_FROM_SERVER, serverID!!, "$ID = ${it.id}")
+                    updateOneField(
                         ALL_POINTS,
                         ID_FROM_SERVER,
                         serverID,
                         "$CURRENT_TRACK = ${it.id}"
                     )
-                    updateOneElement(TRACKERS, IS_SEND, 0, "$ID = ${it.id}")
+                    updateOneField(TRACKERS, IS_SEND, 0, "$ID = ${it.id}")
                 }
             }
             body
@@ -158,17 +159,142 @@ class RepositoryImpl : Repository {
         }
     }
 
-    private fun updateOneElement(
+    override fun clearDb(context: Context): Task<Unit> {
+        return Task.callInBackground {
+            clearTable(TRACKERS)
+            clearTable(ALL_POINTS)
+            clearTable(NOTIFICATION_TIME_NAME)
+            setSharedPrefToDefaultValues(context = context)
+        }
+    }
+
+    override fun clearDbWithWereArgs(name: String, whereArgs: String): Task<Unit> {
+        return Task.callInBackground {
+            UpdateDbHelper()
+                .setName(tableName = name)
+                .where(whereArgs = whereArgs)
+                .delete(db = App.INSTANCE.db)
+        }
+    }
+
+    override fun insertTrackAndPointsInDbAfterSavinginServer(
+        saveTrackResponse: Task<SaveTrackResponse>,
+        beginTime: Long,
+        calendar: Calendar,
+        distance: Int,
+        list: List<PointForData>
+    ): Task<Unit> {
+        return Task.callInBackground {
+            when {
+                saveTrackResponse.error != null -> {
+                    insertTheTrack(null, 1, beginTime, calendar, distance)
+                    val id = getLastTrackInDb()
+                    insertThePoints(null, id!!, list)
+                }
+                saveTrackResponse.result.status == ERROR -> {
+                    insertTheTrack(null, 1, beginTime, calendar, distance)
+                    val id = getLastTrackInDb()
+                    insertThePoints(null, id!!,list)
+
+                }
+                else -> {
+                    insertTheTrack(
+                        saveTrackResponse.result.serverId,
+                        0,
+                        beginTime,
+                        calendar,
+                        distance
+                    )
+                    val id = getLastTrackInDb()
+                    insertThePoints(saveTrackResponse.result.serverId, id!!, list)
+                }
+            }
+        }
+    }
+
+    private fun getLastTrackInDb(): Int? {
+        var cursor: Cursor? = null
+        var id: Int? = null
+        try {
+            cursor = SelectDbHelper()
+                .nameOfTable(TRACKERS)
+                .selectParams("max($ID) as $ID")
+                .select(App.INSTANCE.db)
+            if (cursor.moveToFirst()) {
+                val idIndex = cursor.getColumnIndexOrThrow(ID)
+                do {
+                    id = cursor.getInt(idIndex)
+                } while (cursor.moveToNext())
+            }
+        } finally {
+            cursor?.close()
+        }
+        return id
+    }
+
+    private fun insertTheTrack(
+        id: Int?,
+        isSend: Int,
+        beginTime: Long,
+        calendar: Calendar,
+        distance: Int
+    ) {
+        InsertDBHelper()
+            .setTableName(TRACKERS)
+            .addFieldsAndValuesToInsert(ID_FROM_SERVER, id.toString())
+            .addFieldsAndValuesToInsert(BEGIN_TIME, beginTime.toString())
+            .addFieldsAndValuesToInsert(
+                RUNNING_TIME,
+                calendar.time.time.toString()
+            )
+            .addFieldsAndValuesToInsert(IS_SEND, isSend.toString())
+            .addFieldsAndValuesToInsert(DISTANCE, distance.toString())
+            .insertTheValues(App.INSTANCE.db)
+    }
+
+    private fun insertThePoints(id: Int?, trackIdInDb: Int, list: List<PointForData>) {
+        list.forEach {
+            InsertDBHelper()
+                .setTableName(ALL_POINTS)
+                .addFieldsAndValuesToInsert(
+                    ID_FROM_SERVER,
+                    id.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    LATITUDE,
+                    it.lat.toString()
+                )
+                .addFieldsAndValuesToInsert(CURRENT_TRACK, trackIdInDb.toString())
+                .addFieldsAndValuesToInsert(
+                    LONGITUDE,
+                    it.lng.toString()
+                )
+                .insertTheValues(App.INSTANCE.db)
+        }
+    }
+
+    private fun setSharedPrefToDefaultValues(context: Context) {
+        context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            .edit()
+            .putString(CURRENT_TOKEN, EMPTY_VALUE)
+            .apply()
+        context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(TrackListFragment.IS_FIRST, true)
+            .apply()
+    }
+
+    private fun updateOneField(
         tableName: String,
         fieldName: String,
         value: Int,
         whereArgs: String
     ) {
         UpdateDbHelper()
-            .setName(tableName)
-            .updatesValues(fieldName, value)
-            .where(whereArgs)
-            .update(App.INSTANCE.db)
+            .setName(tableName = tableName)
+            .updatesValues(nameOfField = fieldName, updateValue = value)
+            .where(whereArgs = whereArgs)
+            .update(db = App.INSTANCE.db)
     }
 
     private fun getLastNotificationFromDb(): Int {
@@ -176,9 +302,9 @@ class RepositoryImpl : Repository {
         var id = 0
         try {
             cursor = SelectDbHelper()
-                .nameOfTable(NOTIFICATION_TIME_NAME)
-                .selectParams(MAX)
-                .select(App.INSTANCE.db)
+                .nameOfTable(table = NOTIFICATION_TIME_NAME)
+                .selectParams(allParams = MAX)
+                .select(db = App.INSTANCE.db)
             if (cursor.moveToFirst()) {
                 val idIndex = cursor.getColumnIndexOrThrow(ID)
                 do {
@@ -198,15 +324,24 @@ class RepositoryImpl : Repository {
         list: List<Notification>
     ) {
         InsertDBHelper()
-            .setTableName(NOTIFICATION_TIME_NAME)
+            .setTableName(name = NOTIFICATION_TIME_NAME)
             .addFieldsAndValuesToInsert(
-                NOTIFICATION_TIME,
-                alarmDate.toString()
+                nameOfField = NOTIFICATION_TIME,
+                insertingValue = alarmDate.toString()
             )
-            .addFieldsAndValuesToInsert(CURRENT_HOUR, alarmHours.toString())
-            .addFieldsAndValuesToInsert(CURRENT_MINUTE, alarmMinutes.toString())
-            .addFieldsAndValuesToInsert(POSITION_IN_LIST, list.size.toString())
-            .insertTheValues(App.INSTANCE.db)
+            .addFieldsAndValuesToInsert(
+                nameOfField = CURRENT_HOUR,
+                insertingValue = alarmHours.toString()
+            )
+            .addFieldsAndValuesToInsert(
+                nameOfField = CURRENT_MINUTE,
+                insertingValue = alarmMinutes.toString()
+            )
+            .addFieldsAndValuesToInsert(
+                nameOfField = POSITION_IN_LIST,
+                insertingValue = list.size.toString()
+            )
+            .insertTheValues(db = App.INSTANCE.db)
     }
 
     private fun saveTracksWithNullId(
@@ -219,12 +354,12 @@ class RepositoryImpl : Repository {
             trackForData.serverId = null
             id = saveTrack(
                 SaveTrackRequest(
-                    trackRequest.token,
-                    trackForData.serverId,
-                    trackForData.beginTime,
-                    trackForData.time,
-                    trackForData.distance,
-                    getListOfPointsToCurrentTrack(tracks.id!!)
+                    token = trackRequest.token,
+                    serverId = trackForData.serverId,
+                    beginTime = trackForData.beginTime,
+                    time = trackForData.time,
+                    distance = trackForData.distance,
+                    pointForData = getListOfPointsToCurrentTrack(tracks.id!!)
                 )
             ).result.serverId
         }
@@ -236,9 +371,9 @@ class RepositoryImpl : Repository {
         val listOfNotification = mutableListOf<Notification>()
         try {
             cursor = SelectDbHelper()
-                .selectParams("*")
-                .nameOfTable(NOTIFICATION_TIME_NAME)
-                .select(App.INSTANCE.db)
+                .selectParams(allParams = "*")
+                .nameOfTable(table = NOTIFICATION_TIME_NAME)
+                .select(db = App.INSTANCE.db)
             if (cursor.moveToFirst()) {
                 val timeId = cursor.getColumnIndexOrThrow(NOTIFICATION_TIME)
                 val idColumn = cursor.getColumnIndexOrThrow(ID)
@@ -273,10 +408,10 @@ class RepositoryImpl : Repository {
         val listOfTracks = mutableListOf<PointForData>()
         try {
             cursor = SelectDbHelper()
-                .nameOfTable(ALL_POINTS)
-                .selectParams("*")
-                .where("$CURRENT_TRACK = $id")
-                .select(App.INSTANCE.db)
+                .nameOfTable(table = ALL_POINTS)
+                .selectParams(allParams = "*")
+                .where(whereArgs = "$CURRENT_TRACK = $id")
+                .select(db = App.INSTANCE.db)
             if (cursor.moveToFirst()) {
                 val latIndex = cursor.getColumnIndexOrThrow(LATITUDE)
                 val lonIndex = cursor.getColumnIndexOrThrow(LONGITUDE)
@@ -296,13 +431,14 @@ class RepositoryImpl : Repository {
         var cursor: Cursor? = null
         val listOfTracks = mutableListOf<Tracks>()
         try {
-            cursor = SelectDbHelper().nameOfTable(TRACKERS)
-                .selectParams("*")
-                .select(App.INSTANCE.db)
+            cursor = SelectDbHelper()
+                .nameOfTable(table = TRACKERS)
+                .selectParams(allParams = "*")
+                .select(db = App.INSTANCE.db)
             if (cursor.moveToFirst()) {
-                val index = getColumnIndex(cursor)
+                val index = getColumnIndex(cursor = cursor)
                 do {
-                    val track = createTrack(cursor, index)
+                    val track = createTrack(cursor = cursor, index = index)
                     listOfTracks.add(track)
                 } while (cursor.moveToNext())
             }
@@ -316,14 +452,15 @@ class RepositoryImpl : Repository {
         var cursor: Cursor? = null
         val listOfTracks = mutableListOf<Tracks>()
         try {
-            cursor = SelectDbHelper().nameOfTable(TRACKERS)
-                .selectParams("*")
-                .where("$IS_SEND = 1")
-                .select(App.INSTANCE.db)
+            cursor = SelectDbHelper()
+                .nameOfTable(table = TRACKERS)
+                .selectParams(allParams = "*")
+                .where(whereArgs = "$IS_SEND = 1")
+                .select(db = App.INSTANCE.db)
             if (cursor.moveToFirst()) {
-                val index = getColumnIndex(cursor)
+                val index = getColumnIndex(cursor = cursor)
                 do {
-                    val track = createTrack(cursor, index)
+                    val track = createTrack(cursor = cursor, index = index)
                     listOfTracks.add(track)
                 } while (cursor.moveToNext())
             }
@@ -351,50 +488,40 @@ class RepositoryImpl : Repository {
 
     private fun insertDataInDb(tracksInfo: List<TrackForData>) {
         if (getListOfTracks().isNotEmpty()) {
-            clearTable(TRACKERS)
+            clearTable(name = TRACKERS)
         }
         val isSend = 0
         tracksInfo.forEach {
             InsertDBHelper()
-                .setTableName(TRACKERS)
-                .addFieldsAndValuesToInsert(ID_FROM_SERVER, it.serverId.toString())
-                .addFieldsAndValuesToInsert(BEGIN_TIME, it.beginTime.toString())
-                .addFieldsAndValuesToInsert(RUNNING_TIME, it.time.toString())
-                .addFieldsAndValuesToInsert(DISTANCE, it.distance.toString())
-                .addFieldsAndValuesToInsert(IS_SEND, isSend.toString())
-                .insertTheValues(App.INSTANCE.db)
+                .setTableName(name = TRACKERS)
+                .addFieldsAndValuesToInsert(
+                    nameOfField = ID_FROM_SERVER,
+                    insertingValue = it.serverId.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = BEGIN_TIME,
+                    insertingValue = it.beginTime.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = RUNNING_TIME,
+                    insertingValue = it.time.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = DISTANCE,
+                    insertingValue = it.distance.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = IS_SEND,
+                    insertingValue = isSend.toString()
+                )
+                .insertTheValues(db = App.INSTANCE.db)
         }
 
     }
 
     private fun clearTable(name: String) {
         UpdateDbHelper()
-            .setName(name)
-            .delete(App.INSTANCE.db)
-    }
-
-    override fun clearDb(context: Context): Task<Unit> {
-        return Task.callInBackground {
-            clearTable(TRACKERS)
-            clearTable(ALL_POINTS)
-            clearTable(NOTIFICATION_TIME_NAME)
-            context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                .edit()
-                .putString(CURRENT_TOKEN, EMPTY_VALUE)
-                .apply()
-            context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(TrackListFragment.IS_FIRST, true)
-                .apply()
-        }
-    }
-
-    override fun clearDbWithWereArgs(name: String, whereArgs: String): Task<Unit> {
-        return Task.callInBackground {
-            UpdateDbHelper()
-                .setName(name)
-                .where(whereArgs)
-                .delete(App.INSTANCE.db)
-        }
+            .setName(tableName = name)
+            .delete(db = App.INSTANCE.db)
     }
 }

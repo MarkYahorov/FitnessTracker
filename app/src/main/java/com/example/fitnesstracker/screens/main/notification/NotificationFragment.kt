@@ -29,10 +29,10 @@ import java.util.*
 
 class NotificationFragment : Fragment() {
 
-    companion object{
+    companion object {
         const val NEW_REQUEST_CODE = "NEW_REQUEST_CODE"
         const val MAX = "max($ID) as $ID"
-        private const val DATE_PICKER ="DATE_PICKER"
+        private const val DATE_PICKER = "DATE_PICKER"
         private const val TIME_PICKER = "TIME_PICKER"
         private const val CURRENT_DATE = "CURRENT_DATE"
         private const val CURRENT_ALARM_TIME = "CURRENT_ALARM_TIME"
@@ -45,7 +45,7 @@ class NotificationFragment : Fragment() {
 
     private val notificationList = mutableListOf<Notification>()
     private var builder: AlertDialog.Builder? = null
-    private var calendar:Calendar? = null
+    private var calendar = Calendar.getInstance()
     private val repo = App.INSTANCE.repositoryImpl
     private var currentDate = 0L
     private var currentHour = 0
@@ -72,12 +72,12 @@ class NotificationFragment : Fragment() {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler)
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
         builder = AlertDialog.Builder(requireContext())
-        calendar = Calendar.getInstance()
     }
 
     private fun initRecycler() {
         with(notificationRecyclerView) {
-            adapter = NotificationListAdapter(notificationList = notificationList,
+            adapter = NotificationListAdapter(
+                notificationList = notificationList,
                 enableNotification = {
                     setAlarmManager(it.id, it.date, it.hours, it.minutes)
                 }, closeNotification = {
@@ -94,12 +94,12 @@ class NotificationFragment : Fragment() {
         builder?.setPositiveButton(R.string.yes) { dialog, _ ->
             setCancelAlarmBtnClickListener(notification.id)
             repo.clearDbWithWereArgs(NOTIFICATION_TIME_NAME, "$ID = ${notification.id}")
-                .continueWith ({
+                .continueWith({
                     notificationList.removeAt(notification.position)
                     notificationRecyclerView.adapter?.notifyItemRemoved(notification.id)
                     dialog.dismiss()
                     dialog.cancel()
-                },Task.UI_THREAD_EXECUTOR)
+                }, Task.UI_THREAD_EXECUTOR)
         }
         builder?.setNegativeButton(R.string.no) { dialog, _ ->
             dialog.dismiss()
@@ -125,12 +125,12 @@ class NotificationFragment : Fragment() {
         }
     }
 
-    private fun updateAlarmInDb(currentId: Int, position: Int){
-        if (calendar?.time?.time!! <= Calendar.getInstance().timeInMillis) {
+    private fun updateAlarmInDb(currentId: Int, position: Int) {
+        if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
             Toast.makeText(requireContext(), R.string.toast_waring, Toast.LENGTH_LONG)
                 .show()
         } else {
-            repo.updateNotifications(currentDate, currentHour,currentMinutes,currentId)
+            repo.updateNotifications(currentDate, currentHour, currentMinutes, currentId)
             setAlarmManager(
                 currentId + 1,
                 currentDate,
@@ -144,12 +144,12 @@ class NotificationFragment : Fragment() {
         }
     }
 
-    private fun setCalendarTime(timePicker: MaterialTimePicker){
-        calendar?.time = Date(currentDate)
+    private fun setCalendarTime(timePicker: MaterialTimePicker) {
+        calendar.time = Date(currentDate)
         currentHour = timePicker.hour
         currentMinutes = timePicker.minute
-        calendar!![Calendar.HOUR_OF_DAY] = currentHour
-        calendar!![Calendar.MINUTE] = currentMinutes
+        calendar[Calendar.HOUR_OF_DAY] = currentHour
+        calendar[Calendar.MINUTE] = currentMinutes
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -213,31 +213,35 @@ class NotificationFragment : Fragment() {
         timePicker: MaterialTimePicker
     ) {
         setCalendarTime(timePicker)
-        if (calendar!!.time.time <= Calendar.getInstance().timeInMillis) {
+        if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
             Toast.makeText(requireContext(), R.string.toast_waring, Toast.LENGTH_LONG)
                 .show()
         } else {
             repo.insertNotification(currentDate, currentHour, currentMinutes, notificationList)
-            .continueWith({
-                val id = it.result
-                notificationList.add(
-                    Notification(
-                        id,
+                .continueWith({
+                    val id = it.result
+                    createNotificationList(id)
+                    setAlarmManager(
+                        notificationList.size + 1,
                         currentDate,
-                        notificationList.size,
                         currentHour,
                         currentMinutes
                     )
-                )
-                setAlarmManager(
-                    notificationList.size + 1,
-                    currentDate,
-                    currentHour,
-                    currentMinutes
-                )
-                notificationRecyclerView.adapter?.notifyDataSetChanged()
-            }, Task.UI_THREAD_EXECUTOR)
+                    notificationRecyclerView.adapter?.notifyDataSetChanged()
+                }, Task.UI_THREAD_EXECUTOR)
         }
+    }
+
+    private fun createNotificationList(id: Int) {
+        notificationList.add(
+            Notification(
+                id,
+                currentDate,
+                notificationList.size,
+                currentHour,
+                currentMinutes
+            )
+        )
     }
 
     private fun setAlarmManager(channelMustHave: Int, date: Long, hours: Int, minutes: Int) {
@@ -246,12 +250,12 @@ class NotificationFragment : Fragment() {
             .putExtra(NEW_REQUEST_CODE, channelMustHave)
         val pendingIntent =
             PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
-        calendar!!.time = Date(date)
-        calendar!![Calendar.HOUR_OF_DAY] = hours
-        calendar!![Calendar.MINUTE] = minutes
+        calendar.time = Date(date)
+        calendar[Calendar.HOUR_OF_DAY] = hours
+        calendar[Calendar.MINUTE] = minutes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (System.currentTimeMillis() < calendar!!.time.time) {
-                val info = AlarmManager.AlarmClockInfo(calendar!!.time.time, pendingIntent)
+            if (System.currentTimeMillis() < calendar.time.time) {
+                val info = AlarmManager.AlarmClockInfo(calendar.time.time, pendingIntent)
                 alarmManager.setAlarmClock(info, pendingIntent)
             }
         }
@@ -266,7 +270,6 @@ class NotificationFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        calendar = null
         addNotificationBtn.setOnClickListener(null)
     }
 }

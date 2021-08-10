@@ -1,14 +1,12 @@
 package com.example.fitnesstracker.screens.running
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
@@ -28,14 +26,7 @@ import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.CheckLocationService
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.data.database.FitnessDatabase
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.IS_SEND
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.TRACKERS
-import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
-import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
+import com.example.fitnesstracker.Utils
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.save.SaveTrackRequest
 import com.example.fitnesstracker.models.save.SaveTrackResponse
@@ -58,6 +49,7 @@ class RunningActivity : AppCompatActivity() {
         const val CURRENT_ACTIVITY = "CURRENT_ACTIVITY"
         const val UTC = "UTC"
         const val TRACK_ID = "track_id"
+        const val ERROR = "error"
         private const val BEGIN_TIME = "BEGIN_TIME"
         private const val IS_FINISH = "IS_FINISH"
         private const val DISTANCE = "DISTANCE"
@@ -68,8 +60,6 @@ class RunningActivity : AppCompatActivity() {
         private const val FTV = "FTV"
         private const val START = "start"
         private const val FINISH_TIME = "FINISH_TIME"
-        private const val ERROR = "error"
-        private const val FORMAT = "%02d"
     }
 
     private lateinit var startBtn: Button
@@ -83,6 +73,7 @@ class RunningActivity : AppCompatActivity() {
 
     private var builder: AlertDialog.Builder? = null
     private var handler: Handler? = null
+    private var timer: Runnable? = null
     private val coordinationList = mutableListOf<PointForData>()
     private val repo = App.INSTANCE.repositoryImpl
     private var calendar = Calendar.getInstance()
@@ -90,16 +81,8 @@ class RunningActivity : AppCompatActivity() {
     private var isFinish = true
     private var distance = 0
     private var beginTime = 0L
-    private var trackIdInDb = 0
 
-    private var tMilliSec = 0L
     private var tStart = 0L
-    private var tBuff = 0L
-    private var tUpdate = 0L
-    private var sec = 0
-    private var min = 0
-    private var millis = 0
-    private var hours = 0
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -113,32 +96,21 @@ class RunningActivity : AppCompatActivity() {
             if (coordinationList.size > 1) {
                 repo.saveTrack(createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
-                        insertValuesInDb(saveTrackResponse)
-                        saveTrackResponse
-                    }, Task.BACKGROUND_EXECUTOR)
-                    .continueWith {
-                        showDialogs(it)
-                    }
+                        repo.insertTrackAndPointsInDbAfterSavinginServer(
+                            saveTrackResponse,
+                            beginTime,
+                            calendar,
+                            distance,
+                            coordinationList
+                        ).continueWith {
+                            showDialogs(saveTrackResponse)
+                        }
+                    }, Task.UI_THREAD_EXECUTOR)
             } else {
                 createAlertDialog(R.string.not_moving)
             }
         }
 
-    }
-
-    private val timer = object : Runnable {
-        @SuppressLint("SetTextI18n")
-        override fun run() {
-            calculateTime()
-            setCalendarTimeForTimer()
-            timeRunning.text = "${String.format(FORMAT, hours)}: ${
-                String.format(
-                    FORMAT,
-                    min
-                )
-            }: ${String.format(FORMAT, sec)}: ${String.format(FORMAT, millis)}"
-            handler?.postDelayed(this, 40)
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -147,7 +119,6 @@ class RunningActivity : AppCompatActivity() {
         setContentView(R.layout.activity_running)
         checkPermissions()
         initAll()
-        trackIdInDb = intent.getIntExtra(TRACK_ID, 0)
         calendar.timeZone = timeZone
         if (savedInstanceState != null) {
             beginTime = savedInstanceState.getLong(BEGIN_TIME)
@@ -160,7 +131,8 @@ class RunningActivity : AppCompatActivity() {
             distanceTextView.isVisible = savedInstanceState.getBoolean(DTV)
             finishTimeRunning.isVisible = savedInstanceState.getBoolean(FTV)
             tStart = savedInstanceState.getLong(START)
-            handler?.postDelayed(timer, 0)
+            timer = Utils().createTimer(timeRunning, tStart, calendar)
+            handler?.postDelayed(timer!!, 0)
         }
     }
 
@@ -206,23 +178,36 @@ class RunningActivity : AppCompatActivity() {
             if (!checkPermissions() && isGpsEnabled()) {
                 startBtn.isEnabled = false
                 isFinish = false
-                val anim = AnimationUtils.loadAnimation(this, R.anim.flip_close)
-                startBtn.animation = anim
+                startTimer()
+                setAnimationForStartBtn()
                 setAnimationForRunningViews(R.anim.flip_open)
-                getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt(CURRENT_ACTIVITY, 1)
-                    .apply()
+                putMarkActivity(1)
                 startService(true)
                 setVisibilityClickStartBtn()
-                beginTime = System.currentTimeMillis()
-                tStart = SystemClock.elapsedRealtime()
-                handler?.postDelayed(timer, 0)
                 setIsFromNotificationInSharedPref()
             } else if (checkPermissions()) {
                 createAlertDialog(R.string.permissions_enabled)
             }
         }
+    }
+
+    private fun setAnimationForStartBtn(){
+        val anim = AnimationUtils.loadAnimation(this, R.anim.flip_close)
+        startBtn.animation = anim
+    }
+
+    private fun putMarkActivity(mark:Int){
+        getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(CURRENT_ACTIVITY, mark)
+            .apply()
+    }
+
+    private fun startTimer(){
+        tStart = SystemClock.elapsedRealtime()
+        timer = Utils().createTimer(timeRunning, tStart, calendar)
+        beginTime = System.currentTimeMillis()
+        handler?.postDelayed(timer!!, 0)
     }
 
     private fun setFinishBtnListener() {
@@ -231,19 +216,20 @@ class RunningActivity : AppCompatActivity() {
                 finishBtn.isEnabled = false
                 isFinish = true
                 setAnimationForRunningViews(R.anim.flip_close)
-                setAnimationForEndViews(R.anim.flip_open)
+                setAnimationForEndViews()
                 startService(false)
                 setVisibilityFinishBtnClick()
-                handler?.removeCallbacks(timer)
-                val format = SimpleDateFormat(PATTERN, Locale.getDefault())
-                format.timeZone = timeZone
-                finishTimeRunning.text = format.format(calendar.time.time)
-                getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                    .edit()
-                    .putInt(CURRENT_ACTIVITY, 0)
-                    .apply()
+                handler?.removeCallbacks(timer!!)
+                createFinishTimeText()
+                putMarkActivity(0)
             }
         }
+    }
+
+    private fun createFinishTimeText(){
+        val format = SimpleDateFormat(PATTERN, Locale.getDefault())
+        format.timeZone = timeZone
+        finishTimeRunning.text = format.format(calendar.time.time)
     }
 
     private fun setVisibilityFinishBtnClick() {
@@ -291,41 +277,6 @@ class RunningActivity : AppCompatActivity() {
             .apply()
     }
 
-    private fun insertTheTrack(id: Int?, isSend: Int) {
-        InsertDBHelper()
-            .setTableName(TRACKERS)
-            .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER, id.toString())
-            .addFieldsAndValuesToInsert(FitnessDatabase.BEGIN_TIME, beginTime.toString())
-            .addFieldsAndValuesToInsert(
-                FitnessDatabase.RUNNING_TIME,
-                calendar.time.time.toString()
-            )
-            .addFieldsAndValuesToInsert(IS_SEND, isSend.toString())
-            .addFieldsAndValuesToInsert(FitnessDatabase.DISTANCE, distance.toString())
-            .insertTheValues(App.INSTANCE.db)
-    }
-
-    private fun insertThePoints(id: Int?, trackIdInDb: Int) {
-        coordinationList.forEach {
-            InsertDBHelper()
-                .setTableName(ALL_POINTS)
-                .addFieldsAndValuesToInsert(
-                    FitnessDatabase.ID_FROM_SERVER,
-                    id.toString()
-                )
-                .addFieldsAndValuesToInsert(
-                    FitnessDatabase.LATITUDE,
-                    it.lat.toString()
-                )
-                .addFieldsAndValuesToInsert(CURRENT_TRACK, trackIdInDb.toString())
-                .addFieldsAndValuesToInsert(
-                    FitnessDatabase.LONGITUDE,
-                    it.lng.toString()
-                )
-                .insertTheValues(App.INSTANCE.db)
-        }
-    }
-
     private fun getTokenFromSharedPref(): String {
         return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .getString(CURRENT_TOKEN, "").toString()
@@ -350,76 +301,18 @@ class RunningActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDialogs(message: Task<Task<SaveTrackResponse>>) {
+    private fun showDialogs(message: Task<SaveTrackResponse>) {
         when {
             message.error != null -> {
                 createAlertDialog(R.string.not_internet)
             }
-            message.result.result.status == ERROR -> {
-                createAlertDialog(message.result.result.error!!)
+            message.result.status == ERROR -> {
+                createAlertDialog(message.result.error!!)
             }
             else -> {
                 createAlertDialog(getString(R.string.successfully))
             }
         }
-    }
-
-    private fun insertValuesInDb(saveTrackResponse: Task<SaveTrackResponse>) {
-        when {
-            saveTrackResponse.error != null -> {
-                insertTheTrack(null, 1)
-                val id = getLastTrackInDb()
-                insertThePoints(null, id!!)
-            }
-            saveTrackResponse.result.status == ERROR -> {
-                insertTheTrack(null, 1)
-                val id = getLastTrackInDb()
-                insertThePoints(null, id!!)
-
-            }
-            else -> {
-                insertTheTrack(saveTrackResponse.result.serverId, 0)
-                val id = getLastTrackInDb()
-                insertThePoints(saveTrackResponse.result.serverId, id!!)
-            }
-        }
-    }
-
-    private fun getLastTrackInDb(): Int? {
-        var cursor: Cursor? = null
-        var id: Int? = null
-        try {
-            cursor = SelectDbHelper()
-                .nameOfTable(TRACKERS)
-                .selectParams("max($ID) as $ID")
-                .select(App.INSTANCE.db)
-            if (cursor.moveToFirst()) {
-                val idIndex = cursor.getColumnIndexOrThrow(ID)
-                do {
-                    id = cursor.getInt(idIndex)
-                } while (cursor.moveToNext())
-            }
-        } finally {
-            cursor?.close()
-        }
-        return id
-    }
-
-    private fun setCalendarTimeForTimer() {
-        calendar[Calendar.HOUR_OF_DAY] = hours
-        calendar[Calendar.MINUTE] = min
-        calendar[Calendar.SECOND] = sec
-        calendar[Calendar.MILLISECOND] = millis
-    }
-
-    private fun calculateTime() {
-        tMilliSec = SystemClock.elapsedRealtime() - tStart
-        tUpdate = tBuff + tMilliSec
-        sec = (tUpdate / 1000).toInt()
-        min = sec / 60
-        hours = sec / 3600
-        sec %= 60
-        millis = (tUpdate % 100).toInt()
     }
 
     private fun setAnimationForRunningViews(anim: Int) {
@@ -428,8 +321,8 @@ class RunningActivity : AppCompatActivity() {
         timeRunning.animation = anim2
     }
 
-    private fun setAnimationForEndViews(anim: Int) {
-        val anim2 = AnimationUtils.loadAnimation(this, anim)
+    private fun setAnimationForEndViews() {
+        val anim2 = AnimationUtils.loadAnimation(this, R.anim.flip_open)
         distanceTextView.animation = anim2
         finishTimeRunning.animation = anim2
     }
@@ -500,7 +393,9 @@ class RunningActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        handler?.removeCallbacks(timer!!)
         builder = null
         handler = null
+        timer = null
     }
 }

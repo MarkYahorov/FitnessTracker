@@ -47,7 +47,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     private lateinit var registerBtn: Button
 
     private var isLoadingBtnActive = true
-    private val textWatcher = createTextListener()
+    private var textWatcher:TextWatcher? = null
     private val repositoryImpl = App.INSTANCE.repositoryImpl
     private var dialog: AlertDialog.Builder? = null
     private val emailPattern = Pattern.compile(CHECK_EMAIL_VALIDATE)
@@ -79,6 +79,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         openLoginWindowBtn = findViewById(R.id.open_login_views_btn)
         registerBtn = findViewById(R.id.registr_btn)
         dialog = AlertDialog.Builder(this)
+        textWatcher = createTextListener()
     }
 
     override fun onStart() {
@@ -286,10 +287,11 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         openLoginWindowBtn.setOnClickListener(null)
         registerBtn.setOnClickListener(null)
         dialog = null
-        email.addTextChangedListener(null)
-        password.addTextChangedListener(null)
-        repeatPassword.addTextChangedListener(null)
-        firstName.addTextChangedListener(null)
-        lastName.addTextChangedListener(null)
+        email.removeTextChangedListener(textWatcher)
+        password.removeTextChangedListener(textWatcher)
+        repeatPassword.removeTextChangedListener(textWatcher)
+        firstName.removeTextChangedListener(textWatcher)
+        lastName.removeTextChangedListener(textWatcher)
+        textWatcher = null
     }
 }

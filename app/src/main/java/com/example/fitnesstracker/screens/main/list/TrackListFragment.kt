@@ -51,7 +51,7 @@ class TrackListFragment : Fragment() {
     }
 
     private lateinit var trackRecyclerView: RecyclerView
-    private lateinit var fab: FloatingActionButton
+    private lateinit var addTrackBtn: FloatingActionButton
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private var trackList = mutableListOf<Tracks>()
@@ -80,7 +80,7 @@ class TrackListFragment : Fragment() {
 
     private fun initAll(view: View) {
         trackRecyclerView = view.findViewById(R.id.track_recycler)
-        fab = view.findViewById(R.id.open_screen_running_btn)
+        addTrackBtn = view.findViewById(R.id.open_screen_running_btn)
         swipeRefreshLayout = view.findViewById(R.id.swipe_layout)
         builder = AlertDialog.Builder(requireContext())
     }
@@ -223,7 +223,7 @@ class TrackListFragment : Fragment() {
     }
 
     private fun setFABListener() {
-        fab.setOnClickListener {
+        addTrackBtn.setOnClickListener {
             navigator?.goToRunningScreen(arguments?.getString(CURRENT_TOKEN)!!, trackList.size + 1)
         }
     }
@@ -251,7 +251,7 @@ class TrackListFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         trackRecyclerView.clearOnScrollListeners()
-        fab.setOnClickListener(null)
+        addTrackBtn.setOnClickListener(null)
         swipeRefreshLayout.setOnRefreshListener(null)
     }
 

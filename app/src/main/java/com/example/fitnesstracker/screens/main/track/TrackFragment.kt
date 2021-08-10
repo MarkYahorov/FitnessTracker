@@ -178,11 +178,11 @@ class TrackFragment : Fragment() {
         addMarker(BitmapDescriptorFactory.HUE_RED, startLatLng, getString(R.string.start))
         addPolyline(allPointsInLatLng = allPointsInLatLng)
         addMarker(BitmapDescriptorFactory.HUE_BLUE, finishLatLng, getString(R.string.finish))
-        val builder = LatLngBounds.Builder()
-        builder.include(startLatLng).include(finishLatLng)
+        val runningWayBuilder = LatLngBounds.Builder()
+        runningWayBuilder.include(startLatLng).include(finishLatLng)
         googleMap?.moveCamera(
             CameraUpdateFactory.newLatLngBounds(
-                builder.build(),
+                runningWayBuilder.build(),
                 500
             )
         )

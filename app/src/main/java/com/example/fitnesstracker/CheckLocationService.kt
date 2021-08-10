@@ -65,8 +65,14 @@ class CheckLocationService : Service(), LocationListener {
             Intent(this, CheckLocationService::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)
             }
-        val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationCompat.Builder(this, EXAMPLE_SERVICE_CHANNEL_ID)
+        val notification = createNotification(pendingIntent = pendingIntent)
+
+        startForeground(1, notification)
+    }
+
+    private fun createNotification(pendingIntent: PendingIntent): Notification? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+           return NotificationCompat.Builder(this, EXAMPLE_SERVICE_CHANNEL_ID)
                 .setOngoing(true)
                 .setContentTitle(getText(R.string.error_message_repeat_password))
                 .setContentText(getText(R.string.error_message_password))
@@ -74,16 +80,15 @@ class CheckLocationService : Service(), LocationListener {
                 .setContentIntent(pendingIntent)
                 .setPriority(
                     when {
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> IMPORTANCE_HIGH
-                    else -> PRIORITY_HIGH
-                })
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> IMPORTANCE_HIGH
+                        else -> PRIORITY_HIGH
+                    })
                 .setCategory(CATEGORY_SERVICE)
                 .setTicker(getText(R.string.error_message_email))
                 .build()
         } else {
-            TODO("VERSION.SDK_INT < O")
+            return null
         }
-        startForeground(1, notification)
     }
 
     @RequiresApi(Build.VERSION_CODES.M)

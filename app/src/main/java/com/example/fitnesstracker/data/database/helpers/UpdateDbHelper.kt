@@ -1,9 +1,6 @@
 package com.example.fitnesstracker.data.database.helpers
 
 import android.database.sqlite.SQLiteDatabase
-import android.util.Log
-import com.example.fitnesstracker.App
-import com.example.fitnesstracker.data.database.FitnessDatabase
 
 class UpdateDbHelper {
     private var tableName = ""
@@ -31,9 +28,9 @@ class UpdateDbHelper {
     }
 
     fun update(db: SQLiteDatabase){
-        val stri = updatesFields.entries.joinToString(",")
+        val updatingFields = updatesFields.entries.joinToString(",")
         db.compileStatement(
-            "UPDATE $tableName SET $stri WHERE $whereArgs")
+            "UPDATE $tableName SET $updatingFields WHERE $whereArgs")
 
     }
 

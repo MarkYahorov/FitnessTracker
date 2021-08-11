@@ -30,7 +30,7 @@ class UpdateDbHelper {
     fun update(db: SQLiteDatabase){
         val updatingFields = updatesFields.entries.joinToString(",")
         db.compileStatement(
-            "UPDATE $tableName SET $updatingFields WHERE $whereArgs")
+            "UPDATE $tableName SET $updatingFields WHERE $whereArgs").execute()
 
     }
 

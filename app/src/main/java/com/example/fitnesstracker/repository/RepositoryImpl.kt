@@ -2,6 +2,7 @@ package com.example.fitnesstracker.repository
 
 import android.content.Context
 import android.database.Cursor
+import android.util.Log
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
@@ -352,7 +353,7 @@ class RepositoryImpl : Repository {
         var id: Int? = null
         if (trackForData.serverId == 0) {
             trackForData.serverId = null
-            id = saveTrack(
+            saveTrack(
                 SaveTrackRequest(
                     token = trackRequest.token,
                     serverId = trackForData.serverId,
@@ -361,7 +362,18 @@ class RepositoryImpl : Repository {
                     distance = trackForData.distance,
                     pointForData = getListOfPointsToCurrentTrack(tracks.id!!)
                 )
-            ).result.serverId
+            ).continueWith {
+                if (it.error!=null){
+                    id = null
+                    Log.e("key", "${it.error.message}")
+                } else if(it.result.status == "error"){
+                    id = null
+                    Log.e("key", "${it.result.error}")
+                } else {
+                    id = it.result.serverId
+                    Log.e("key", "${it.result}")
+                }
+            }
         }
         return id
     }

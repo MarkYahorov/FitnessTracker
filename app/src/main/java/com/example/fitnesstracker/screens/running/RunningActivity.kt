@@ -8,10 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.SystemClock
+import android.os.*
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
@@ -163,7 +160,7 @@ class RunningActivity : AppCompatActivity() {
         toolbar = findViewById(R.id.running_toolbar)
         navDrawer = findViewById(R.id.running_drawer)
         alertDialog = AlertDialog.Builder(this)
-        handler = Handler()
+        handler = Handler(Looper.getMainLooper())
     }
 
     @RequiresApi(Build.VERSION_CODES.M)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
@@ -38,7 +39,7 @@ class SplashScreenActivity : AppCompatActivity() {
     private fun startAnimation() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.logo_animation)
         logo.animation = anim
-        Handler().postDelayed({
+        Handler(Looper.getMainLooper()).postDelayed({
             if (isFirst) {
                 startActivity(Intent(this, LoginAndRegisterActivity::class.java))
                 finish()

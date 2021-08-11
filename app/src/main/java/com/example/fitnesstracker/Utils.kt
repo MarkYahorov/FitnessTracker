@@ -1,6 +1,7 @@
 package com.example.fitnesstracker
 
 import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.widget.TextView
 import java.util.*
@@ -18,7 +19,7 @@ class Utils {
     private var min = 0
     private var millis = 0
     private var hours = 0
-    private val handler = Handler()
+    private val handler = Handler(Looper.getMainLooper())
 
     fun createTimer(view: TextView, tStart: Long, calendar: Calendar) = object : Runnable {
 

@@ -14,7 +14,7 @@ class NotificationListAdapter(
     private val notificationList: List<Notification>,
     private val enableNotification: (Notification) -> Unit,
     private val closeNotification: (Notification) -> Unit,
-    private val setTime: (Notification) -> Unit,
+    private val changeNotification: (Notification) -> Unit,
 ) : RecyclerView.Adapter<NotificationListAdapter.ViewHolder>() {
 
     class ViewHolder(
@@ -56,7 +56,7 @@ class NotificationListAdapter(
         val view = LayoutInflater.from(parent.context).inflate(
             R.layout.notification_item, parent, false
         )
-        return ViewHolder(view, enableNotification, closeNotification, setTime)
+        return ViewHolder(view, enableNotification, closeNotification, changeNotification)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

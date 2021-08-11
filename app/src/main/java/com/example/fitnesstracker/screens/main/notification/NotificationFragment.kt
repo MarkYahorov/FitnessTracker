@@ -45,13 +45,13 @@ class NotificationFragment : Fragment() {
     private lateinit var alarmManager: AlarmManager
 
     private val notificationList = mutableListOf<Notification>()
-    private var builder: AlertDialog.Builder? = null
+    private var alertDialog: AlertDialog.Builder? = null
     private var calendar = Calendar.getInstance()
     private val repo = App.INSTANCE.repositoryImpl
     private var currentDate = 0L
     private var currentHour = 0
     private var currentMinutes = 0
-    private var position = 0
+    private var scrollPositionOfRecycler = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,7 +73,7 @@ class NotificationFragment : Fragment() {
     private fun initAll(view: View) {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler)
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
-        builder = AlertDialog.Builder(requireContext())
+        alertDialog = AlertDialog.Builder(requireContext())
     }
 
     private fun initRecycler() {
@@ -89,7 +89,7 @@ class NotificationFragment : Fragment() {
                     )
                 }, closeNotification = {
                     createAlertDialog(notification = it)
-                }, setTime = {
+                }, changeNotification = {
                     updateAlarm(currentId = it.id, position = it.position)
                 })
             layoutManager =
@@ -98,7 +98,7 @@ class NotificationFragment : Fragment() {
     }
 
     private fun createAlertDialog(notification: Notification) {
-        builder?.setPositiveButton(R.string.yes) { dialog, _ ->
+        alertDialog?.setPositiveButton(R.string.yes) { dialog, _ ->
             setCancelAlarmBtnClickListener(notification.id)
             repo.clearDbWithWereArgs(NOTIFICATION_TIME_NAME, "$ID = ${notification.id}")
                 .continueWith({
@@ -108,14 +108,14 @@ class NotificationFragment : Fragment() {
                     dialog.cancel()
                 }, Task.UI_THREAD_EXECUTOR)
         }
-        builder?.setNegativeButton(R.string.no) { dialog, _ ->
+        alertDialog?.setNegativeButton(R.string.no) { dialog, _ ->
             dialog.dismiss()
             dialog.cancel()
         }
-        builder?.setTitle(R.string.alarm)
-        builder?.setMessage(R.string.sure)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.alarm)
+        alertDialog?.setMessage(R.string.sure)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     private fun addScrollListener() {
@@ -123,7 +123,7 @@ class NotificationFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                position = layoutManager.findFirstVisibleItemPosition()
+                scrollPositionOfRecycler = layoutManager.findFirstVisibleItemPosition()
             }
         })
     }
@@ -136,8 +136,8 @@ class NotificationFragment : Fragment() {
             val timePicker = createTimePicker()
             timePicker.show(childFragmentManager, TIME_PICKER)
             timePicker.addOnPositiveButtonClickListener {
-                setCalendarTime(timePicker)
-                updateAlarmInDb(currentId, position)
+                setCalendarTime(timePicker = timePicker)
+                updateAlarmInDb(currentId = currentId, position = position)
             }
         }
     }
@@ -149,7 +149,7 @@ class NotificationFragment : Fragment() {
         } else {
             repo.updateNotifications(currentDate, currentHour, currentMinutes, currentId)
             setAlarmManager(
-                channelMustHave = currentId + 1,
+                channelMustHave = currentId,
                 date = currentDate,
                 hours = currentHour,
                 minutes = currentMinutes
@@ -177,8 +177,8 @@ class NotificationFragment : Fragment() {
             currentDate = savedInstanceState.getLong(CURRENT_DATE)
             currentMinutes = savedInstanceState.getInt(CURRENT_ALARM_TIME)
             currentHour = savedInstanceState.getInt(CURRENT_TIME)
-            position = savedInstanceState.getInt(CURRENT_POSITION)
-            notificationRecyclerView.scrollToPosition(position)
+            scrollPositionOfRecycler = savedInstanceState.getInt(CURRENT_POSITION)
+            notificationRecyclerView.scrollToPosition(scrollPositionOfRecycler)
         }
     }
 
@@ -187,7 +187,7 @@ class NotificationFragment : Fragment() {
         outState.putLong(CURRENT_DATE, currentDate)
         outState.putInt(CURRENT_ALARM_TIME, currentMinutes)
         outState.putInt(CURRENT_TIME, currentHour)
-        outState.putInt(CURRENT_POSITION, position)
+        outState.putInt(CURRENT_POSITION, scrollPositionOfRecycler)
     }
 
     override fun onStart() {
@@ -243,7 +243,7 @@ class NotificationFragment : Fragment() {
                     val id = it.result
                     createNotificationList(id = id)
                     setAlarmManager(
-                        channelMustHave = notificationList.size + 1,
+                        channelMustHave = id,
                         date = currentDate,
                         hours = currentHour,
                         minutes = currentMinutes

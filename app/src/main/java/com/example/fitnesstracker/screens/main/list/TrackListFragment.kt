@@ -157,7 +157,7 @@ class TrackListFragment : Fragment() {
                     trackList.sortByDescending { it.beginTime }
                 }
                 trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
-                trackRecyclerView.scrollToPosition(App.INSTANCE.recyclerInstance)
+                trackRecyclerView.scrollToPosition(App.INSTANCE.trackRecyclerPosition)
                 getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
     }
@@ -218,7 +218,7 @@ class TrackListFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                App.INSTANCE.recyclerInstance = layoutManager.findFirstVisibleItemPosition()
+                App.INSTANCE.trackRecyclerPosition = layoutManager.findFirstVisibleItemPosition()
             }
         })
     }

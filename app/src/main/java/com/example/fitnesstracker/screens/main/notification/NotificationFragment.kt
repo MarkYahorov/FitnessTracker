@@ -37,6 +37,7 @@ class NotificationFragment : Fragment() {
         private const val CURRENT_DATE = "CURRENT_DATE"
         private const val CURRENT_ALARM_TIME = "CURRENT_ALARM_TIME"
         private const val CURRENT_TIME = "CURRENT_TIME"
+        private const val CURRENT_POSITION = "CURRENT_POSITION"
     }
 
     private lateinit var notificationRecyclerView: RecyclerView
@@ -50,6 +51,7 @@ class NotificationFragment : Fragment() {
     private var currentDate = 0L
     private var currentHour = 0
     private var currentMinutes = 0
+    private var position = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -116,6 +118,16 @@ class NotificationFragment : Fragment() {
         builder?.show()
     }
 
+    private fun addScrollListener() {
+        notificationRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                position = layoutManager.findFirstVisibleItemPosition()
+            }
+        })
+    }
+
     private fun updateAlarm(currentId: Int, position: Int) {
         val datePicker = createDataBicker()
         datePicker.show(childFragmentManager, DATE_PICKER)
@@ -165,6 +177,8 @@ class NotificationFragment : Fragment() {
             currentDate = savedInstanceState.getLong(CURRENT_DATE)
             currentMinutes = savedInstanceState.getInt(CURRENT_ALARM_TIME)
             currentHour = savedInstanceState.getInt(CURRENT_TIME)
+            position = savedInstanceState.getInt(CURRENT_POSITION)
+            notificationRecyclerView.scrollToPosition(position)
         }
     }
 
@@ -173,11 +187,13 @@ class NotificationFragment : Fragment() {
         outState.putLong(CURRENT_DATE, currentDate)
         outState.putInt(CURRENT_ALARM_TIME, currentMinutes)
         outState.putInt(CURRENT_TIME, currentHour)
+        outState.putInt(CURRENT_POSITION, position)
     }
 
     override fun onStart() {
         super.onStart()
         selectTimeBtnClickListener()
+        addScrollListener()
     }
 
     private fun selectTimeBtnClickListener() {

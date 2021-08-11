@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.*
+import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
@@ -181,7 +182,6 @@ class RunningActivity : AppCompatActivity() {
                 isFinish = false
                 startTimer()
                 setAnimationForStartBtn()
-                setAnimationForRunningViews(anim = R.anim.flip_open)
                 putMarkActivity(mark = 1)
                 startService(value = true)
                 setVisibilityClickStartBtnViews()
@@ -195,6 +195,7 @@ class RunningActivity : AppCompatActivity() {
     private fun setAnimationForStartBtn() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.flip_close)
         startBtn.animation = anim
+        setAnimationForRunningViews(anim = R.anim.flip_open)
     }
 
     private fun putMarkActivity(mark: Int) {

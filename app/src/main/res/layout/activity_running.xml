@@ -24,9 +24,11 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/start_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
+            android:layout_height="100dp"
+            android:background="@drawable/round"
             android:textColor="@color/colorTextInList"
             android:text="@string/start"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -36,9 +38,11 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/finish_btn"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_marginStart="50dp"
+            android:layout_marginEnd="50dp"
+            android:layout_height="100dp"
+            android:background="@drawable/round"
             android:layout_marginBottom="64dp"
             android:text="@string/finish"
             android:textColor="@color/colorTextInList"
@@ -47,7 +51,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/distance_running"
             android:layout_width="58dp"
             android:layout_height="wrap_content"
@@ -58,18 +62,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/finish_trunning_time" />
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/time_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="132dp"
             android:textColor="@color/colorTextInList"
             android:visibility="gone"
+            android:textSize="32sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/running_toolbar" />
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/finish_trunning_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -95,7 +100,7 @@
             android:layout_height="50dp"
             android:layout_gravity="bottom">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/imageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -106,7 +111,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
+            <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

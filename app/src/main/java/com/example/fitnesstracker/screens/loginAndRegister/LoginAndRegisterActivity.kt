@@ -112,22 +112,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                 registerBtn.isEnabled = false
             } else {
                 if (checkEmailIsEqualsRegex() && checkPasswordIsEqualsRegex() && checkPasswordMatching()) {
-                    repositoryImpl.registration(registrationRequest = createRegistrationRequest())
-                        .continueWith({
-                            when {
-                                it.error != null -> {
-                                    createAlertDialog(it.error.message)?.show()
-                                }
-                                it.result.status == ERROR -> {
-                                    createAlertDialog(it.result.error)?.show()
-                                }
-                                else -> {
-                                    saveTokenInSharedPref(token = it.result.token)
-                                    createIntent()
-                                }
-                            }
-                        }, Task.UI_THREAD_EXECUTOR)
-
+                    registration()
                 } else {
                     createErrorMessageForRegistration()
                 }
@@ -140,22 +125,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         openLoginWindowBtn.setOnClickListener {
             if (isLoadingBtnActive) {
                 if (checkEmailIsEqualsRegex() && checkPasswordIsEqualsRegex()) {
-                    repositoryImpl.login(loginRequest = createLoginRequest())
-                        .continueWith({ response ->
-                            when {
-                                response.error != null -> {
-                                    createAlertDialog(response.error.message)?.show()
-                                }
-                                response.result.status == ERROR -> {
-                                    createAlertDialog(response.result.error)?.show()
-                                }
-                                else -> {
-                                    saveTokenInSharedPref(token = response.result.token)
-                                    createIntent()
-                                }
-                            }
-                        }, Task.UI_THREAD_EXECUTOR)
-
+                    login()
                 } else {
                     createErrorMessageForLogin()
                 }
@@ -169,6 +139,43 @@ class LoginAndRegisterActivity : AppCompatActivity() {
             }
             isLoadingBtnActive = true
         }
+    }
+
+    private fun registration(){
+        repositoryImpl.registration(registrationRequest = createRegistrationRequest())
+            .continueWith({
+                when {
+                    it.error != null -> {
+                        createAlertDialog(it.error.message)?.show()
+                    }
+                    it.result.status == ERROR -> {
+                        createAlertDialog(it.result.error)?.show()
+                    }
+                    else -> {
+                        saveTokenInSharedPref(token = it.result.token)
+                        createIntent()
+                    }
+                }
+            }, Task.UI_THREAD_EXECUTOR)
+    }
+
+    private fun login(){
+        repositoryImpl.login(loginRequest = createLoginRequest())
+            .continueWith({ response ->
+                when {
+                    response.error != null -> {
+                        createAlertDialog(response.error.message)?.show()
+                    }
+                    response.result.status == ERROR -> {
+                        createAlertDialog(response.result.error)?.show()
+                    }
+                    else -> {
+                        saveTokenInSharedPref(token = response.result.token)
+                        createIntent()
+                    }
+                }
+            }, Task.UI_THREAD_EXECUTOR)
+
     }
 
     private fun createErrorMessageForRegistration() {

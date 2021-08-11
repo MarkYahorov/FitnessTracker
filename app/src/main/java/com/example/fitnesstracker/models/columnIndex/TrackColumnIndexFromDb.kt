@@ -1,4 +1,4 @@
-package com.example.fitnesstracker.models
+package com.example.fitnesstracker.models.columnIndex
 
 data class TrackColumnIndexFromDb(
     val id: Int,

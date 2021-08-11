@@ -11,10 +11,11 @@ import androidx.fragment.app.Fragment
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID_FROM_SERVER
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LATITUDE
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LONGITUDE
 import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
 import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
 import com.example.fitnesstracker.models.points.PointForData
@@ -66,7 +67,7 @@ class TrackFragment : Fragment() {
     private lateinit var distance: TextView
 
     private var googleMap: GoogleMap? = null
-    private var builder: AlertDialog.Builder? = null
+    private var alertDialog: AlertDialog.Builder? = null
     private var trackFragment: SupportMapFragment? = null
     private val allDistanceOfTrack = mutableListOf<PointForData>()
     private val allPointsInLatLng = mutableListOf<LatLng>()
@@ -81,14 +82,14 @@ class TrackFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track, container, false)
-        initAll(view)
+        initAll(view = view)
         return view
     }
 
     private fun initAll(view: View) {
         runningTime = view.findViewById(R.id.current_track_running_time)
         distance = view.findViewById(R.id.current_track_distance)
-        builder = AlertDialog.Builder(requireContext())
+        alertDialog = AlertDialog.Builder(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -104,80 +105,103 @@ class TrackFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (!checkThisPointIntoDb(arguments?.getInt(CURRENT_DB_ID)!!)) {
+        if (!checkThisPointIntoDb(id = arguments?.getInt(CURRENT_DB_ID)!!)) {
             getTrackFromServer()
         } else {
-            getListOfPointsFromDb(arguments?.getInt(CURRENT_DB_ID)!!)
+            getListOfPointsFromDb(id = arguments?.getInt(CURRENT_DB_ID)!!)
         }
     }
 
     private fun getListOfPointsFromDb(id: Int) {
-        repo.getPointsForCurrentTrackFromDb(id)
-            .continueWith ({ listFromDb ->
+        repo.getPointsForCurrentTrackFromDb(id = id)
+            .continueWith({ listFromDb ->
                 listFromDb.result.forEach {
-                    allDistanceOfTrack.add(PointForData(it.lng, it.lat))
+                    allDistanceOfTrack.add(PointForData(lng = it.lng, lat = it.lat))
                 }
-                processResult(allDistanceOfTrack, allPointsInLatLng)
-            },Task.UI_THREAD_EXECUTOR)
+                processResult(listOfPoints = allDistanceOfTrack, listOfLatLng = allPointsInLatLng)
+            }, Task.UI_THREAD_EXECUTOR)
     }
 
 
     private fun getTrackFromServer() {
-        repo.getPointsForCurrentTrack(createPointsRequest())
+        repo.getPointsForCurrentTrack(pointsRequest = createPointsRequest())
             .continueWith({
                 when {
                     it.error != null -> {
-                        createAlertDialog(it.error.message)
+                        createAlertDialog(error = it.error.message)
                     }
                     it.result.status == ERROR -> {
-                        createAlertDialog(it.result.error)
+                        createAlertDialog(error = it.result.error)
                     }
                     else -> {
                         allDistanceOfTrack.addAll(it.result.pointForData)
-                        processResult(allDistanceOfTrack, allPointsInLatLng)
+                        processResult(
+                            listOfPoints = allDistanceOfTrack,
+                            listOfLatLng = allPointsInLatLng
+                        )
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)
-            .onSuccess ({
+            .onSuccess({
                 insertPointsIntoDb(allDistanceOfTrack = allDistanceOfTrack)
             }, Task.BACKGROUND_EXECUTOR)
     }
 
     private fun createAlertDialog(error: String?) {
-        builder?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { _, _ ->
         }
-        builder?.setTitle(R.string.error)
-        builder?.setMessage(error)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.error)
+        alertDialog?.setMessage(error)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     private fun insertPointsIntoDb(allDistanceOfTrack: List<PointForData>) {
         allDistanceOfTrack.forEach {
             InsertDBHelper()
-                .setTableName(ALL_POINTS)
-                .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER, arguments?.getInt(CURRENT_TRACK_ID)!!.toString())
-                .addFieldsAndValuesToInsert(CURRENT_TRACK, arguments?.getInt(CURRENT_DB_ID)!!.toString())
-                .addFieldsAndValuesToInsert(LATITUDE, it.lat.toString())
-                .addFieldsAndValuesToInsert(FitnessDatabase.LONGITUDE, it.lng.toString())
-                .insertTheValues(App.INSTANCE.db)
+                .setTableName(name = ALL_POINTS)
+                .addFieldsAndValuesToInsert(
+                    nameOfField = ID_FROM_SERVER,
+                    insertingValue = arguments?.getInt(CURRENT_TRACK_ID)!!.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = CURRENT_TRACK,
+                    insertingValue = arguments?.getInt(CURRENT_DB_ID)!!.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = LATITUDE,
+                    insertingValue = it.lat.toString()
+                )
+                .addFieldsAndValuesToInsert(
+                    nameOfField = LONGITUDE,
+                    insertingValue = it.lng.toString()
+                )
+                .insertTheValues(db = App.INSTANCE.db)
         }
     }
 
     private fun processResult(
-        allDistanceOfTrack: List<PointForData>,
-        allPointsInLatLng: MutableList<LatLng>
+        listOfPoints: List<PointForData>,
+        listOfLatLng: MutableList<LatLng>
     ) {
-        val startCoordinate = allDistanceOfTrack[0]
+        val startCoordinate = listOfPoints[0]
         val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
-        val finishCoordinate = allDistanceOfTrack[allDistanceOfTrack.lastIndex]
+        val finishCoordinate = listOfPoints[listOfPoints.lastIndex]
         val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)
-        allDistanceOfTrack.forEach { points ->
-            allPointsInLatLng.add(LatLng(points.lat, points.lng))
+        listOfPoints.forEach { points ->
+            listOfLatLng.add(LatLng(points.lat, points.lng))
         }
-        addMarker(BitmapDescriptorFactory.HUE_RED, startLatLng, getString(R.string.start))
-        addPolyline(allPointsInLatLng = allPointsInLatLng)
-        addMarker(BitmapDescriptorFactory.HUE_BLUE, finishLatLng, getString(R.string.finish))
+        addMarker(
+            iconColor = BitmapDescriptorFactory.HUE_RED,
+            position = startLatLng,
+            title = getString(R.string.start)
+        )
+        addPolyline(allPointsInLatLng = listOfLatLng)
+        addMarker(
+            iconColor = BitmapDescriptorFactory.HUE_BLUE,
+            position = finishLatLng,
+            title = getString(R.string.finish)
+        )
         val runningWayBuilder = LatLngBounds.Builder()
             .include(startLatLng)
             .include(finishLatLng)
@@ -212,10 +236,10 @@ class TrackFragment : Fragment() {
         val haveData: Boolean?
         try {
             cursor = SelectDbHelper()
-                .nameOfTable(ALL_POINTS)
-                .selectParams("*")
-                .where("$CURRENT_TRACK = $id")
-                .select(App.INSTANCE.db)
+                .nameOfTable(table = ALL_POINTS)
+                .selectParams(allParams = "*")
+                .where(whereArgs = "$CURRENT_TRACK = $id")
+                .select(db = App.INSTANCE.db)
             haveData = cursor.moveToFirst()
         } finally {
             cursor?.close()
@@ -232,7 +256,7 @@ class TrackFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         googleMap = null
-        builder = null
+        alertDialog = null
         trackFragment = null
     }
 }

@@ -56,7 +56,7 @@ class NotificationFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_notification, container, false)
-        initAll(view)
+        initAll(view = view)
         return view
     }
 
@@ -79,11 +79,16 @@ class NotificationFragment : Fragment() {
             adapter = NotificationListAdapter(
                 notificationList = notificationList,
                 enableNotification = {
-                    setAlarmManager(it.id, it.date, it.hours, it.minutes)
+                    setAlarmManager(
+                        channelMustHave = it.id,
+                        date = it.date,
+                        hours = it.hours,
+                        minutes = it.minutes
+                    )
                 }, closeNotification = {
-                    createAlertDialog(it)
+                    createAlertDialog(notification = it)
                 }, setTime = {
-                    updateAlarm(it.id, it.position)
+                    updateAlarm(currentId = it.id, position = it.position)
                 })
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
@@ -132,10 +137,10 @@ class NotificationFragment : Fragment() {
         } else {
             repo.updateNotifications(currentDate, currentHour, currentMinutes, currentId)
             setAlarmManager(
-                currentId + 1,
-                currentDate,
-                currentHour,
-                currentMinutes
+                channelMustHave = currentId + 1,
+                date = currentDate,
+                hours = currentHour,
+                minutes = currentMinutes
             )
             notificationList[position].date = currentDate
             notificationList[position].hours = currentHour
@@ -189,7 +194,7 @@ class NotificationFragment : Fragment() {
             val timePicker = createTimePicker()
             timePicker.show(childFragmentManager, TIME_PICKER)
             timePicker.addOnPositiveButtonClickListener {
-                createAlarmManagerForInsertIntoDb(timePicker)
+                createAlarmManagerForInsertIntoDb(timePicker = timePicker)
             }
         }
     }
@@ -212,7 +217,7 @@ class NotificationFragment : Fragment() {
     private fun createAlarmManagerForInsertIntoDb(
         timePicker: MaterialTimePicker
     ) {
-        setCalendarTime(timePicker)
+        setCalendarTime(timePicker = timePicker)
         if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
             Toast.makeText(requireContext(), R.string.toast_waring, Toast.LENGTH_LONG)
                 .show()
@@ -220,12 +225,12 @@ class NotificationFragment : Fragment() {
             repo.insertNotification(currentDate, currentHour, currentMinutes, notificationList)
                 .continueWith({
                     val id = it.result
-                    createNotificationList(id)
+                    createNotificationList(id = id)
                     setAlarmManager(
-                        notificationList.size + 1,
-                        currentDate,
-                        currentHour,
-                        currentMinutes
+                        channelMustHave = notificationList.size + 1,
+                        date = currentDate,
+                        hours = currentHour,
+                        minutes = currentMinutes
                     )
                     notificationRecyclerView.adapter?.notifyDataSetChanged()
                 }, Task.UI_THREAD_EXECUTOR)
@@ -235,11 +240,11 @@ class NotificationFragment : Fragment() {
     private fun createNotificationList(id: Int) {
         notificationList.add(
             Notification(
-                id,
-                currentDate,
-                notificationList.size,
-                currentHour,
-                currentMinutes
+                id = id,
+                date = currentDate,
+                position = notificationList.size,
+                hours = currentHour,
+                minutes = currentMinutes
             )
         )
     }

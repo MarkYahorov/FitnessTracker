@@ -25,13 +25,15 @@ class NotificationListAdapter(
     ) : RecyclerView.ViewHolder(item) {
         private val timeText = item.findViewById<TextView>(R.id.notification_time)
         private var calendar:Calendar? = null
+        private var date:SimpleDateFormat? = null
+
         fun bind(notification: Notification) {
             calendar = Calendar.getInstance()
             calendar?.time = Date(notification.date)
             calendar!![Calendar.HOUR_OF_DAY] = notification.hours
             calendar!![Calendar.MINUTE] = notification.minutes
-            val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-            timeText.text = date.format(calendar!!.time)
+            date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+            timeText.text = date?.format(calendar!!.time)
             enableNotification(notification)
             item.setOnClickListener {
                 setTime(notification)
@@ -46,6 +48,7 @@ class NotificationListAdapter(
             item.setOnClickListener(null)
             item.setOnLongClickListener(null)
             calendar = null
+            date = null
         }
     }
 

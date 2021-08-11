@@ -64,14 +64,14 @@ class RunningActivity : AppCompatActivity() {
 
     private lateinit var startBtn: Button
     private lateinit var finishBtn: Button
-    private lateinit var timeRunning: TextView
+    private lateinit var timeRunningTextView: TextView
     private lateinit var distanceTextView: TextView
     private lateinit var finishTimeRunning: TextView
     private lateinit var toolbar: Toolbar
     private lateinit var navDrawer: DrawerLayout
     private lateinit var toggle: ActionBarDrawerToggle
 
-    private var builder: AlertDialog.Builder? = null
+    private var alertDialog: AlertDialog.Builder? = null
     private var handler: Handler? = null
     private var timer: Runnable? = null
     private val coordinationList = mutableListOf<PointForData>()
@@ -94,20 +94,20 @@ class RunningActivity : AppCompatActivity() {
                     .toMutableList()
             )
             if (coordinationList.size > 1) {
-                repo.saveTrack(createSaveTrackRequest())
+                repo.saveTrack(saveTrackRequest = createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
-                        repo.insertTrackAndPointsInDbAfterSavinginServer(
-                            saveTrackResponse,
-                            beginTime,
-                            calendar,
-                            distance,
-                            coordinationList
+                        repo.insertTrackAndPointsInDbAfterSavingInServer(
+                            saveTrackResponse = saveTrackResponse,
+                            beginTime = beginTime,
+                            calendar = calendar,
+                            distance = distance,
+                            listOfPoints = coordinationList
                         ).continueWith {
-                            showDialogs(saveTrackResponse)
+                            showDialogs(message = saveTrackResponse)
                         }
                     }, Task.UI_THREAD_EXECUTOR)
             } else {
-                createAlertDialog(R.string.not_moving)
+                createAlertDialog(error = R.string.not_moving)
             }
         }
 
@@ -126,12 +126,16 @@ class RunningActivity : AppCompatActivity() {
             distanceTextView.text = savedInstanceState.getString(DISTANCE)
             finishTimeRunning.text = savedInstanceState.getString(FINISH_TIME)
             startBtn.isVisible = savedInstanceState.getBoolean(BOOL)
-            timeRunning.isVisible = savedInstanceState.getBoolean(TR)
+            timeRunningTextView.isVisible = savedInstanceState.getBoolean(TR)
             finishBtn.isVisible = savedInstanceState.getBoolean(FB)
             distanceTextView.isVisible = savedInstanceState.getBoolean(DTV)
             finishTimeRunning.isVisible = savedInstanceState.getBoolean(FTV)
             tStart = savedInstanceState.getLong(START)
-            timer = Utils().createTimer(timeRunning, tStart, calendar)
+            timer = Utils().createTimer(
+                view = timeRunningTextView,
+                tStart = tStart,
+                calendar = calendar
+            )
             handler?.postDelayed(timer!!, 0)
         }
     }
@@ -154,11 +158,11 @@ class RunningActivity : AppCompatActivity() {
         distanceTextView = findViewById(R.id.distance_running)
         startBtn = findViewById(R.id.start_btn)
         finishBtn = findViewById(R.id.finish_btn)
-        timeRunning = findViewById(R.id.time_text)
+        timeRunningTextView = findViewById(R.id.time_text)
         finishTimeRunning = findViewById(R.id.finish_trunning_time)
         toolbar = findViewById(R.id.running_toolbar)
         navDrawer = findViewById(R.id.running_drawer)
-        builder = AlertDialog.Builder(this)
+        alertDialog = AlertDialog.Builder(this)
         handler = Handler()
     }
 
@@ -180,32 +184,32 @@ class RunningActivity : AppCompatActivity() {
                 isFinish = false
                 startTimer()
                 setAnimationForStartBtn()
-                setAnimationForRunningViews(R.anim.flip_open)
-                putMarkActivity(1)
-                startService(true)
-                setVisibilityClickStartBtn()
+                setAnimationForRunningViews(anim = R.anim.flip_open)
+                putMarkActivity(mark = 1)
+                startService(value = true)
+                setVisibilityClickStartBtnViews()
                 setIsFromNotificationInSharedPref()
             } else if (checkPermissions()) {
-                createAlertDialog(R.string.permissions_enabled)
+                createAlertDialog(error = R.string.permissions_enabled)
             }
         }
     }
 
-    private fun setAnimationForStartBtn(){
+    private fun setAnimationForStartBtn() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.flip_close)
         startBtn.animation = anim
     }
 
-    private fun putMarkActivity(mark:Int){
+    private fun putMarkActivity(mark: Int) {
         getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
             .putInt(CURRENT_ACTIVITY, mark)
             .apply()
     }
 
-    private fun startTimer(){
+    private fun startTimer() {
         tStart = SystemClock.elapsedRealtime()
-        timer = Utils().createTimer(timeRunning, tStart, calendar)
+        timer = Utils().createTimer(timeRunningTextView, tStart, calendar)
         beginTime = System.currentTimeMillis()
         handler?.postDelayed(timer!!, 0)
     }
@@ -215,18 +219,18 @@ class RunningActivity : AppCompatActivity() {
             if (isGpsEnabled()) {
                 finishBtn.isEnabled = false
                 isFinish = true
-                setAnimationForRunningViews(R.anim.flip_close)
+                setAnimationForRunningViews(anim = R.anim.flip_close)
                 setAnimationForEndViews()
-                startService(false)
+                startService(value = false)
                 setVisibilityFinishBtnClick()
                 handler?.removeCallbacks(timer!!)
                 createFinishTimeText()
-                putMarkActivity(0)
+                putMarkActivity(mark = 0)
             }
         }
     }
 
-    private fun createFinishTimeText(){
+    private fun createFinishTimeText() {
         val format = SimpleDateFormat(PATTERN, Locale.getDefault())
         format.timeZone = timeZone
         finishTimeRunning.text = format.format(calendar.time.time)
@@ -235,7 +239,7 @@ class RunningActivity : AppCompatActivity() {
     private fun setVisibilityFinishBtnClick() {
         finishBtn.isVisible = false
         distanceTextView.isVisible = true
-        timeRunning.isVisible = false
+        timeRunningTextView.isVisible = false
         finishTimeRunning.isVisible = true
     }
 
@@ -250,10 +254,10 @@ class RunningActivity : AppCompatActivity() {
         startService(intent)
     }
 
-    private fun setVisibilityClickStartBtn() {
+    private fun setVisibilityClickStartBtnViews() {
         finishBtn.isVisible = true
         startBtn.isVisible = false
-        timeRunning.isVisible = true
+        timeRunningTextView.isVisible = true
     }
 
     private fun createDrawer() {
@@ -267,7 +271,6 @@ class RunningActivity : AppCompatActivity() {
         toggle.setToolbarNavigationClickListener {
             onBackPressed()
         }
-        navDrawer.addDrawerListener(toggle)
     }
 
     private fun setIsFromNotificationInSharedPref() {
@@ -304,13 +307,13 @@ class RunningActivity : AppCompatActivity() {
     private fun showDialogs(message: Task<SaveTrackResponse>) {
         when {
             message.error != null -> {
-                createAlertDialog(R.string.not_internet)
+                createAlertDialog(error = R.string.not_internet)
             }
             message.result.status == ERROR -> {
-                createAlertDialog(message.result.error!!)
+                createAlertDialog(error = message.result.error!!)
             }
             else -> {
-                createAlertDialog(getString(R.string.successfully))
+                createAlertDialog(error = getString(R.string.successfully))
             }
         }
     }
@@ -318,7 +321,7 @@ class RunningActivity : AppCompatActivity() {
     private fun setAnimationForRunningViews(anim: Int) {
         val anim2 = AnimationUtils.loadAnimation(this, anim)
         finishBtn.animation = anim2
-        timeRunning.animation = anim2
+        timeRunningTextView.animation = anim2
     }
 
     private fun setAnimationForEndViews() {
@@ -337,7 +340,7 @@ class RunningActivity : AppCompatActivity() {
         outState.putBoolean(IS_FINISH, isFinish)
         outState.putLong(BEGIN_TIME, beginTime)
         outState.putBoolean(BOOL, startBtn.isVisible)
-        outState.putBoolean(TR, timeRunning.isVisible)
+        outState.putBoolean(TR, timeRunningTextView.isVisible)
         outState.putBoolean(FB, finishBtn.isVisible)
         outState.putBoolean(DTV, distanceTextView.isVisible)
         outState.putBoolean(FTV, finishTimeRunning.isVisible)
@@ -347,21 +350,21 @@ class RunningActivity : AppCompatActivity() {
     }
 
     private fun createAlertDialog(error: Int) {
-        builder?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { _, _ ->
         }
-        builder?.setTitle(R.string.error)
-        builder?.setMessage(error)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.error)
+        alertDialog?.setMessage(error)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     private fun createAlertDialog(error: String) {
-        builder?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { _, _ ->
         }
-        builder?.setTitle(R.string.error)
-        builder?.setMessage(error)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.error)
+        alertDialog?.setMessage(error)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     override fun onBackPressed() {
@@ -393,8 +396,7 @@ class RunningActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        handler?.removeCallbacks(timer!!)
-        builder = null
+        alertDialog = null
         handler = null
         timer = null
     }

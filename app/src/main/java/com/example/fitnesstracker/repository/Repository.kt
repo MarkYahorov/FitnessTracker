@@ -30,17 +30,17 @@ interface Repository {
         alarmDate: Long,
         alarmHours: Int,
         alarmMinutes: Int,
-        list: List<Notification>
+        listOfNotifications: List<Notification>
     ): Task<Int>
 
     fun updateNotifications(updateValue: Long, hours: Int, minutes: Int, id: Int): Task<Unit>
     fun clearDb(context: Context): Task<Unit>
-    fun clearDbWithWereArgs(name: String, whereArgs: String): Task<Unit>
-    fun insertTrackAndPointsInDbAfterSavinginServer(
+    fun clearDbWithWereArgs(tableName: String, whereArgs: String): Task<Unit>
+    fun insertTrackAndPointsInDbAfterSavingInServer(
         saveTrackResponse: Task<SaveTrackResponse>,
         beginTime: Long,
         calendar: Calendar,
         distance: Int,
-        list: List<PointForData>
+        listOfPoints: List<PointForData>
     ): Task<Unit>
 }

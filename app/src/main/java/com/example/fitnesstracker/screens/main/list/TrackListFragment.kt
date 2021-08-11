@@ -76,11 +76,11 @@ class TrackListFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track_list, container, false)
         setIsFirst()
-        initAll(view)
+        initAll(view = view)
         return view
     }
 
-    private fun setIsFirst(){
+    private fun setIsFirst() {
         isFirstInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             ?.getBoolean(IS_FIRST, true)!!
     }
@@ -106,12 +106,12 @@ class TrackListFragment : Fragment() {
         with(trackRecyclerView) {
             adapter = TrackListAdapter(listOfTrackForData = trackList, goToCurrentTrack = {
                 navigator?.goToTrackScreen(
-                    it.id!!,
-                    it.serverId,
-                    it.beginTime.toString().toLong(),
-                    it.time,
-                    it.distance,
-                    arguments?.getString(
+                    id = it.id!!,
+                    serverId = it.serverId,
+                    beginTime = it.beginTime.toString().toLong(),
+                    runningTime = it.time,
+                    distance = it.distance,
+                    token = arguments?.getString(
                         CURRENT_TOKEN
                     )!!
                 )
@@ -136,7 +136,7 @@ class TrackListFragment : Fragment() {
         addScrollListener()
     }
 
-    private fun createAlertDialogToDisableBatterySaver(){
+    private fun createAlertDialogToDisableBatterySaver() {
         builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
             dialog.cancel()
@@ -169,10 +169,10 @@ class TrackListFragment : Fragment() {
                 .continueWith({ response ->
                     when {
                         response.error != null -> {
-                            createAlertDialog(response.error.message)
+                            createAlertDialog(error = response.error.message)
                         }
                         response.result.status == ERROR -> {
-                            createAlertDialog(response.result.error)
+                            createAlertDialog(error = response.result.error)
                         }
                         else -> {
                             val sortedList =
@@ -235,7 +235,10 @@ class TrackListFragment : Fragment() {
 
     private fun setFABListener() {
         addTrackBtn.setOnClickListener {
-            navigator?.goToRunningScreen(arguments?.getString(CURRENT_TOKEN)!!, trackList.size + 1)
+            navigator?.goToRunningScreen(
+                token = arguments?.getString(CURRENT_TOKEN)!!,
+                trackId = trackList.size + 1
+            )
         }
     }
 

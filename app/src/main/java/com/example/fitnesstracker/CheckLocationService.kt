@@ -66,7 +66,6 @@ class CheckLocationService : Service(), LocationListener {
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)
             }
         val notification = createNotification(pendingIntent = pendingIntent)
-
         startForeground(1, notification)
     }
 

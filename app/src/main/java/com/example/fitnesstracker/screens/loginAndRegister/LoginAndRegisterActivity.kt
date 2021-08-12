@@ -14,6 +14,8 @@ import androidx.core.view.isVisible
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
+import com.example.fitnesstracker.data.database.FITNESS_DB
+import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.models.login.LoginRequest
 import com.example.fitnesstracker.models.registration.RegistrationRequest
 import com.example.fitnesstracker.screens.main.MainActivity
@@ -54,7 +56,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     private lateinit var registerBtn: Button
 
     private var isLoadingBtnActive = true
-    private var textWatcher:TextWatcher? = null
+    private var textWatcher: TextWatcher? = null
     private val repositoryImpl = App.INSTANCE.repositoryImpl
     private var dialog: AlertDialog.Builder? = null
     private val emailPattern = Pattern.compile(CHECK_EMAIL_VALIDATE)
@@ -64,8 +66,8 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_and_register)
 
-        if (getTokenFromSharedPref() != ""){
-            startActivity(Intent(this,MainActivity::class.java))
+        if (getTokenFromSharedPref() != "") {
+            startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
         initAllViews()
@@ -141,7 +143,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun registration(){
+    private fun registration() {
         repositoryImpl.registration(registrationRequest = createRegistrationRequest())
             .continueWith({
                 when {
@@ -154,12 +156,13 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                     else -> {
                         saveTokenInSharedPref(token = it.result.token)
                         createIntent()
+                        FitnessDatabase(applicationContext).onCreate(App.INSTANCE.db)
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)
     }
 
-    private fun login(){
+    private fun login() {
         repositoryImpl.login(loginRequest = createLoginRequest())
             .continueWith({ response ->
                 when {
@@ -172,6 +175,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                     else -> {
                         saveTokenInSharedPref(token = response.result.token)
                         createIntent()
+                        FitnessDatabase(applicationContext).onCreate(App.INSTANCE.db)
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)

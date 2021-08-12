@@ -51,4 +51,6 @@
     <string name="run">run bitch run</string>
     <string name="must_run">you must run</string>
     <string name="check_gps">Check GPS</string>
+    <string name="discription_running">Tap button to start running</string>
+    <string name="track_fragment_error">Check the internet or check token</string>
 </resources>

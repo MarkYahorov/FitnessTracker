@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     private fun createNavListener() = NavigationView.OnNavigationItemSelectedListener {
         when (it.itemId) {
             R.id.go_to_main_screen -> {
-                removeTransaction()
+                supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
                 onBackPressed()
             }
             R.id.go_to_notification_screen -> {
@@ -155,20 +155,11 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     }
 
     private fun replaceFragment(fragment: Fragment, backStackName: String) {
-        removeTransaction()
+        supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container_view, fragment)
             .addToBackStack(backStackName)
             .commit()
-    }
-
-    private fun removeTransaction() {
-        if (supportFragmentManager.popBackStackImmediate(NOTIFICATION, POP_BACK_STACK_INCLUSIVE)
-            || supportFragmentManager.popBackStackImmediate(TRACK, POP_BACK_STACK_INCLUSIVE)
-            || supportFragmentManager.popBackStackImmediate(RUNNING, POP_BACK_STACK_INCLUSIVE)
-        ) {
-            supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
-        }
     }
 
     override fun goToRunningScreen(token: String, trackId: Int) {
@@ -203,7 +194,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             return
         }
         if (supportFragmentManager.backStackEntryCount > 1) {
-            removeTransaction()
+            supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
             updateToolbarBtn()
             saveInSharedPref()
             return

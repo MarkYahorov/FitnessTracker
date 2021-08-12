@@ -5,6 +5,8 @@ import android.database.Cursor
 import android.util.Log
 import bolts.Task
 import com.example.fitnesstracker.App
+import com.example.fitnesstracker.data.database.FITNESS_DB
+import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.BEGIN_TIME
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_HOUR
@@ -74,7 +76,7 @@ class RepositoryImpl : Repository {
             if (body != null && body.trackForData.size > list.size) {
                 insertDataInDb(tracksInfo = body.trackForData)
             }
-            if ((body?.error == null || body.status != "error") && getListNotSendTracksFromDb().isNotEmpty()) {
+            if ((body?.error == null || body.status != ERROR) && getListNotSendTracksFromDb().isNotEmpty()) {
                 val trackForData = TrackForData(0, 0, 0, 0)
                 val listOfNotSendTracks = getListNotSendTracksFromDb()
                 listOfNotSendTracks.forEach {
@@ -93,12 +95,34 @@ class RepositoryImpl : Repository {
         }
     }
 
-    override fun getPointsForCurrentTrack(pointsRequest: PointsRequest): Task<PointsResponse> {
-        return Task.callInBackground {
-            val execute =
-                RetrofitBuilder().apiService.getPointsForCurrentTrack(pointsRequest = pointsRequest)
-            execute.clone().execute().body()
-        }
+    override fun getPointsForCurrentTrack(
+        idInDb: Int,
+        serverId: Int,
+        pointsRequest: PointsRequest
+    ): Task<List<PointForData>> {
+        val list = mutableListOf<PointForData>()
+        return getPointsFromServer(pointsRequest = pointsRequest)
+            .continueWith {
+                when {
+                    it.error != null -> {
+                        getPointsForCurrentTrackFromDb(trackId = idInDb).forEach { listFromDb ->
+                            list.add(PointForData(listFromDb.lng, listFromDb.lat))
+                        }
+                    }
+                    it.result.status == ERROR -> {
+                        getPointsForCurrentTrackFromDb(trackId = idInDb).forEach { listFromDb ->
+                            list.add(PointForData(listFromDb.lng, listFromDb.lat))
+                        }
+                    }
+                    else -> {
+                        list.addAll(it.result.pointForData)
+                        if (!checkThisPointIntoDb(currentTrackId = idInDb)) {
+                            insertThePoints(serverId = serverId, trackIdInDb = idInDb, listOfPoints = list)
+                        }
+                    }
+                }
+                list
+            }
     }
 
     override fun saveTrack(saveTrackRequest: SaveTrackRequest): Task<SaveTrackResponse> {
@@ -121,10 +145,8 @@ class RepositoryImpl : Repository {
         }
     }
 
-    override fun getPointsForCurrentTrackFromDb(id: Int): Task<List<PointForData>> {
-        return Task.callInBackground {
-            getListOfPointsToCurrentTrack(id = id)
-        }
+    private fun getPointsForCurrentTrackFromDb(trackId: Int): List<PointForData> {
+        return getListOfPointsToCurrentTrack(trackId = trackId)
     }
 
     override fun insertNotification(
@@ -168,6 +190,9 @@ class RepositoryImpl : Repository {
             clearTable(name = ALL_POINTS)
             clearTable(name = NOTIFICATION_TIME_NAME)
             setSharedPrefToDefaultValues(context = context)
+            App.INSTANCE.db.execSQL("DROP TABLE $TRACKERS")
+            App.INSTANCE.db.execSQL("DROP TABLE $ALL_POINTS")
+            App.INSTANCE.db.execSQL("DROP TABLE $NOTIFICATION_TIME_NAME")
         }
     }
 
@@ -223,6 +248,30 @@ class RepositoryImpl : Repository {
         }
     }
 
+    private fun getPointsFromServer(pointsRequest: PointsRequest): Task<PointsResponse> {
+        return Task.callInBackground {
+            val execute =
+                RetrofitBuilder().apiService.getPointsForCurrentTrack(pointsRequest = pointsRequest)
+            execute.clone().execute().body()
+        }
+    }
+
+    private fun checkThisPointIntoDb(currentTrackId: Int): Boolean {
+        var cursor: Cursor? = null
+        val haveData: Boolean?
+        try {
+            cursor = SelectDbHelper()
+                .nameOfTable(table = ALL_POINTS)
+                .selectParams(allParams = "*")
+                .where(whereArgs = "$CURRENT_TRACK = $currentTrackId")
+                .select(db = App.INSTANCE.db)
+            haveData = cursor.moveToFirst()
+        } finally {
+            cursor?.close()
+        }
+        return haveData!!
+    }
+
     private fun insertDataAfterRunning(
         id: Int?,
         beginTime: Long,
@@ -240,7 +289,7 @@ class RepositoryImpl : Repository {
         )
         val trackIdInDb = getLastPositionInDb(TRACKERS)
         insertThePoints(
-            id = id,
+            serverId = id,
             trackIdInDb = trackIdInDb!!,
             listOfPoints = listOfPoints
         )
@@ -298,13 +347,13 @@ class RepositoryImpl : Repository {
             .insertTheValues(db = App.INSTANCE.db)
     }
 
-    private fun insertThePoints(id: Int?, trackIdInDb: Int, listOfPoints: List<PointForData>) {
+    private fun insertThePoints(serverId: Int?, trackIdInDb: Int, listOfPoints: List<PointForData>) {
         listOfPoints.forEach {
             InsertDBHelper()
                 .setTableName(name = ALL_POINTS)
                 .addFieldsAndValuesToInsert(
                     nameOfField = ID_FROM_SERVER,
-                    insertingValue = id.toString()
+                    insertingValue = serverId.toString()
                 )
                 .addFieldsAndValuesToInsert(
                     nameOfField = LATITUDE,
@@ -463,14 +512,14 @@ class RepositoryImpl : Repository {
             minutes = cursor.getString(indexFromDb.minutesIndexFromDb).toInt()
         )
 
-    private fun getListOfPointsToCurrentTrack(id: Int): List<PointForData> {
+    private fun getListOfPointsToCurrentTrack(trackId: Int): List<PointForData> {
         var cursor: Cursor? = null
         val listOfTracks = mutableListOf<PointForData>()
         try {
             cursor = SelectDbHelper()
                 .nameOfTable(table = ALL_POINTS)
                 .selectParams(allParams = "*")
-                .where(whereArgs = "$CURRENT_TRACK = $id")
+                .where(whereArgs = "$CURRENT_TRACK = $trackId")
                 .select(db = App.INSTANCE.db)
             if (cursor.moveToFirst()) {
                 val latIndex = cursor.getColumnIndexOrThrow(LATITUDE)

@@ -1,7 +1,6 @@
 package com.example.fitnesstracker.screens.main.track
 
 import android.app.AlertDialog
-import android.database.Cursor
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,13 +10,6 @@ import androidx.fragment.app.Fragment
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID_FROM_SERVER
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LATITUDE
-import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LONGITUDE
-import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
-import com.example.fitnesstracker.data.database.helpers.SelectDbHelper
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.points.PointsRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
@@ -40,7 +32,6 @@ class TrackFragment : Fragment() {
         private const val CURRENT_RUNNING_TIME = "CURRENT_RUNNING_TIME"
         private const val CURRENT_DISTANCE = "CURRENT_DISTANCE"
         private const val CURRENT_DB_ID = "CURRENT_ID"
-        private const val ERROR = "error"
 
         fun newInstance(
             id: Int,
@@ -86,6 +77,7 @@ class TrackFragment : Fragment() {
         return view
     }
 
+
     private fun initAll(view: View) {
         runningTime = view.findViewById(R.id.current_track_running_time)
         distance = view.findViewById(R.id.current_track_distance)
@@ -105,46 +97,31 @@ class TrackFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (!checkThisPointIntoDb(id = arguments?.getInt(CURRENT_DB_ID)!!)) {
-            getTrackFromServer()
-        } else {
-            getListOfPointsFromDb(id = arguments?.getInt(CURRENT_DB_ID)!!)
-        }
+        getTrackPoints()
     }
 
-    private fun getListOfPointsFromDb(id: Int) {
-        repo.getPointsForCurrentTrackFromDb(id = id)
-            .continueWith({ listFromDb ->
-                listFromDb.result.forEach {
-                    allDistanceOfTrack.add(PointForData(lng = it.lng, lat = it.lat))
+    private fun getTrackPoints() {
+        repo.getPointsForCurrentTrack(
+            pointsRequest = createPointsRequest(),
+            idInDb = arguments?.getInt(CURRENT_DB_ID)?:0,
+            serverId = arguments?.getInt(CURRENT_TRACK_ID)!!
+        ).continueWith({
+            when {
+                it.error != null -> {
+                    createAlertDialog(error = it.error.message)
                 }
-                processResult(listOfPoints = allDistanceOfTrack, listOfLatLng = allPointsInLatLng)
-            }, Task.UI_THREAD_EXECUTOR)
-    }
-
-
-    private fun getTrackFromServer() {
-        repo.getPointsForCurrentTrack(pointsRequest = createPointsRequest())
-            .continueWith({
-                when {
-                    it.error != null -> {
-                        createAlertDialog(error = it.error.message)
-                    }
-                    it.result.status == ERROR -> {
-                        createAlertDialog(error = it.result.error)
-                    }
-                    else -> {
-                        allDistanceOfTrack.addAll(it.result.pointForData)
-                        processResult(
-                            listOfPoints = allDistanceOfTrack,
-                            listOfLatLng = allPointsInLatLng
-                        )
-                    }
+                it.result.isEmpty() -> {
+                    createAlertDialog(error = getString(R.string.track_fragment_error))
                 }
-            }, Task.UI_THREAD_EXECUTOR)
-            .onSuccess({
-                insertPointsIntoDb(allDistanceOfTrack = allDistanceOfTrack)
-            }, Task.BACKGROUND_EXECUTOR)
+                else -> {
+                    allDistanceOfTrack.addAll(it.result)
+                    processResult(
+                        listOfPoints = allDistanceOfTrack,
+                        listOfLatLng = allPointsInLatLng
+                    )
+                }
+            }
+        }, Task.UI_THREAD_EXECUTOR)
     }
 
     private fun createAlertDialog(error: String?) {
@@ -154,30 +131,6 @@ class TrackFragment : Fragment() {
         alertDialog?.setMessage(error)
         alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
         alertDialog?.show()
-    }
-
-    private fun insertPointsIntoDb(allDistanceOfTrack: List<PointForData>) {
-        allDistanceOfTrack.forEach {
-            InsertDBHelper()
-                .setTableName(name = ALL_POINTS)
-                .addFieldsAndValuesToInsert(
-                    nameOfField = ID_FROM_SERVER,
-                    insertingValue = arguments?.getInt(CURRENT_TRACK_ID)!!.toString()
-                )
-                .addFieldsAndValuesToInsert(
-                    nameOfField = CURRENT_TRACK,
-                    insertingValue = arguments?.getInt(CURRENT_DB_ID)!!.toString()
-                )
-                .addFieldsAndValuesToInsert(
-                    nameOfField = LATITUDE,
-                    insertingValue = it.lat.toString()
-                )
-                .addFieldsAndValuesToInsert(
-                    nameOfField = LONGITUDE,
-                    insertingValue = it.lng.toString()
-                )
-                .insertTheValues(db = App.INSTANCE.db)
-        }
     }
 
     private fun processResult(
@@ -229,22 +182,6 @@ class TrackFragment : Fragment() {
                 .clickable(false)
                 .addAll(allPointsInLatLng)
         )
-    }
-
-    private fun checkThisPointIntoDb(id: Int): Boolean {
-        var cursor: Cursor? = null
-        val haveData: Boolean?
-        try {
-            cursor = SelectDbHelper()
-                .nameOfTable(table = ALL_POINTS)
-                .selectParams(allParams = "*")
-                .where(whereArgs = "$CURRENT_TRACK = $id")
-                .select(db = App.INSTANCE.db)
-            haveData = cursor.moveToFirst()
-        } finally {
-            cursor?.close()
-        }
-        return haveData!!
     }
 
     private fun createPointsRequest() = PointsRequest(

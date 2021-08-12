@@ -19,22 +19,21 @@ import com.example.fitnesstracker.screens.running.RunningActivity
 
 class AlarmReceiver : BroadcastReceiver() {
 
-    companion object{
+    companion object {
         private const val ALARM_CHANNEL = "alarmChanel"
         private const val ALARM_CHANNEL_NAME = "Alarm Chanel"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         createNotifyChanel(context)
-        val asd = Intent(context, RunningActivity::class.java)
+        val touchIntent = Intent(context, RunningActivity::class.java)
             .putExtra(IS_FROM_NOTIFICATION, true)
-        val currentRequestCode = intent.getIntExtra(NEW_REQUEST_CODE,1)
+        val currentRequestCode = intent.getIntExtra(NEW_REQUEST_CODE, 1)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent = PendingIntent.getActivity(context, currentRequestCode, asd, 0)
+        val pendingIntent = PendingIntent.getActivity(context, currentRequestCode, touchIntent, 0)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-           val notification = createNotification(context, pendingIntent)
-            val notificationManager = NotificationManagerCompat.from(context)
-            notificationManager.notify(currentRequestCode, notification)
+            val notification = createNotification(context, pendingIntent)
+            NotificationManagerCompat.from(context).notify(currentRequestCode, notification)
         }
     }
 

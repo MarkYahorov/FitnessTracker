@@ -21,11 +21,15 @@ interface Repository {
     fun login(loginRequest: LoginRequest): Task<LoginResponse>
     fun registration(registrationRequest: RegistrationRequest): Task<RegistrationResponse>
     fun getTracks(trackRequest: TrackRequest): Task<TrackResponse>
-    fun getPointsForCurrentTrack(pointsRequest: PointsRequest): Task<PointsResponse>
+    fun getPointsForCurrentTrack(
+        idInDb: Int,
+        serverId: Int,
+        pointsRequest: PointsRequest
+    ): Task<List<PointForData>>
+
     fun saveTrack(saveTrackRequest: SaveTrackRequest): Task<SaveTrackResponse>
     fun getListOfTrack(): Task<List<Tracks>>
     fun getListOfNotification(): Task<List<Notification>>
-    fun getPointsForCurrentTrackFromDb(id: Int): Task<List<PointForData>>
     fun insertNotification(
         alarmDate: Long,
         alarmHours: Int,

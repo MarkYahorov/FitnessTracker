@@ -3,6 +3,7 @@ package com.example.fitnesstracker.screens.main.list
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,6 +65,7 @@ class TrackListFragment : Fragment() {
     private var builder: AlertDialog.Builder? = null
     private var isFirstInApp: Boolean = true
     private var isLoading = false
+    private var position = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -100,6 +102,20 @@ class TrackListFragment : Fragment() {
             ?.edit()
             ?.putBoolean(IS_FIRST, false)
             ?.apply()
+        if (savedInstanceState != null) {
+            oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
+            trackList.addAll(savedInstanceState.getParcelableArrayList(TRACK_LIST)!!)
+            position = savedInstanceState.getInt("POS")
+            trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
+        } else {
+            if (isFirstInApp) {
+                progressBar.isVisible = true
+                createAlertDialogToDisableBatterySaver()
+                getTracksFromServer()
+            } else {
+                getTracksFromDb()
+            }
+        }
     }
 
     private fun initTrackRecycler() {
@@ -123,13 +139,6 @@ class TrackListFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        if (isFirstInApp) {
-            progressBar.isVisible = true
-            createAlertDialogToDisableBatterySaver()
-            getTracksFromServer()
-        } else {
-            getTracksFromDb()
-        }
         setIsFirst()
         setFABListener()
         setSwipeLayoutListener()
@@ -157,7 +166,7 @@ class TrackListFragment : Fragment() {
                     trackList.sortByDescending { it.beginTime }
                 }
                 trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
-                trackRecyclerView.scrollToPosition(App.INSTANCE.trackRecyclerPosition)
+                //trackRecyclerView.scrollToPosition(App.INSTANCE.trackRecyclerPosition)
                 getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
     }
@@ -194,8 +203,8 @@ class TrackListFragment : Fragment() {
             oldListSize = listOfTrack.size - trackList.size
             trackList.clear()
             trackRecyclerView.adapter?.notifyItemRangeRemoved(0, trackList.size)
+            var id = listOfTrack.size
             listOfTrack.forEach {
-                var id = listOfTrack.size
                 trackList.add(
                     Tracks(
                         id,
@@ -218,7 +227,8 @@ class TrackListFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                App.INSTANCE.trackRecyclerPosition = layoutManager.findFirstVisibleItemPosition()
+                //App.INSTANCE.trackRecyclerPosition = layoutManager.findFirstVisibleItemPosition()
+                position = layoutManager.findFirstVisibleItemPosition()
             }
         })
     }
@@ -246,6 +256,7 @@ class TrackListFragment : Fragment() {
         super.onSaveInstanceState(outState)
         outState.putInt(OLD_LIST_SIZE, oldListSize)
         outState.putParcelableArrayList(TRACK_LIST, trackList as ArrayList<Tracks>)
+        outState.putInt("POS", position)
     }
 
     private fun createTrackRequest() =

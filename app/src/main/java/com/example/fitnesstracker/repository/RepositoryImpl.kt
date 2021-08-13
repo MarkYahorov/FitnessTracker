@@ -188,9 +188,6 @@ class RepositoryImpl : Repository {
 
     override fun clearDb(context: Context): Task<Unit> {
         return Task.callInBackground {
-            clearTable(name = TRACKERS)
-            clearTable(name = ALL_POINTS)
-            clearTable(name = NOTIFICATION_TIME_NAME)
             setSharedPrefToDefaultValues(context = context)
             App.INSTANCE.myDataBase.execSQL("DROP TABLE $TRACKERS")
             App.INSTANCE.myDataBase.execSQL("DROP TABLE $ALL_POINTS")
@@ -603,7 +600,7 @@ class RepositoryImpl : Repository {
 
     private fun insertDataInDb(tracksInfo: List<TrackForData>) {
         if (getListOfTracks().isNotEmpty()) {
-            clearTable(name = TRACKERS)
+            clearTable()
         }
         val isSend = 0
         tracksInfo.forEach {
@@ -633,9 +630,9 @@ class RepositoryImpl : Repository {
         }
     }
 
-    private fun clearTable(name: String) {
+    private fun clearTable() {
         UpdateDbHelper()
-            .setName(tableName = name)
+            .setName(tableName = TRACKERS)
             .delete(db = App.INSTANCE.myDataBase)
     }
 }

@@ -104,17 +104,8 @@ class TrackListFragment : Fragment() {
             ?.apply()
         if (savedInstanceState != null) {
             oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
-            trackList.addAll(savedInstanceState.getParcelableArrayList(TRACK_LIST)!!)
             position = savedInstanceState.getInt(POSITION)
             trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
-        } else {
-            if (isFirstInApp) {
-                progressBar.isVisible = true
-                createAlertDialogToDisableBatterySaver()
-                getTracksFromServer()
-            } else {
-                getTracksFromDb()
-            }
         }
     }
 
@@ -139,6 +130,13 @@ class TrackListFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        if (isFirstInApp) {
+            progressBar.isVisible = true
+            createAlertDialogToDisableBatterySaver()
+            getTracksFromServer()
+        } else {
+            getTracksFromDb()
+        }
         setIsFirst()
         setFABListener()
         setSwipeLayoutListener()
@@ -166,6 +164,7 @@ class TrackListFragment : Fragment() {
                     trackList.sortByDescending { it.beginTime }
                 }
                 trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
+                trackRecyclerView.scrollToPosition(position)
                 getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
     }

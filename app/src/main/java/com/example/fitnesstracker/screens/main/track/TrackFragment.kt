@@ -159,8 +159,9 @@ class TrackFragment : Fragment() {
             title = getString(R.string.finish)
         )
         val runningWayBuilder = LatLngBounds.Builder()
-            .include(startLatLng)
-            .include(finishLatLng)
+        allPointsInLatLng.forEach {
+            runningWayBuilder.include(it)
+        }
         val track = CameraUpdateFactory.newLatLngBounds(
             runningWayBuilder.build(),
             200

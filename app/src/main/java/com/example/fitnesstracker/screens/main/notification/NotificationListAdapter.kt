@@ -21,7 +21,7 @@ class NotificationListAdapter(
         private val item: View,
         private val enableNotification: (Notification) -> Unit,
         private val closeNotification: (Notification) -> Unit,
-        private val setTime: (Notification) -> Unit,
+        private val changeTimeOfNotification: (Notification) -> Unit,
     ) : RecyclerView.ViewHolder(item) {
         private val timeText = item.findViewById<TextView>(R.id.notification_time)
         private var calendar:Calendar? = null
@@ -36,7 +36,7 @@ class NotificationListAdapter(
             timeText.text = date?.format(calendar!!.time)
             enableNotification(notification)
             item.setOnClickListener {
-                setTime(notification)
+                changeTimeOfNotification(notification)
             }
             item.setOnLongClickListener {
                 closeNotification(notification)

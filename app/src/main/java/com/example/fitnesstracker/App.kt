@@ -12,7 +12,6 @@ class App: Application() {
         lateinit var INSTANCE: App
     }
 
-    var trackRecyclerPosition = 0
     lateinit var db: SQLiteDatabase
     val repositoryImpl: Repository = RepositoryImpl()
 

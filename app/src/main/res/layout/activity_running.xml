@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/background_splash">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/running_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -32,7 +32,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/running_toolbar">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textView7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -45,19 +45,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/start_btn"
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_marginTop="80dp"
-                android:background="@drawable/round"
                 android:text="@string/start"
+                android:backgroundTint="@color/orange"
+                app:cornerRadius="20dp"
                 android:textColor="@color/colorTextInList"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView7" />
+                app:layout_constraintTop_toBottomOf="@+id/textView7"
+                tools:ignore="UnusedAttribute" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -71,7 +72,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/running_toolbar">
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/time_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -82,18 +83,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/finish_btn"
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_marginTop="80dp"
-                android:background="@drawable/round"
+                android:backgroundTint="@color/orange"
+                app:cornerRadius="20dp"
                 android:text="@string/finish"
                 android:textColor="@color/colorTextInList"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/time_text" />
+                app:layout_constraintTop_toBottomOf="@id/time_text"
+                tools:ignore="UnusedAttribute" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -109,7 +112,7 @@
             app:layout_constraintTop_toBottomOf="@+id/running_toolbar"
             app:layout_constraintVertical_bias="0.535">
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/distance_running"
                 android:layout_width="58dp"
                 android:layout_height="wrap_content"
@@ -120,7 +123,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/finish_trunning_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -131,7 +134,7 @@
                 app:layout_constraintStart_toStartOf="@+id/textView6"
                 app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/distance_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -143,7 +146,7 @@
                 app:layout_constraintEnd_toEndOf="@+id/distance_running"
                 app:layout_constraintStart_toStartOf="@+id/distance_running" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textView6"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
@@ -172,7 +175,7 @@
             android:layout_height="50dp"
             android:layout_gravity="bottom">
 
-            <androidx.appcompat.widget.AppCompatImageView
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -183,7 +186,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.appcompat.widget.AppCompatTextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

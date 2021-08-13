@@ -16,6 +16,7 @@ import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
+import com.example.fitnesstracker.models.tracks.Tracks
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         private const val RUNNING = "RUNNING"
         private const val LIST_FRAGMENT = "LIST_FRAGMENT"
         const val EMPTY_VALUE = ""
+        private const val CURRENT_TRACK = "CURRENT_TRACK"
     }
 
     private lateinit var toolbar: Toolbar
@@ -44,6 +46,8 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var navigationView: NavigationView
     private lateinit var logout: ConstraintLayout
+
+    private var track: Tracks? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +61,44 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         createDrawer()
         if (savedInstanceState == null) {
             addListFragment()
+        } else {
+            track = savedInstanceState.getParcelable(CURRENT_TRACK)
+            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                checkFragmentsInBackStack(track, R.id.fragment_container_view)
+            } else if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                checkFragmentsInBackStack(track, R.id.fragment_container_view_for_all)
+            }
+        }
+    }
+
+    private fun checkFragmentsInBackStack(track: Tracks?, container: Int) {
+        if (supportFragmentManager.popBackStackImmediate(
+                TRACK,
+                POP_BACK_STACK_INCLUSIVE
+            ) && track != null
+        ) {
+            replaceFragment(
+                fragment = TrackFragment.newInstance(
+                    id = track.id!!,
+                    serverId = track.serverId,
+                    beginTime = track.beginTime,
+                    runningTime = track.time,
+                    distance = track.distance,
+                    token = getTokenFromSharedPref()
+                ),
+                backStackName = TRACK,
+                container = container
+            )
+        } else if (supportFragmentManager.popBackStackImmediate(
+                NOTIFICATION,
+                POP_BACK_STACK_INCLUSIVE
+            )
+        ) {
+            replaceFragment(
+                fragment = NotificationFragment(),
+                backStackName = NOTIFICATION,
+                container = container
+            )
         }
     }
 
@@ -115,10 +157,25 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         when (it.itemId) {
             R.id.go_to_main_screen -> {
                 supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
+                track = null
                 onBackPressed()
             }
             R.id.go_to_notification_screen -> {
-                replaceFragment(NotificationFragment(), NOTIFICATION)
+                if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    track = null
+                    replaceFragment(
+                        NotificationFragment(),
+                        NOTIFICATION,
+                        R.id.fragment_container_view
+                    )
+                } else {
+                    track = null
+                    replaceFragment(
+                        NotificationFragment(),
+                        NOTIFICATION,
+                        R.id.fragment_container_view_for_all
+                    )
+                }
                 onBackPressed()
             }
         }
@@ -129,6 +186,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         logout.setOnClickListener {
             App.INSTANCE.repositoryImpl.clearDb(this)
                 .continueWith({
+                    track = null
                     startActivity(Intent(this, LoginAndRegisterActivity::class.java))
                     finish()
                 }, Task.UI_THREAD_EXECUTOR)
@@ -154,12 +212,13 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         return toggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item)
     }
 
-    private fun replaceFragment(fragment: Fragment, backStackName: String) {
+    private fun replaceFragment(fragment: Fragment, backStackName: String, container: Int) {
         supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container_view, fragment)
+            .replace(container, fragment)
             .addToBackStack(backStackName)
             .commit()
+
     }
 
     override fun goToRunningScreen(token: String, trackId: Int) {
@@ -169,6 +228,10 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         startActivity(intent)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable(CURRENT_TRACK, track)
+    }
 
     override fun goToTrackScreen(
         id: Int,
@@ -178,14 +241,26 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         distance: Int,
         token: String
     ) {
-        replaceFragment(
-            TrackFragment.newInstance(
-                id, serverId, beginTime,
-                runningTime,
-                distance,
-                token
-            ), TRACK
-        )
+        track = Tracks(id, serverId, beginTime, runningTime, distance)
+        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            replaceFragment(
+                TrackFragment.newInstance(
+                    id, serverId, beginTime,
+                    runningTime,
+                    distance,
+                    token
+                ), TRACK, R.id.fragment_container_view
+            )
+        } else if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            replaceFragment(
+                TrackFragment.newInstance(
+                    id, serverId, beginTime,
+                    runningTime,
+                    distance,
+                    token
+                ), TRACK, R.id.fragment_container_view_for_all
+            )
+        }
     }
 
     override fun onBackPressed() {
@@ -197,6 +272,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
             updateToolbarBtn()
             saveInSharedPref()
+            track = null
             return
         }
         if (supportFragmentManager.backStackEntryCount == 1) {

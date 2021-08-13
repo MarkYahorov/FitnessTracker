@@ -77,16 +77,15 @@ class TrackFragment : Fragment() {
         return view
     }
 
-
     private fun initAll(view: View) {
         runningTime = view.findViewById(R.id.current_track_running_time)
         distance = view.findViewById(R.id.current_track_distance)
+        trackFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
         alertDialog = AlertDialog.Builder(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        trackFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
         trackFragment?.getMapAsync(callback)
         val format = SimpleDateFormat(PATTERN, Locale.getDefault())
         val timeZone = SimpleTimeZone.getTimeZone(UTC)
@@ -103,25 +102,29 @@ class TrackFragment : Fragment() {
     private fun getTrackPoints() {
         repo.getPointsForCurrentTrack(
             pointsRequest = createPointsRequest(),
-            idInDb = arguments?.getInt(CURRENT_DB_ID)?:0,
+            idInDb = arguments?.getInt(CURRENT_DB_ID) ?: 0,
             serverId = arguments?.getInt(CURRENT_TRACK_ID)!!
         ).continueWith({
-            when {
-                it.error != null -> {
-                    createAlertDialog(error = it.error.message)
-                }
-                it.result.isEmpty() -> {
-                    createAlertDialog(error = getString(R.string.track_fragment_error))
-                }
-                else -> {
-                    allDistanceOfTrack.addAll(it.result)
-                    processResult(
-                        listOfPoints = allDistanceOfTrack,
-                        listOfLatLng = allPointsInLatLng
-                    )
-                }
-            }
+            processResult(it)
         }, Task.UI_THREAD_EXECUTOR)
+    }
+
+    private fun processResult(taskOfPoints: Task<List<PointForData>>) {
+        when {
+            taskOfPoints.error != null -> {
+                createAlertDialog(error = taskOfPoints.error.message)
+            }
+            taskOfPoints.result.isEmpty() -> {
+                createAlertDialog(error = getString(R.string.track_fragment_error))
+            }
+            else -> {
+                allDistanceOfTrack.addAll(taskOfPoints.result)
+                showTrackOnMap(
+                    listOfPoints = allDistanceOfTrack,
+                    listOfLatLng = allPointsInLatLng
+                )
+            }
+        }
     }
 
     private fun createAlertDialog(error: String?) {
@@ -133,7 +136,7 @@ class TrackFragment : Fragment() {
         alertDialog?.show()
     }
 
-    private fun processResult(
+    private fun showTrackOnMap(
         listOfPoints: List<PointForData>,
         listOfLatLng: MutableList<LatLng>
     ) {
@@ -158,12 +161,11 @@ class TrackFragment : Fragment() {
         val runningWayBuilder = LatLngBounds.Builder()
             .include(startLatLng)
             .include(finishLatLng)
-        googleMap?.moveCamera(
-            CameraUpdateFactory.newLatLngBounds(
-                runningWayBuilder.build(),
-                500
-            )
+        val track = CameraUpdateFactory.newLatLngBounds(
+            runningWayBuilder.build(),
+            200
         )
+        googleMap?.animateCamera(track)
     }
 
     private fun addMarker(iconColor: Float, position: LatLng, title: String) {
@@ -190,8 +192,8 @@ class TrackFragment : Fragment() {
         )!!
     )
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroyView() {
+        super.onDestroyView()
         googleMap = null
         alertDialog = null
         trackFragment = null

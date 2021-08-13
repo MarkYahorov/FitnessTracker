@@ -7,7 +7,7 @@
     android:background="@drawable/background_splash"
     tools:context=".screens.splash.SplashScreenActivity">
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/logo_image"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -18,7 +18,7 @@
         app:layout_constraintVertical_chainStyle="packed"
         app:srcCompat="@drawable/logo" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/name_app_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -5,9 +5,9 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Tracks (
-    val id: Int?,
+    var id: Int?,
     var serverId: Int,
-    val beginTime: Long,
-    val time: Long,
-    val distance: Int
+    var beginTime: Long,
+    var time: Long,
+    var distance: Int
 ): Parcelable

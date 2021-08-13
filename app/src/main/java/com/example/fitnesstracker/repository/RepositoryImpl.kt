@@ -5,8 +5,6 @@ import android.database.Cursor
 import android.util.Log
 import bolts.Task
 import com.example.fitnesstracker.App
-import com.example.fitnesstracker.data.database.FITNESS_DB
-import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.BEGIN_TIME
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_HOUR

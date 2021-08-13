@@ -41,16 +41,6 @@ class CheckLocationService : Service(), LocationListener {
     private val allDistanceList = mutableListOf<Float>()
     private var locationManager: LocationManager? = null
 
-    private fun calculateDistance() {
-        Location.distanceBetween(
-            currentLatitude,
-            currentLongitude,
-            oldLatitude!!,
-            oldLongitude!!,
-            distanceList
-        )
-    }
-
     @SuppressLint("MissingPermission")
     override fun onCreate() {
         super.onCreate()
@@ -91,7 +81,6 @@ class CheckLocationService : Service(), LocationListener {
         if (intent?.extras?.get(IS_START) == true) {
             locationManager?.requestLocationUpdates(GPS_PROVIDER, MIN_TIME_MS, MIN_DISTANCE_M, this)
         } else {
-            locationManager?.requestLocationUpdates(GPS_PROVIDER, 0L, 0F, this)
             val endIntent = Intent(LOCATION_UPDATE)
                 .putExtra(ALL_COORDINATES, listOfPoints as ArrayList<PointForData>)
                 .putExtra(DISTANCE_FROM_SERVICE, allDistanceList.toFloatArray())
@@ -117,7 +106,7 @@ class CheckLocationService : Service(), LocationListener {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override fun onLocationChanged(location: Location) {
@@ -132,5 +121,15 @@ class CheckLocationService : Service(), LocationListener {
         allDistanceList.add(distanceList[0])
         oldLatitude = currentLatitude
         oldLongitude = currentLongitude
+    }
+
+    private fun calculateDistance() {
+        Location.distanceBetween(
+            currentLatitude,
+            currentLongitude,
+            oldLatitude!!,
+            oldLongitude!!,
+            distanceList
+        )
     }
 }

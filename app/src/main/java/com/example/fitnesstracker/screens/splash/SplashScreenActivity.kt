@@ -20,13 +20,13 @@ class SplashScreenActivity : AppCompatActivity() {
 
     private lateinit var logo: ImageView
 
-    private var isFirst = true
+    private var isFirstInApp = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
         logo = findViewById(R.id.logo_image)
-        isFirst = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+        isFirstInApp = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .getBoolean(IS_FIRST, true)
     }
 
@@ -42,9 +42,9 @@ class SplashScreenActivity : AppCompatActivity() {
         logo.animation = anim
     }
 
-    private fun goToNextActivity(){
+    private fun goToNextActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
-            if (isFirst) {
+            if (isFirstInApp) {
                 startActivity(Intent(this, LoginAndRegisterActivity::class.java))
                 finish()
             } else {

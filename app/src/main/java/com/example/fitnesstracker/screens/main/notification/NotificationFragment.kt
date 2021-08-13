@@ -62,18 +62,31 @@ class NotificationFragment : Fragment() {
         return view
     }
 
+    private fun initAll(view: View) {
+        notificationRecyclerView = view.findViewById(R.id.notification_recycler)
+        addNotificationBtn = view.findViewById(R.id.add_notification_btn)
+        alertDialog = AlertDialog.Builder(requireContext())
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        getNotificationFromDb()
+        initRecycler()
+        if (savedInstanceState != null) {
+            currentDate = savedInstanceState.getLong(CURRENT_DATE)
+            currentMinutes = savedInstanceState.getInt(CURRENT_ALARM_TIME)
+            currentHour = savedInstanceState.getInt(CURRENT_TIME)
+            scrollPositionOfRecycler = savedInstanceState.getInt(CURRENT_POSITION)
+            notificationRecyclerView.scrollToPosition(scrollPositionOfRecycler)
+        }
+    }
+
     private fun getNotificationFromDb() {
         repo.getListOfNotification()
             .continueWith({
                 notificationList.addAll(it.result)
                 notificationRecyclerView.adapter?.notifyDataSetChanged()
             }, Task.UI_THREAD_EXECUTOR)
-    }
-
-    private fun initAll(view: View) {
-        notificationRecyclerView = view.findViewById(R.id.notification_recycler)
-        addNotificationBtn = view.findViewById(R.id.add_notification_btn)
-        alertDialog = AlertDialog.Builder(requireContext())
     }
 
     private fun initRecycler() {
@@ -94,6 +107,23 @@ class NotificationFragment : Fragment() {
                 })
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        }
+    }
+
+    private fun setAlarmManager(channelMustHave: Int, date: Long, hours: Int, minutes: Int) {
+        val alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
+        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+            .putExtra(NEW_REQUEST_CODE, channelMustHave)
+        val pendingIntent =
+            PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
+        calendar.time = Date(date)
+        calendar[Calendar.HOUR_OF_DAY] = hours
+        calendar[Calendar.MINUTE] = minutes
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (System.currentTimeMillis() < calendar.time.time) {
+                val info = AlarmManager.AlarmClockInfo(calendar.time.time, pendingIntent)
+                alarmManager.setAlarmClock(info, pendingIntent)
+            }
         }
     }
 
@@ -118,14 +148,11 @@ class NotificationFragment : Fragment() {
         alertDialog?.show()
     }
 
-    private fun addScrollListener() {
-        notificationRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                scrollPositionOfRecycler = layoutManager.findFirstVisibleItemPosition()
-            }
-        })
+    private fun setCancelAlarmBtnClickListener(channelMustHave: Int) {
+        alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
+        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
+        alarmManager.cancel(pendingIntent)
     }
 
     private fun updateAlarm(currentId: Int, position: Int) {
@@ -137,12 +164,35 @@ class NotificationFragment : Fragment() {
             timePicker.show(childFragmentManager, TIME_PICKER)
             timePicker.addOnPositiveButtonClickListener {
                 setCalendarTime(timePicker = timePicker)
-                updateAlarmInDb(currentId = currentId, position = position)
+                updateNotificationInDb(currentId = currentId, position = position)
             }
         }
     }
 
-    private fun updateAlarmInDb(currentId: Int, position: Int) {
+    private fun createDataBicker(): MaterialDatePicker<Long> {
+        return MaterialDatePicker.Builder
+            .datePicker()
+            .build()
+    }
+
+    private fun createTimePicker(): MaterialTimePicker {
+        return MaterialTimePicker.Builder()
+            .setTimeFormat(TimeFormat.CLOCK_24H)
+            .setHour(12)
+            .setMinute(0)
+            .setTitleText(R.string.select_alarm_time)
+            .build()
+    }
+
+    private fun setCalendarTime(timePicker: MaterialTimePicker) {
+        calendar.time = Date(currentDate)
+        currentHour = timePicker.hour
+        currentMinutes = timePicker.minute
+        calendar[Calendar.HOUR_OF_DAY] = currentHour
+        calendar[Calendar.MINUTE] = currentMinutes
+    }
+
+    private fun updateNotificationInDb(currentId: Int, position: Int) {
         if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
             Toast.makeText(requireContext(), R.string.toast_waring, Toast.LENGTH_LONG)
                 .show()
@@ -158,27 +208,6 @@ class NotificationFragment : Fragment() {
             notificationList[position].hours = currentHour
             notificationList[position].minutes = currentMinutes
             notificationRecyclerView.adapter?.notifyDataSetChanged()
-        }
-    }
-
-    private fun setCalendarTime(timePicker: MaterialTimePicker) {
-        calendar.time = Date(currentDate)
-        currentHour = timePicker.hour
-        currentMinutes = timePicker.minute
-        calendar[Calendar.HOUR_OF_DAY] = currentHour
-        calendar[Calendar.MINUTE] = currentMinutes
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        getNotificationFromDb()
-        initRecycler()
-        if (savedInstanceState != null) {
-            currentDate = savedInstanceState.getLong(CURRENT_DATE)
-            currentMinutes = savedInstanceState.getInt(CURRENT_ALARM_TIME)
-            currentHour = savedInstanceState.getInt(CURRENT_TIME)
-            scrollPositionOfRecycler = savedInstanceState.getInt(CURRENT_POSITION)
-            notificationRecyclerView.scrollToPosition(scrollPositionOfRecycler)
         }
     }
 
@@ -202,6 +231,16 @@ class NotificationFragment : Fragment() {
         }
     }
 
+    private fun addScrollListener() {
+        notificationRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                scrollPositionOfRecycler = layoutManager.findFirstVisibleItemPosition()
+            }
+        })
+    }
+
     private fun createAlarm() {
         val datePicker = createDataBicker()
         datePicker.show(childFragmentManager, DATE_PICKER)
@@ -213,21 +252,6 @@ class NotificationFragment : Fragment() {
                 createAlarmManagerForInsertIntoDb(timePicker = timePicker)
             }
         }
-    }
-
-    private fun createDataBicker(): MaterialDatePicker<Long> {
-        return MaterialDatePicker.Builder
-            .datePicker()
-            .build()
-    }
-
-    private fun createTimePicker(): MaterialTimePicker {
-        return MaterialTimePicker.Builder()
-            .setTimeFormat(TimeFormat.CLOCK_24H)
-            .setHour(12)
-            .setMinute(0)
-            .setTitleText(R.string.select_alarm_time)
-            .build()
     }
 
     private fun createAlarmManagerForInsertIntoDb(
@@ -263,30 +287,6 @@ class NotificationFragment : Fragment() {
                 minutes = currentMinutes
             )
         )
-    }
-
-    private fun setAlarmManager(channelMustHave: Int, date: Long, hours: Int, minutes: Int) {
-        val alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), AlarmReceiver::class.java)
-            .putExtra(NEW_REQUEST_CODE, channelMustHave)
-        val pendingIntent =
-            PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
-        calendar.time = Date(date)
-        calendar[Calendar.HOUR_OF_DAY] = hours
-        calendar[Calendar.MINUTE] = minutes
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (System.currentTimeMillis() < calendar.time.time) {
-                val info = AlarmManager.AlarmClockInfo(calendar.time.time, pendingIntent)
-                alarmManager.setAlarmClock(info, pendingIntent)
-            }
-        }
-    }
-
-    private fun setCancelAlarmBtnClickListener(channelMustHave: Int) {
-        alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
-        alarmManager.cancel(pendingIntent)
     }
 
     override fun onStop() {

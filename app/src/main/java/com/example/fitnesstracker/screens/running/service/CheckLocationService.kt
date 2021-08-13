@@ -46,12 +46,12 @@ class CheckLocationService : Service(), LocationListener {
     override fun onCreate() {
         super.onCreate()
         createNotifyChanel()
-        createNotify()
+        startForeground()
         locationManager =
             applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
-    private fun createNotify() {
+    private fun startForeground() {
         val pendingIntent: PendingIntent =
             Intent(this, CheckLocationService::class.java).let { notificationIntent ->
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)

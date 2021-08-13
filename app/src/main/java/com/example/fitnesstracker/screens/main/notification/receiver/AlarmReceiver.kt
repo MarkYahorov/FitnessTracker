@@ -26,7 +26,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        createNotifyChanel(context)
+        createNotificationChanel(context)
         val touchIntent = Intent(context, RunningActivity::class.java)
             .putExtra(IS_FROM_NOTIFICATION, true)
         val currentRequestCode = intent.getIntExtra(NEW_REQUEST_CODE, 1)
@@ -49,15 +49,15 @@ class AlarmReceiver : BroadcastReceiver() {
             .build()
     }
 
-    private fun createNotifyChanel(context: Context) {
+    private fun createNotificationChanel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notChan = NotificationChannel(
+            val channel = NotificationChannel(
                 ALARM_CHANNEL,
                 ALARM_CHANNEL_NAME,
                 IMPORTANCE_HIGH
             )
             val manager = context.getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(notChan)
+            manager?.createNotificationChannel(channel)
         }
     }
 }

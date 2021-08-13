@@ -12,12 +12,12 @@ class App : Application() {
         lateinit var INSTANCE: App
     }
 
-    lateinit var db: SQLiteDatabase
+    lateinit var myDataBase: SQLiteDatabase
     val repositoryImpl: Repository = RepositoryImpl()
 
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this
-        db = FitnessDatabase(this).writableDatabase
+        myDataBase = FitnessDatabase(this).writableDatabase
     }
 }

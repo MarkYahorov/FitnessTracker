@@ -55,6 +55,7 @@ class RunningActivity : AppCompatActivity() {
         private const val FINISH_VISIBLE = "FINISH_VISIBLE"
         private const val START = "start"
         private const val FINISH_TIME = "FINISH_TIME"
+        private const val EMPTY_VALUE = ""
     }
 
     private lateinit var startBtn: Button
@@ -72,7 +73,7 @@ class RunningActivity : AppCompatActivity() {
     private var alertDialog: AlertDialog.Builder? = null
     private var handler: Handler? = null
     private var timer: Runnable? = null
-    private val coordinationList = mutableListOf<PointForData>()
+    private val coordinateList = mutableListOf<PointForData>()
     private val repo = App.INSTANCE.repositoryImpl
     private var calendar = Calendar.getInstance()
     private val timeZone = SimpleTimeZone.getTimeZone(UTC)
@@ -87,11 +88,11 @@ class RunningActivity : AppCompatActivity() {
             val distanceFromBroadcast = intent?.getFloatArrayExtra(DISTANCE_FROM_SERVICE)
             distance = distanceFromBroadcast?.sum()!!.toInt()
             distanceTextView.text = distanceFromBroadcast.sum().toLong().toString()
-            coordinationList.addAll(
+            coordinateList.addAll(
                 intent.getParcelableArrayListExtra<PointForData>(ALL_COORDINATES)!!
                     .toMutableList()
             )
-            if (coordinationList.size > 1) {
+            if (coordinateList.size > 1) {
                 repo.saveTrack(saveTrackRequest = createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
                         repo.insertTrackAndPointsInDbAfterSavingInServer(
@@ -99,7 +100,7 @@ class RunningActivity : AppCompatActivity() {
                             beginTime = beginTime,
                             calendar = calendar,
                             distance = distance,
-                            listOfPoints = coordinationList
+                            listOfPoints = coordinateList
                         ).continueWith({
                             showDialogs(message = saveTrackResponse)
                         }, Task.UI_THREAD_EXECUTOR)
@@ -132,12 +133,16 @@ class RunningActivity : AppCompatActivity() {
                 calendar = calendar
             )
             handler?.postDelayed(timer!!, 0)
-            if (runningLayout.isVisible) {
-                startBtnLayout.isVisible = false
-            } else if (finishLayout.isVisible) {
-                runningLayout.isVisible = false
-                startBtnLayout.isVisible = false
-            }
+            checkLayoutsVisibility()
+        }
+    }
+
+    private fun checkLayoutsVisibility(){
+        if (runningLayout.isVisible) {
+            startBtnLayout.isVisible = false
+        } else if (finishLayout.isVisible) {
+            runningLayout.isVisible = false
+            startBtnLayout.isVisible = false
         }
     }
 
@@ -173,7 +178,7 @@ class RunningActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
-        setStartBtnClickListeners()
+        setStartBtnClickListener()
         setFinishBtnListener()
         setToolbar()
         createDrawer()
@@ -181,7 +186,7 @@ class RunningActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun setStartBtnClickListeners() {
+    private fun setStartBtnClickListener() {
         startBtn.setOnClickListener {
             if (!checkPermissions() && isGpsEnabled()) {
                 startBtn.isEnabled = false
@@ -274,7 +279,7 @@ class RunningActivity : AppCompatActivity() {
 
     private fun getTokenFromSharedPref(): String {
         return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .getString(CURRENT_TOKEN, "").toString()
+            .getString(CURRENT_TOKEN, EMPTY_VALUE).toString()
     }
 
     private fun createSaveTrackRequest() = SaveTrackRequest(
@@ -283,7 +288,7 @@ class RunningActivity : AppCompatActivity() {
         beginTime = beginTime,
         time = calendar.time.time,
         distance = distance,
-        pointForData = coordinationList
+        pointForData = coordinateList
     )
 
     private fun isGpsEnabled(): Boolean {

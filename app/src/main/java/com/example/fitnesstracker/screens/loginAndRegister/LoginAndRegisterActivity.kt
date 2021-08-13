@@ -14,7 +14,6 @@ import androidx.core.view.isVisible
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.data.database.FITNESS_DB
 import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.models.login.LoginRequest
 import com.example.fitnesstracker.models.registration.RegistrationRequest
@@ -156,7 +155,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                     else -> {
                         saveTokenInSharedPref(token = it.result.token)
                         createIntent()
-                        FitnessDatabase(applicationContext).onCreate(App.INSTANCE.db)
+                        FitnessDatabase(applicationContext).onCreate(App.INSTANCE.myDataBase)
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)
@@ -175,7 +174,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                     else -> {
                         saveTokenInSharedPref(token = response.result.token)
                         createIntent()
-                        FitnessDatabase(applicationContext).onCreate(App.INSTANCE.db)
+                        FitnessDatabase(applicationContext).onCreate(App.INSTANCE.myDataBase)
                     }
                 }
             }, Task.UI_THREAD_EXECUTOR)

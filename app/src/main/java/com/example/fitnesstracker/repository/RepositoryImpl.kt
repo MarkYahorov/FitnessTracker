@@ -182,7 +182,7 @@ class RepositoryImpl : Repository {
                 .updatesValues(nameOfField = CURRENT_HOUR, updateValue = hours)
                 .updatesValues(nameOfField = CURRENT_MINUTE, updateValue = minutes)
                 .where(whereArgs = "$ID = $id")
-                .update(db = App.INSTANCE.db)
+                .update(db = App.INSTANCE.myDataBase)
         }
     }
 
@@ -192,9 +192,9 @@ class RepositoryImpl : Repository {
             clearTable(name = ALL_POINTS)
             clearTable(name = NOTIFICATION_TIME_NAME)
             setSharedPrefToDefaultValues(context = context)
-            App.INSTANCE.db.execSQL("DROP TABLE $TRACKERS")
-            App.INSTANCE.db.execSQL("DROP TABLE $ALL_POINTS")
-            App.INSTANCE.db.execSQL("DROP TABLE $NOTIFICATION_TIME_NAME")
+            App.INSTANCE.myDataBase.execSQL("DROP TABLE $TRACKERS")
+            App.INSTANCE.myDataBase.execSQL("DROP TABLE $ALL_POINTS")
+            App.INSTANCE.myDataBase.execSQL("DROP TABLE $NOTIFICATION_TIME_NAME")
         }
     }
 
@@ -203,7 +203,7 @@ class RepositoryImpl : Repository {
             UpdateDbHelper()
                 .setName(tableName = tableName)
                 .where(whereArgs = whereArgs)
-                .delete(db = App.INSTANCE.db)
+                .delete(db = App.INSTANCE.myDataBase)
         }
     }
 
@@ -266,7 +266,7 @@ class RepositoryImpl : Repository {
                 .nameOfTable(table = ALL_POINTS)
                 .selectParams(allParams = "*")
                 .where(whereArgs = "$CURRENT_TRACK = $currentTrackId")
-                .select(db = App.INSTANCE.db)
+                .select(db = App.INSTANCE.myDataBase)
             haveData = cursor.moveToFirst()
         } finally {
             cursor?.close()
@@ -304,7 +304,7 @@ class RepositoryImpl : Repository {
             cursor = SelectDbHelper()
                 .nameOfTable(table = table)
                 .selectParams(allParams = MAX)
-                .select(db = App.INSTANCE.db)
+                .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val idIndex = cursor.getColumnIndexOrThrow(ID)
                 do {
@@ -346,7 +346,7 @@ class RepositoryImpl : Repository {
                 nameOfField = DISTANCE,
                 insertingValue = distance.toString()
             )
-            .insertTheValues(db = App.INSTANCE.db)
+            .insertTheValues(db = App.INSTANCE.myDataBase)
     }
 
     private fun insertThePoints(
@@ -373,7 +373,7 @@ class RepositoryImpl : Repository {
                     nameOfField = LONGITUDE,
                     insertingValue = it.lng.toString()
                 )
-                .insertTheValues(db = App.INSTANCE.db)
+                .insertTheValues(db = App.INSTANCE.myDataBase)
         }
     }
 
@@ -398,7 +398,7 @@ class RepositoryImpl : Repository {
             .setName(tableName = tableName)
             .updatesValues(nameOfField = fieldName, updateValue = value)
             .where(whereArgs = whereArgs)
-            .update(db = App.INSTANCE.db)
+            .update(db = App.INSTANCE.myDataBase)
     }
 
     private fun insertNotificationInDb(
@@ -425,7 +425,7 @@ class RepositoryImpl : Repository {
                 nameOfField = POSITION_IN_LIST,
                 insertingValue = listOfNotifications.size.toString()
             )
-            .insertTheValues(db = App.INSTANCE.db)
+            .insertTheValues(db = App.INSTANCE.myDataBase)
     }
 
     private fun saveTracksWithNullId(
@@ -486,7 +486,7 @@ class RepositoryImpl : Repository {
             cursor = SelectDbHelper()
                 .selectParams(allParams = "*")
                 .nameOfTable(table = NOTIFICATION_TIME_NAME)
-                .select(db = App.INSTANCE.db)
+                .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val indexFromDb = getNotificationColumnIndex(cursor = cursor)
                 do {
@@ -526,7 +526,7 @@ class RepositoryImpl : Repository {
                 .nameOfTable(table = ALL_POINTS)
                 .selectParams(allParams = "*")
                 .where(whereArgs = "$CURRENT_TRACK = $trackId")
-                .select(db = App.INSTANCE.db)
+                .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val latIndex = cursor.getColumnIndexOrThrow(LATITUDE)
                 val lonIndex = cursor.getColumnIndexOrThrow(LONGITUDE)
@@ -549,7 +549,7 @@ class RepositoryImpl : Repository {
             cursor = SelectDbHelper()
                 .nameOfTable(table = TRACKERS)
                 .selectParams(allParams = "*")
-                .select(db = App.INSTANCE.db)
+                .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val index = getColumnIndex(cursor = cursor)
                 do {
@@ -571,7 +571,7 @@ class RepositoryImpl : Repository {
                 .nameOfTable(table = TRACKERS)
                 .selectParams(allParams = "*")
                 .where(whereArgs = "$IS_SEND = 1")
-                .select(db = App.INSTANCE.db)
+                .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val index = getColumnIndex(cursor = cursor)
                 do {
@@ -629,13 +629,13 @@ class RepositoryImpl : Repository {
                     nameOfField = IS_SEND,
                     insertingValue = isSend.toString()
                 )
-                .insertTheValues(db = App.INSTANCE.db)
+                .insertTheValues(db = App.INSTANCE.myDataBase)
         }
     }
 
     private fun clearTable(name: String) {
         UpdateDbHelper()
             .setName(tableName = name)
-            .delete(db = App.INSTANCE.db)
+            .delete(db = App.INSTANCE.myDataBase)
     }
 }

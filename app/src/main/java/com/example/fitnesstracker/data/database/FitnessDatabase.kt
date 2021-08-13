@@ -77,6 +77,5 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        TODO("Not yet implemented")
     }
 }

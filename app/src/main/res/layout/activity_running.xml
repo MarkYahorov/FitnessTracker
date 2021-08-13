@@ -50,6 +50,7 @@
                 android:layout_width="0dp"
                 android:layout_height="@dimen/running_activity_btns_height"
                 android:text="@string/start"
+                android:backgroundTint="@color/orange"
                 app:cornerRadius="@dimen/btns_radius"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -53,4 +53,5 @@
     <string name="check_gps">Check GPS</string>
     <string name="discription_running">Tap button to start running</string>
     <string name="track_fragment_error">Check the internet or check token</string>
+    <string name="add_notification">Add notification</string>
 </resources>

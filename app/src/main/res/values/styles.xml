@@ -33,4 +33,35 @@
         <item name="android:layout_marginEnd">12dp</item>
         <item name="android:layout_marginStart">6dp</item>
     </style>
+
+    <style name="main_activity_nav_drawer_log_out_text">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginStart">@dimen/logout_text_margin_start</item>
+    </style>
+
+    <style name="running_activity_layouts_margin">
+        <item name="android:layout_margin">@dimen/running_layouts_margin</item>
+    </style>
+
+    <style name="TextColor.running_activity_btns">
+        <item name="android:layout_marginTop">@dimen/running_activity_btns_margin_top</item>
+    </style>
+
+    <style name="TextColor">
+        <item name="android:textColor">@color/colorTextInList</item>
+    </style>
+
+    <style name="TextColor.running_activity_main_text">
+        <item name="android:textSize">@dimen/running_activity_main_text_size</item>
+    </style>
+
+    <style name="TextColor.running_activity_no_main_text">
+        <item name="android:textSize">@dimen/running_activity_no_main_text_size</item>
+    </style>
+
+    <style name="TextColor.item_recycler">
+        <item name="android:layout_marginTop">@dimen/item_list_margin_top</item>
+        <item name="layout_goneMarginBottom">@dimen/item_list_margin_top</item>
+    </style>
 </resources>

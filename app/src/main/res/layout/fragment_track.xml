@@ -21,9 +21,9 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/running_time_card_view"
-        android:layout_width="120dp"
-        android:layout_height="60dp"
-        app:cardCornerRadius="50dp"
+        android:layout_width="@dimen/track_fragment_layout_width"
+        android:layout_height="@dimen/track_fragment_layout_height"
+        app:cardCornerRadius="@dimen/track_fragment_radius"
         android:backgroundTint="@color/purple_500_non"
         app:layout_constraintBottom_toBottomOf="@+id/distance_card_view"
         app:layout_constraintEnd_toStartOf="@id/distance_card_view"
@@ -59,10 +59,10 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/distance_card_view"
-        android:layout_width="120dp"
-        android:layout_height="60dp"
-        app:cardCornerRadius="50dp"
-        android:layout_marginBottom="70dp"
+        android:layout_width="@dimen/track_fragment_layout_width"
+        android:layout_height="@dimen/track_fragment_layout_height"
+        app:cardCornerRadius="@dimen/track_fragment_radius"
+        android:layout_marginBottom="@dimen/track_fragment_margin"
         android:backgroundTint="@color/purple_500_non"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

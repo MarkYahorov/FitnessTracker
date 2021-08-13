@@ -34,11 +34,15 @@ class SplashScreenActivity : AppCompatActivity() {
         super.onStart()
         startAnimation()
         supportActionBar?.hide()
+        goToNextActivity()
     }
 
     private fun startAnimation() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.logo_animation)
         logo.animation = anim
+    }
+
+    private fun goToNextActivity(){
         Handler(Looper.getMainLooper()).postDelayed({
             if (isFirst) {
                 startActivity(Intent(this, LoginAndRegisterActivity::class.java))

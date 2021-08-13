@@ -46,7 +46,7 @@ class SplashScreenActivity : AppCompatActivity() {
             } else {
                 val currentActivity = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
                     .getInt(CURRENT_ACTIVITY, 0)
-                if(currentActivity == 0) {
+                if (currentActivity == 0) {
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {

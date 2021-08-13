@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    app:cardCornerRadius="@dimen/btns_radius"
-    android:backgroundTint="@color/non"
-    android:layout_margin="@dimen/item_list_margin_top"
     android:layout_height="@dimen/running_activity_btns_height"
+    android:layout_margin="@dimen/item_list_margin_top"
+    android:backgroundTint="@color/non"
+    app:cardCornerRadius="@dimen/btns_radius"
     tools:targetApi="lollipop">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -15,9 +15,9 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/begin_time"
+            style="@style/TextColor.item_recycler"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TextColor.item_recycler"
             android:text="@string/begin_time"
             app:layout_constraintEnd_toEndOf="@+id/textView2"
             app:layout_constraintStart_toStartOf="@+id/textView2"
@@ -25,9 +25,9 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/time_running"
+            style="@style/TextColor.item_recycler"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TextColor.item_recycler"
             android:text="@string/time_running"
             app:layout_constraintEnd_toEndOf="@+id/textView3"
             app:layout_constraintStart_toStartOf="@+id/textView3"
@@ -56,11 +56,11 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textView2"
+            style="@style/TextColor.item_recycler"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/item_list_margin_start"
             android:layout_marginEnd="@dimen/item_list_margin_end"
-            style="@style/TextColor.item_recycler"
             android:text="@string/begin_time"
             app:layout_constraintBottom_toTopOf="@+id/begin_time"
             app:layout_constraintEnd_toStartOf="@+id/textView3"
@@ -69,9 +69,9 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/textView3"
+            style="@style/TextColor.item_recycler"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TextColor.item_recycler"
             android:text="@string/time_running"
             app:layout_constraintBottom_toTopOf="@+id/time_running"
             app:layout_constraintEnd_toEndOf="parent"

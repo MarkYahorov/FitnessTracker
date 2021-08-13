@@ -16,8 +16,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FitnessTracker">
-        <activity android:name=".screens.splash.SplashScreenActivity"
-           android:screenOrientation="portrait">
+        <activity
+            android:name=".screens.splash.SplashScreenActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -27,12 +28,12 @@
         <activity android:name=".screens.running.RunningActivity" />
 
         <receiver
-            android:name=".AlarmReceiver"
+            android:name=".screens.main.notification.receiver.AlarmReceiver"
             android:enabled="true"
             android:exported="true" />
 
         <service
-            android:name=".CheckLocationService"
+            android:name=".screens.running.service.CheckLocationService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="location" />
@@ -41,7 +42,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".screens.loginAndRegister.LoginAndRegisterActivity"/>
+        <activity android:name=".screens.loginAndRegister.LoginAndRegisterActivity" />
         <activity android:name=".screens.main.MainActivity" />
     </application>
 

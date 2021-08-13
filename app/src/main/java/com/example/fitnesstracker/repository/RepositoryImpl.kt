@@ -115,7 +115,11 @@ class RepositoryImpl : Repository {
                     else -> {
                         list.addAll(it.result.pointForData)
                         if (!checkThisPointIntoDb(currentTrackId = idInDb)) {
-                            insertThePoints(serverId = serverId, trackIdInDb = idInDb, listOfPoints = list)
+                            insertThePoints(
+                                serverId = serverId,
+                                trackIdInDb = idInDb,
+                                listOfPoints = list
+                            )
                         }
                     }
                 }
@@ -345,7 +349,11 @@ class RepositoryImpl : Repository {
             .insertTheValues(db = App.INSTANCE.db)
     }
 
-    private fun insertThePoints(serverId: Int?, trackIdInDb: Int, listOfPoints: List<PointForData>) {
+    private fun insertThePoints(
+        serverId: Int?,
+        trackIdInDb: Int,
+        listOfPoints: List<PointForData>
+    ) {
         listOfPoints.forEach {
             InsertDBHelper()
                 .setTableName(name = ALL_POINTS)

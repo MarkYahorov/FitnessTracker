@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Login_And_Register_Screen_Edit_Texts">
         <item name="android:textSize">18sp</item>
     </style>

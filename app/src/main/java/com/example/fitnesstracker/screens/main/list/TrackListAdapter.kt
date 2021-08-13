@@ -39,17 +39,18 @@ class TrackListAdapter(
             }
         }
 
-        fun unbind(){
+        fun unbind() {
             item.setOnClickListener(null)
             date = null
-            currentTimeFormat= null
+            currentTimeFormat = null
             timeZone = null
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(
-            R.layout.track_recycler_item, parent, false)
+            R.layout.track_recycler_item, parent, false
+        )
         return ViewHolder(view, goToCurrentTrack = goToCurrentTrack)
     }
 

@@ -22,10 +22,10 @@
         android:layout_marginEnd="@dimen/floating_btn_margin"
         android:layout_marginBottom="@dimen/floating_btn_margin"
         android:clickable="true"
+        android:contentDescription="@string/add_notification"
+        android:focusable="true"
         android:src="@drawable/ic_baseline_add_alert_24"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:focusable="true"
-        android:contentDescription="@string/add_notification" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,4 +1,4 @@
-package com.example.fitnesstracker
+package com.example.fitnesstracker.screens.running.calculate
 
 import android.os.Handler
 import android.os.Looper
@@ -6,7 +6,7 @@ import android.os.SystemClock
 import android.widget.TextView
 import java.util.*
 
-class Utils {
+class TimeCalculator {
 
     companion object {
         private const val FORMAT = "%02d"
@@ -36,9 +36,10 @@ class Utils {
         time
     )
 
-    private fun createString() = "${formatString(hours)}: ${formatString(min)}: ${formatString(sec)}: ${
-        formatString(millis)
-    }"
+    private fun createString() =
+        "${formatString(hours)}: ${formatString(min)}: ${formatString(sec)}: ${
+            formatString(millis)
+        }"
 
     private fun setCalendarTimeForTimer(calendar: Calendar) {
         calendar[Calendar.HOUR_OF_DAY] = hours

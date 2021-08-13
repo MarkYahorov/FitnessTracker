@@ -1,4 +1,4 @@
-package com.example.fitnesstracker
+package com.example.fitnesstracker.screens.main.notification.receiver
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
 import androidx.core.app.NotificationManagerCompat
+import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.main.IS_FROM_NOTIFICATION
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment.Companion.NEW_REQUEST_CODE
 import com.example.fitnesstracker.screens.running.RunningActivity

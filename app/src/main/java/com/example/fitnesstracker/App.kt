@@ -6,9 +6,9 @@ import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.repository.Repository
 import com.example.fitnesstracker.repository.RepositoryImpl
 
-class App: Application() {
+class App : Application() {
 
-    companion object{
+    companion object {
         lateinit var INSTANCE: App
     }
 

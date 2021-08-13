@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import bolts.Task
-import com.example.fitnesstracker.AlarmReceiver
+import com.example.fitnesstracker.screens.main.notification.receiver.AlarmReceiver
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID

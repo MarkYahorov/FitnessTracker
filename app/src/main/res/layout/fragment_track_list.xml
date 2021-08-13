@@ -24,10 +24,10 @@
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/loading_progress"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone"
         android:indeterminate="true"
-        android:layout_height="wrap_content" />
+        android:visibility="gone" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/open_screen_running_btn"

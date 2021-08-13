@@ -22,9 +22,9 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import bolts.Task
 import com.example.fitnesstracker.App
-import com.example.fitnesstracker.CheckLocationService
+import com.example.fitnesstracker.screens.running.service.CheckLocationService
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.Utils
+import com.example.fitnesstracker.screens.running.calculate.TimeCalculator
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.save.SaveTrackRequest
 import com.example.fitnesstracker.models.save.SaveTrackResponse
@@ -126,15 +126,15 @@ class RunningActivity : AppCompatActivity() {
             runningLayout.isVisible = savedInstanceState.getBoolean(RUNNING_VISIBLE)
             finishLayout.isVisible = savedInstanceState.getBoolean(FINISH_VISIBLE)
             tStart = savedInstanceState.getLong(START)
-            timer = Utils().createTimer(
+            timer = TimeCalculator().createTimer(
                 view = timeRunningTextView,
                 tStart = tStart,
                 calendar = calendar
             )
             handler?.postDelayed(timer!!, 0)
-            if (runningLayout.isVisible){
+            if (runningLayout.isVisible) {
                 startBtnLayout.isVisible = false
-            } else if (finishLayout.isVisible){
+            } else if (finishLayout.isVisible) {
                 runningLayout.isVisible = false
                 startBtnLayout.isVisible = false
             }
@@ -214,7 +214,7 @@ class RunningActivity : AppCompatActivity() {
 
     private fun startTimer() {
         tStart = SystemClock.elapsedRealtime()
-        timer = Utils().createTimer(timeRunningTextView, tStart, calendar)
+        timer = TimeCalculator().createTimer(timeRunningTextView, tStart, calendar)
         beginTime = System.currentTimeMillis()
         handler?.postDelayed(timer!!, 0)
     }
@@ -291,7 +291,7 @@ class RunningActivity : AppCompatActivity() {
         return if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             true
         } else {
-            createAlertDialog( message = R.string.gps_enabled)
+            createAlertDialog(message = R.string.gps_enabled)
             false
         }
     }

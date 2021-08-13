@@ -24,8 +24,8 @@ class NotificationListAdapter(
         private val changeTimeOfNotification: (Notification) -> Unit,
     ) : RecyclerView.ViewHolder(item) {
         private val timeText = item.findViewById<TextView>(R.id.notification_time)
-        private var calendar:Calendar? = null
-        private var date:SimpleDateFormat? = null
+        private var calendar: Calendar? = null
+        private var date: SimpleDateFormat? = null
 
         fun bind(notification: Notification) {
             calendar = Calendar.getInstance()

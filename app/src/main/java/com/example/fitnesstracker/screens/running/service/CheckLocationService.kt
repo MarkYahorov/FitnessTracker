@@ -1,4 +1,4 @@
-package com.example.fitnesstracker
+package com.example.fitnesstracker.screens.running.service
 
 import android.annotation.SuppressLint
 import android.app.*
@@ -15,6 +15,7 @@ import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
+import com.example.fitnesstracker.R
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.screens.running.RunningActivity.Companion.ALL_COORDINATES
 import com.example.fitnesstracker.screens.running.RunningActivity.Companion.DISTANCE_FROM_SERVICE
@@ -61,18 +62,19 @@ class CheckLocationService : Service(), LocationListener {
 
     @SuppressLint("InlinedApi")
     private fun createNotification(pendingIntent: PendingIntent): Notification {
-           return NotificationCompat.Builder(this, EXAMPLE_SERVICE_CHANNEL_ID)
-                .setOngoing(true)
-                .setContentTitle(getText(R.string.check_gps))
-                .setSmallIcon(R.drawable.ic_baseline_run_circle_24)
-                .setContentIntent(pendingIntent)
-                .setPriority(
-                    when {
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> IMPORTANCE_HIGH
-                        else -> PRIORITY_HIGH
-                    })
-                .setCategory(CATEGORY_SERVICE)
-                .build()
+        return NotificationCompat.Builder(this, EXAMPLE_SERVICE_CHANNEL_ID)
+            .setOngoing(true)
+            .setContentTitle(getText(R.string.check_gps))
+            .setSmallIcon(R.drawable.ic_baseline_run_circle_24)
+            .setContentIntent(pendingIntent)
+            .setPriority(
+                when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> IMPORTANCE_HIGH
+                    else -> PRIORITY_HIGH
+                }
+            )
+            .setCategory(CATEGORY_SERVICE)
+            .build()
     }
 
     @RequiresApi(Build.VERSION_CODES.M)

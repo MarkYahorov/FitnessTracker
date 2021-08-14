@@ -11,5 +11,5 @@ data class RegistrationResponse(
     @SerializedName("token")
     val token: String,
     @SerializedName("code")
-    val error: String,
+    val error: String
 ) : Parcelable

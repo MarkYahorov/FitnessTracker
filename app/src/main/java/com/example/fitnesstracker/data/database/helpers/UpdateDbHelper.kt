@@ -7,34 +7,35 @@ class UpdateDbHelper {
     private val updatesFields = mutableMapOf<String, Any>()
     private var whereArgs = ""
 
-    fun setName(tableName:String): UpdateDbHelper{
+    fun setName(tableName: String): UpdateDbHelper {
         this.tableName = tableName
         return this
     }
 
-    fun updatesValues(nameOfField:String, updateValue:Int): UpdateDbHelper{
+    fun updatesValues(nameOfField: String, updateValue: Int): UpdateDbHelper {
         this.updatesFields[nameOfField] = updateValue
         return this
     }
 
-    fun updatesValues(nameOfField:String, updateValue:Long):UpdateDbHelper{
+    fun updatesValues(nameOfField: String, updateValue: Long): UpdateDbHelper {
         this.updatesFields[nameOfField] = updateValue
         return this
     }
 
-    fun where(whereArgs:String): UpdateDbHelper{
+    fun where(whereArgs: String): UpdateDbHelper {
         this.whereArgs = whereArgs
         return this
     }
 
-    fun update(db: SQLiteDatabase){
+    fun update(db: SQLiteDatabase) {
         val updatingFields = updatesFields.entries.joinToString(",")
         db.compileStatement(
-            "UPDATE $tableName SET $updatingFields WHERE $whereArgs").execute()
+            "UPDATE $tableName SET $updatingFields WHERE $whereArgs"
+        ).execute()
 
     }
 
-    fun delete(db: SQLiteDatabase){
+    fun delete(db: SQLiteDatabase) {
         if (whereArgs == "") {
             db.execSQL("DELETE FROM $tableName")
         } else {

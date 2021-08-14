@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -24,7 +23,6 @@ import com.example.fitnesstracker.screens.main.list.TrackListFragment
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment
 import com.example.fitnesstracker.screens.main.track.TrackFragment
 import com.example.fitnesstracker.screens.running.RunningActivity
-import com.example.fitnesstracker.screens.running.RunningActivity.Companion.CURRENT_ACTIVITY
 import com.example.fitnesstracker.screens.running.RunningActivity.Companion.TRACK_ID
 import com.google.android.material.navigation.NavigationView
 
@@ -33,11 +31,10 @@ const val IS_FROM_NOTIFICATION = "IS FROM NOTIFICATION"
 class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     companion object {
+        private const val DEFAULT_BACK_STACK_SIZE = 1
         private const val NOTIFICATION = "NOTIFICATION"
         private const val TRACK = "TRACK"
-        private const val RUNNING = "RUNNING"
         private const val LIST_FRAGMENT = "LIST_FRAGMENT"
-        const val EMPTY_VALUE = ""
         private const val CURRENT_TRACK = "CURRENT_TRACK"
     }
 
@@ -52,43 +49,45 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .edit()
-            .putInt(CURRENT_ACTIVITY, 0)
-            .apply()
+
         initAll()
         setToolbar()
-        createDrawer()
+        setDrawer()
         if (savedInstanceState == null) {
             addListFragment()
         } else {
             track = savedInstanceState.getParcelable(CURRENT_TRACK)
             if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                checkFragmentsInBackStack(track, R.id.fragment_container_view)
+                replaceFragmentsIfLocatedInBackStack(container = R.id.fragment_container_view)
             } else if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                checkFragmentsInBackStack(track, R.id.fragment_container_view_for_all)
+                replaceFragmentsIfLocatedInBackStack(container = R.id.fragment_container_view_for_all)
             }
         }
     }
 
-    private fun checkFragmentsInBackStack(track: Tracks?, container: Int) {
+    private fun replaceFragmentsIfLocatedInBackStack(container: Int) {
         if (supportFragmentManager.popBackStackImmediate(
                 TRACK,
                 POP_BACK_STACK_INCLUSIVE
             ) && track != null
         ) {
-            replaceFragment(
-                fragment = TrackFragment.newInstance(
-                    id = track.id!!,
-                    serverId = track.serverId,
-                    beginTime = track.beginTime,
-                    runningTime = track.time,
-                    distance = track.distance,
-                    token = getTokenFromSharedPref()
-                ),
-                backStackName = TRACK,
-                container = container
-            )
+            track?.let {
+                val token = getTokenFromSharedPref()
+                if (token != null) {
+                    replaceFragment(
+                        fragment = TrackFragment.newInstance(
+                            id = it.id,
+                            serverId = it.serverId,
+                            beginTime = it.beginTime,
+                            runningTime = it.time,
+                            distance = it.distance,
+                            token = token
+                        ),
+                        backStackName = TRACK,
+                        container = container
+                    )
+                }
+            }
         } else if (supportFragmentManager.popBackStackImmediate(
                 NOTIFICATION,
                 POP_BACK_STACK_INCLUSIVE
@@ -103,18 +102,21 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     }
 
     private fun addListFragment() {
-        supportFragmentManager.beginTransaction()
-            .add(
-                R.id.fragment_container_view,
-                TrackListFragment.newInstance(getTokenFromSharedPref())
-            )
-            .addToBackStack(LIST_FRAGMENT)
-            .commit()
+        val token = getTokenFromSharedPref()
+        if (token != null) {
+            supportFragmentManager.beginTransaction()
+                .add(
+                    R.id.fragment_container_view,
+                    TrackListFragment.newInstance(token = token)
+                )
+                .addToBackStack(LIST_FRAGMENT)
+                .commit()
+        }
     }
 
-    private fun getTokenFromSharedPref(): String {
+    private fun getTokenFromSharedPref(): String? {
         return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .getString(CURRENT_TOKEN, EMPTY_VALUE).toString()
+            .getString(CURRENT_TOKEN, null)
     }
 
     private fun initAll() {
@@ -129,14 +131,24 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
-    private fun createDrawer() {
+    private fun setDrawer() {
         toggle = ActionBarDrawerToggle(
-            this,
+            this@MainActivity,
             navDrawer,
             toolbar,
             R.string.navigation_drawer_open,
             R.string.navigation_drawer_close
         )
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        toggle.syncState()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        toggle.onConfigurationChanged(newConfig)
     }
 
     override fun onStart() {
@@ -164,16 +176,16 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
                 if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
                     track = null
                     replaceFragment(
-                        NotificationFragment(),
-                        NOTIFICATION,
-                        R.id.fragment_container_view
+                        fragment = NotificationFragment(),
+                        backStackName = NOTIFICATION,
+                        container = R.id.fragment_container_view
                     )
                 } else {
                     track = null
                     replaceFragment(
-                        NotificationFragment(),
-                        NOTIFICATION,
-                        R.id.fragment_container_view_for_all
+                        fragment = NotificationFragment(),
+                        backStackName = NOTIFICATION,
+                        container = R.id.fragment_container_view_for_all
                     )
                 }
                 onBackPressed()
@@ -191,25 +203,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
                     finish()
                 }, Task.UI_THREAD_EXECUTOR)
         }
-    }
-
-    private fun updateToolbarBtn() {
-        toggle.isDrawerIndicatorEnabled =
-            !supportFragmentManager.popBackStackImmediate(RUNNING, POP_BACK_STACK_INCLUSIVE)
-    }
-
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-        toggle.syncState()
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        toggle.onConfigurationChanged(newConfig)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return toggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item)
     }
 
     private fun replaceFragment(fragment: Fragment, backStackName: String, container: Int) {
@@ -235,30 +228,32 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     override fun goToTrackScreen(
         id: Int,
-        serverId: Int,
+        serverId: Int?,
         beginTime: Long,
         runningTime: Long,
         distance: Int,
         token: String
     ) {
         track = Tracks(id, serverId, beginTime, runningTime, distance)
+        val trackFragment = TrackFragment.newInstance(
+            id = id,
+            serverId = serverId,
+            beginTime = beginTime,
+            runningTime = runningTime,
+            distance = distance,
+            token = token
+        )
         if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             replaceFragment(
-                TrackFragment.newInstance(
-                    id, serverId, beginTime,
-                    runningTime,
-                    distance,
-                    token
-                ), TRACK, R.id.fragment_container_view
+                fragment = trackFragment,
+                backStackName = TRACK,
+                container = R.id.fragment_container_view
             )
         } else if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             replaceFragment(
-                TrackFragment.newInstance(
-                    id, serverId, beginTime,
-                    runningTime,
-                    distance,
-                    token
-                ), TRACK, R.id.fragment_container_view_for_all
+                fragment = trackFragment,
+                backStackName = TRACK,
+                container = R.id.fragment_container_view_for_all
             )
         }
     }
@@ -268,20 +263,19 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             navDrawer.closeDrawer(GravityCompat.START)
             return
         }
-        if (supportFragmentManager.backStackEntryCount > 1) {
+        if (supportFragmentManager.backStackEntryCount > DEFAULT_BACK_STACK_SIZE) {
             supportFragmentManager.popBackStackImmediate(LIST_FRAGMENT, 0)
-            updateToolbarBtn()
-            saveInSharedPref()
+            saveMarkerFromNotificationSharedPref()
             track = null
             return
         }
-        if (supportFragmentManager.backStackEntryCount == 1) {
+        if (supportFragmentManager.backStackEntryCount == DEFAULT_BACK_STACK_SIZE) {
             finish()
         }
         super.onBackPressed()
     }
 
-    private fun saveInSharedPref() {
+    private fun saveMarkerFromNotificationSharedPref() {
         getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(IS_FROM_NOTIFICATION, false)

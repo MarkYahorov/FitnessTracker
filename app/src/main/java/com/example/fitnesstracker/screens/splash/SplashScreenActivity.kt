@@ -8,6 +8,8 @@ import android.os.Looper
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.fitnesstracker.App.Companion.MAIN_ACTIVITY_MARKER
+import com.example.fitnesstracker.App.Companion.RUNNING_ACTIVITY_MARKER
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
@@ -17,6 +19,10 @@ import com.example.fitnesstracker.screens.running.RunningActivity
 import com.example.fitnesstracker.screens.running.RunningActivity.Companion.CURRENT_ACTIVITY
 
 class SplashScreenActivity : AppCompatActivity() {
+
+    companion object {
+        private const val HANDLER_DELAY = 3000L
+    }
 
     private lateinit var logo: ImageView
 
@@ -49,15 +55,15 @@ class SplashScreenActivity : AppCompatActivity() {
                 finish()
             } else {
                 val currentActivity = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-                    .getInt(CURRENT_ACTIVITY, 0)
-                if (currentActivity == 0) {
+                    .getInt(CURRENT_ACTIVITY, MAIN_ACTIVITY_MARKER)
+                if (currentActivity == MAIN_ACTIVITY_MARKER) {
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
-                } else {
+                } else if (currentActivity == RUNNING_ACTIVITY_MARKER) {
                     startActivity(Intent(this, RunningActivity::class.java))
                     finish()
                 }
             }
-        }, 3000)
+        }, HANDLER_DELAY)
     }
 }

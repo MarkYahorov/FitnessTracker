@@ -23,10 +23,10 @@ interface ApiService {
     fun registration(@Body registrationRequest: RegistrationRequest): Call<RegistrationResponse>
 
     @POST("lesson-26.php?method=tracks")
-    fun getTracks(@Body trackRequest: TrackRequest): Call<TrackResponse>
+    fun getTracks(@Body trackRequest: TrackRequest?): Call<TrackResponse>
 
     @POST("lesson-26.php?method=points")
-    fun getPointsForCurrentTrack(@Body pointsRequest: PointsRequest) : Call<PointsResponse>
+    fun getPointsForCurrentTrack(@Body pointsRequest: PointsRequest?): Call<PointsResponse>
 
     @POST("lesson-26.php?method=save")
     fun saveTrack(@Body savePointsRequest: SaveTrackRequest): Call<SaveTrackResponse>

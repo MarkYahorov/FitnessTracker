@@ -10,6 +10,11 @@ class App : Application() {
 
     companion object {
         lateinit var INSTANCE: App
+        const val PATTERN_WITH_SECONDS = "HH:mm:ss,SS"
+        const val PATTERN_WITHOUT_SECONDS = "HH:mm:ss,SS"
+        const val UTC = "UTC"
+        const val RUNNING_ACTIVITY_MARKER = 1
+        const val MAIN_ACTIVITY_MARKER = 0
     }
 
     lateinit var myDataBase: SQLiteDatabase

@@ -2,7 +2,6 @@ package com.example.fitnesstracker.repository
 
 import android.content.Context
 import android.database.Cursor
-import android.util.Log
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
@@ -43,7 +42,6 @@ import com.example.fitnesstracker.models.tracks.TrackResponse
 import com.example.fitnesstracker.models.tracks.Tracks
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
-import com.example.fitnesstracker.screens.main.MainActivity.Companion.EMPTY_VALUE
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment.Companion.MAX
 import com.example.fitnesstracker.screens.running.RunningActivity.Companion.ERROR
@@ -66,7 +64,7 @@ class RepositoryImpl : Repository {
         }
     }
 
-    override fun getTracks(trackRequest: TrackRequest): Task<TrackResponse> {
+    override fun getTracks(trackRequest: TrackRequest?): Task<TrackResponse> {
         return Task.callInBackground {
             val execute = RetrofitBuilder().apiService.getTracks(trackRequest = trackRequest)
             val body = execute.execute().body()
@@ -96,7 +94,7 @@ class RepositoryImpl : Repository {
     override fun getPointsForCurrentTrack(
         idInDb: Int,
         serverId: Int,
-        pointsRequest: PointsRequest
+        pointsRequest: PointsRequest?
     ): Task<List<PointForData>> {
         val list = mutableListOf<PointForData>()
         return getPointsFromServer(pointsRequest = pointsRequest)
@@ -247,7 +245,7 @@ class RepositoryImpl : Repository {
         }
     }
 
-    private fun getPointsFromServer(pointsRequest: PointsRequest): Task<PointsResponse> {
+    private fun getPointsFromServer(pointsRequest: PointsRequest?): Task<PointsResponse> {
         return Task.callInBackground {
             val execute =
                 RetrofitBuilder().apiService.getPointsForCurrentTrack(pointsRequest = pointsRequest)
@@ -257,7 +255,7 @@ class RepositoryImpl : Repository {
 
     private fun checkThisPointIntoDb(currentTrackId: Int): Boolean {
         var cursor: Cursor? = null
-        val haveData: Boolean?
+        val haveData: Boolean
         try {
             cursor = SelectDbHelper()
                 .nameOfTable(table = ALL_POINTS)
@@ -268,7 +266,7 @@ class RepositoryImpl : Repository {
         } finally {
             cursor?.close()
         }
-        return haveData!!
+        return haveData
     }
 
     private fun insertDataAfterRunning(
@@ -377,7 +375,7 @@ class RepositoryImpl : Repository {
     private fun setSharedPrefToDefaultValues(context: Context) {
         context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
-            .putString(CURRENT_TOKEN, EMPTY_VALUE)
+            .putString(CURRENT_TOKEN, null)
             .apply()
         context.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .edit()
@@ -426,7 +424,7 @@ class RepositoryImpl : Repository {
     }
 
     private fun saveTracksWithNullId(
-        trackRequest: TrackRequest,
+        trackRequest: TrackRequest?,
         trackForData: TrackForData,
         tracks: Tracks
     ) {
@@ -434,12 +432,12 @@ class RepositoryImpl : Repository {
             trackForData.serverId = null
             saveTrack(
                 saveTrackRequest = SaveTrackRequest(
-                    token = trackRequest.token,
+                    token = trackRequest?.token ?: "",
                     serverId = trackForData.serverId,
                     beginTime = trackForData.beginTime,
                     time = trackForData.time,
                     distance = trackForData.distance,
-                    pointForData = getListOfPointsToCurrentTrack(tracks.id!!)
+                    pointForData = getListOfPointsToCurrentTrack(tracks.id)
                 )
             ).continueWith {
                 processSaveResponseToInsertIntoDbNullIdTracksAndPoints(
@@ -454,27 +452,29 @@ class RepositoryImpl : Repository {
         saveResponse: Task<SaveTrackResponse>,
         tracks: Tracks
     ) {
-        val id: Int
-        when {
-            saveResponse.error != null -> {
-                Log.e("key", "${saveResponse.error.message}")
-            }
-            saveResponse.result.status == "error" -> {
-                Log.e("key", "${saveResponse.result.error}")
-            }
-            else -> {
-                id = saveResponse.result.serverId!!
-                updateOneField(TRACKERS, ID_FROM_SERVER, id, "$ID = ${tracks.id}")
-                updateOneField(
-                    ALL_POINTS,
-                    ID_FROM_SERVER,
-                    id,
-                    "$CURRENT_TRACK = ${tracks.id}"
-                )
-                updateOneField(TRACKERS, IS_SEND, 0, "$ID = ${tracks.id}")
-            }
+        val id = saveResponse.result.serverId
+        if (id != null) {
+            updateOneField(
+                tableName = TRACKERS,
+                fieldName = ID_FROM_SERVER,
+                value = id,
+                whereArgs = "$ID = ${tracks.id}"
+            )
+            updateOneField(
+                tableName = ALL_POINTS,
+                fieldName = ID_FROM_SERVER,
+                value = id,
+                whereArgs = "$CURRENT_TRACK = ${tracks.id}"
+            )
+            updateOneField(
+                tableName = TRACKERS,
+                fieldName = IS_SEND,
+                value = 0,
+                whereArgs = "$ID = ${tracks.id}"
+            )
         }
     }
+
 
     private fun getListOfNotificationFromDb(): List<Notification> {
         var cursor: Cursor? = null

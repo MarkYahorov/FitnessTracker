@@ -23,13 +23,14 @@ class AlarmReceiver : BroadcastReceiver() {
     companion object {
         private const val ALARM_CHANNEL = "alarmChanel"
         private const val ALARM_CHANNEL_NAME = "Alarm Chanel"
+        private const val DEFAULT_REQUEST_CODE = 1
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         createNotificationChanel(context)
         val touchIntent = Intent(context, RunningActivity::class.java)
             .putExtra(IS_FROM_NOTIFICATION, true)
-        val currentRequestCode = intent.getIntExtra(NEW_REQUEST_CODE, 1)
+        val currentRequestCode = intent.getIntExtra(NEW_REQUEST_CODE, DEFAULT_REQUEST_CODE)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent = PendingIntent.getActivity(context, currentRequestCode, touchIntent, 0)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

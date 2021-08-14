@@ -16,7 +16,7 @@ class RetrofitBuilder {
         retrofit.create(ApiService::class.java)
     }
 
-    companion object{
+    companion object {
         private const val BASE_URL = "https://pub.zame-dev.org/senla-training-addition/"
     }
 }

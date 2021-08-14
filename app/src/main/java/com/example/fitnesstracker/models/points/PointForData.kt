@@ -10,4 +10,4 @@ data class PointForData(
     val lng: Double,
     @SerializedName("lat")
     val lat: Double
-): Parcelable
+) : Parcelable

@@ -31,6 +31,7 @@ class CheckLocationService : Service(), LocationListener {
         private const val EXAMPLE_SERVICE_CHANNEL_NAME = "example Service Chanel"
         private const val MIN_TIME_MS = 3000L
         private const val MIN_DISTANCE_M = 5F
+        private const val FOREGROUND_ID = 1
     }
 
     private var currentLatitude: Double = 0.0
@@ -57,7 +58,7 @@ class CheckLocationService : Service(), LocationListener {
                 PendingIntent.getActivity(this, 0, notificationIntent, 0)
             }
         val notification = createNotification(pendingIntent = pendingIntent)
-        startForeground(1, notification)
+        startForeground(FOREGROUND_ID, notification)
     }
 
     @SuppressLint("InlinedApi")

@@ -29,6 +29,7 @@ class TrackListFragment : Fragment() {
     companion object {
         const val IS_FIRST = "IS_FIRST"
         private const val OLD_LIST_SIZE = "OLD_LIST_SIZE"
+        private const val LIST_START_POSITION = 0
         private const val TRACK_LIST = "TRACK_LIST"
         private const val ERROR = "error"
         private const val POSITION = "POSITION"
@@ -45,7 +46,7 @@ class TrackListFragment : Fragment() {
         fun goToRunningScreen(token: String, trackId: Int)
         fun goToTrackScreen(
             id: Int,
-            serverId: Int,
+            serverId: Int?,
             beginTime: Long,
             runningTime: Long,
             distance: Int,
@@ -98,10 +99,6 @@ class TrackListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initTrackRecycler()
-        activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            ?.edit()
-            ?.putBoolean(IS_FIRST, false)
-            ?.apply()
         if (savedInstanceState != null) {
             oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
             position = savedInstanceState.getInt(POSITION)
@@ -111,18 +108,21 @@ class TrackListFragment : Fragment() {
 
     private fun initTrackRecycler() {
         with(trackRecyclerView) {
-            adapter = TrackListAdapter(listOfTrackForData = trackList, goToCurrentTrack = {
-                navigator?.goToTrackScreen(
-                    id = it.id!!,
-                    serverId = it.serverId,
-                    beginTime = it.beginTime.toString().toLong(),
-                    runningTime = it.time,
-                    distance = it.distance,
-                    token = arguments?.getString(
-                        CURRENT_TOKEN
-                    )!!
-                )
-            })
+            val token = arguments?.getString(
+                CURRENT_TOKEN
+            )
+            if (token != null) {
+                adapter = TrackListAdapter(listOfTrackForData = trackList, goToCurrentTrack = {
+                    navigator?.goToTrackScreen(
+                        id = it.id,
+                        serverId = it.serverId,
+                        beginTime = it.beginTime.toString().toLong(),
+                        runningTime = it.time,
+                        distance = it.distance,
+                        token = token
+                    )
+                })
+            }
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
@@ -132,6 +132,7 @@ class TrackListFragment : Fragment() {
         super.onStart()
         if (isFirstInApp) {
             progressBar.isVisible = true
+            putIsFirstValueInSharedPref()
             createAlertDialogToDisableBatterySaver()
             getTracksFromServer()
         } else {
@@ -141,6 +142,13 @@ class TrackListFragment : Fragment() {
         setFABListener()
         setSwipeLayoutListener()
         addScrollListener()
+    }
+
+    private fun putIsFirstValueInSharedPref() {
+        activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+            ?.edit()
+            ?.putBoolean(IS_FIRST, false)
+            ?.apply()
     }
 
     private fun createAlertDialogToDisableBatterySaver() {
@@ -163,7 +171,7 @@ class TrackListFragment : Fragment() {
                     trackList.addAll(listOfTracks.result)
                     trackList.sortByDescending { it.beginTime }
                 }
-                trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
+                trackRecyclerView.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
                 trackRecyclerView.scrollToPosition(position)
                 getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
@@ -200,22 +208,22 @@ class TrackListFragment : Fragment() {
         if (listOfTrack.size > trackList.size) {
             oldListSize = listOfTrack.size - trackList.size
             trackList.clear()
-            trackRecyclerView.adapter?.notifyItemRangeRemoved(0, trackList.size)
+            trackRecyclerView.adapter?.notifyItemRangeRemoved(LIST_START_POSITION, trackList.size)
             var id = listOfTrack.size
             listOfTrack.forEach {
                 trackList.add(
                     Tracks(
-                        id,
-                        it.serverId!!,
-                        it.beginTime,
-                        it.time,
-                        it.distance
+                        id = id,
+                        serverId = it.serverId,
+                        beginTime = it.beginTime,
+                        time = it.time,
+                        distance = it.distance
                     )
                 )
                 id -= 1
             }
-            trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
-            trackRecyclerView.scrollToPosition(0)
+            trackRecyclerView.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
+            trackRecyclerView.scrollToPosition(LIST_START_POSITION)
             oldListSize = trackList.size
         }
     }
@@ -242,10 +250,15 @@ class TrackListFragment : Fragment() {
 
     private fun setFABListener() {
         addTrackBtn.setOnClickListener {
-            navigator?.goToRunningScreen(
-                token = arguments?.getString(CURRENT_TOKEN)!!,
-                trackId = trackList.size + 1
-            )
+            val token = arguments?.getString(CURRENT_TOKEN)
+            if (token != null) {
+                navigator?.goToRunningScreen(
+                    token = token,
+                    trackId = trackList.size + 1
+                )
+            } else {
+                createAlertDialog()
+            }
         }
     }
 
@@ -256,8 +269,14 @@ class TrackListFragment : Fragment() {
         outState.putInt(POSITION, position)
     }
 
-    private fun createTrackRequest() =
-        TrackRequest(token = arguments?.getString(CURRENT_TOKEN, "")!!)
+    private fun createTrackRequest(): TrackRequest? {
+        val token = arguments?.getString(CURRENT_TOKEN, null)
+        return if (token != null) {
+            TrackRequest(token = token)
+        } else {
+            null
+        }
+    }
 
     private fun createAlertDialog(error: String?) {
         builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
@@ -266,6 +285,17 @@ class TrackListFragment : Fragment() {
         }
         builder?.setTitle(R.string.error)
         builder?.setMessage(error)
+        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        builder?.show()
+    }
+
+    private fun createAlertDialog() {
+        builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+            dialog.dismiss()
+            dialog.cancel()
+        }
+        builder?.setTitle(R.string.error)
+        builder?.setMessage(R.string.re_login)
         builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
         builder?.show()
     }

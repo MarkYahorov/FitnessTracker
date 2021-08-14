@@ -22,6 +22,10 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import bolts.Task
 import com.example.fitnesstracker.App
+import com.example.fitnesstracker.App.Companion.MAIN_ACTIVITY_MARKER
+import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
+import com.example.fitnesstracker.App.Companion.RUNNING_ACTIVITY_MARKER
+import com.example.fitnesstracker.App.Companion.UTC
 import com.example.fitnesstracker.screens.running.service.CheckLocationService
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.screens.running.calculate.TimeCalculator
@@ -42,10 +46,8 @@ class RunningActivity : AppCompatActivity() {
         const val DISTANCE_FROM_SERVICE = "distance"
         const val ALL_COORDINATES = "allCoordinates"
         const val LOCATION_UPDATE = "location_update"
-        const val PATTERN = "HH:mm:ss,SS"
         const val IS_START = "Bool"
         const val CURRENT_ACTIVITY = "CURRENT_ACTIVITY"
-        const val UTC = "UTC"
         const val TRACK_ID = "track_id"
         const val ERROR = "error"
         private const val BEGIN_TIME = "BEGIN_TIME"
@@ -56,6 +58,8 @@ class RunningActivity : AppCompatActivity() {
         private const val START = "start"
         private const val FINISH_TIME = "FINISH_TIME"
         private const val EMPTY_VALUE = ""
+        private const val DEFAULT_REQUEST_CODE = 100
+        private const val HANDLER_DELAY = 0L
     }
 
     private lateinit var startBtn: Button
@@ -132,12 +136,12 @@ class RunningActivity : AppCompatActivity() {
                 tStart = tStart,
                 calendar = calendar
             )
-            handler?.postDelayed(timer!!, 0)
+            handler?.postDelayed(timer!!, HANDLER_DELAY)
             checkLayoutsVisibility()
         }
     }
 
-    private fun checkLayoutsVisibility(){
+    private fun checkLayoutsVisibility() {
         if (runningLayout.isVisible) {
             startBtnLayout.isVisible = false
         } else if (finishLayout.isVisible) {
@@ -153,7 +157,10 @@ class RunningActivity : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                DEFAULT_REQUEST_CODE
+            )
             true
         } else {
             false
@@ -195,7 +202,7 @@ class RunningActivity : AppCompatActivity() {
                 startAnimation(startBtnLayout, R.animator.anim_close)
                 startAnimation(runningLayout, R.animator.anim_open)
                 runningLayout.isVisible = true
-                putMarkActivity(mark = 1)
+                putMarkActivity(mark = RUNNING_ACTIVITY_MARKER)
                 startService(value = true)
                 setIsFromNotificationInSharedPref()
             } else if (checkPermissions()) {
@@ -221,7 +228,7 @@ class RunningActivity : AppCompatActivity() {
         tStart = SystemClock.elapsedRealtime()
         timer = TimeCalculator().createTimer(timeRunningTextView, tStart, calendar)
         beginTime = System.currentTimeMillis()
-        handler?.postDelayed(timer!!, 0)
+        handler?.postDelayed(timer!!, HANDLER_DELAY)
     }
 
     private fun setFinishBtnListener() {
@@ -235,13 +242,13 @@ class RunningActivity : AppCompatActivity() {
                 startService(value = false)
                 handler?.removeCallbacks(timer!!)
                 createFinishTimeText()
-                putMarkActivity(mark = 0)
+                putMarkActivity(mark = MAIN_ACTIVITY_MARKER)
             }
         }
     }
 
     private fun createFinishTimeText() {
-        val format = SimpleDateFormat(PATTERN, Locale.getDefault())
+        val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
         format.timeZone = timeZone
         finishTimeRunning.text = format.format(calendar.time.time)
     }
@@ -332,7 +339,9 @@ class RunningActivity : AppCompatActivity() {
     }
 
     private fun createAlertDialog(message: Int) {
-        alertDialog?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+            dialog.dismiss()
+            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.error)
         alertDialog?.setMessage(message)
@@ -341,7 +350,9 @@ class RunningActivity : AppCompatActivity() {
     }
 
     private fun createAlertDialog(message: String) {
-        alertDialog?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+            dialog.dismiss()
+            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.error)
         alertDialog?.setMessage(message)

@@ -5,5 +5,5 @@ data class Notification(
     var date: Long,
     val position: Int,
     var hours: Int,
-    var minutes:Int
+    var minutes: Int
 )

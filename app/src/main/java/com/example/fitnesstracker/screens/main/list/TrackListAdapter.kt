@@ -5,10 +5,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.fitnesstracker.App.Companion.PATTERN_WITHOUT_SECONDS
+import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
+import com.example.fitnesstracker.App.Companion.UTC
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.models.tracks.Tracks
-import com.example.fitnesstracker.screens.running.RunningActivity.Companion.PATTERN
-import com.example.fitnesstracker.screens.running.RunningActivity.Companion.UTC
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,8 +28,8 @@ class TrackListAdapter(
         private var timeZone: TimeZone? = null
 
         fun bind(trackForData: Tracks) {
-            date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-            currentTimeFormat = SimpleDateFormat(PATTERN, Locale.getDefault())
+            date = SimpleDateFormat(PATTERN_WITHOUT_SECONDS, Locale.getDefault())
+            currentTimeFormat = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
             timeZone = SimpleTimeZone.getTimeZone(UTC)
             currentTimeFormat?.timeZone = timeZone!!
             beginTime.text = date?.format(trackForData.beginTime)
@@ -51,11 +52,11 @@ class TrackListAdapter(
         val view = LayoutInflater.from(parent.context).inflate(
             R.layout.track_recycler_item, parent, false
         )
-        return ViewHolder(view, goToCurrentTrack = goToCurrentTrack)
+        return ViewHolder(item = view, goToCurrentTrack = goToCurrentTrack)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(listOfTrackForData[position])
+        holder.bind(trackForData = listOfTrackForData[position])
     }
 
     override fun onViewRecycled(holder: ViewHolder) {

@@ -5,5 +5,5 @@ data class NotificationColumnIndexFromDb(
     var dateIndexFromDb: Int,
     val positionIndexFromDb: Int,
     var hoursIndexFromDb: Int,
-    var minutesIndexFromDb:Int
+    var minutesIndexFromDb: Int
 )

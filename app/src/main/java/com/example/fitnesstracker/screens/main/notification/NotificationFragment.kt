@@ -101,7 +101,7 @@ class NotificationFragment : Fragment() {
                         minutes = it.minutes
                     )
                 }, closeNotification = {
-                    createAlertDialog(notification = it)
+                    createAlertDialogForRemoveNotification(notification = it)
                 }, changeNotification = {
                     updateAlarm(currentId = it.id, position = it.position)
                 })
@@ -127,7 +127,7 @@ class NotificationFragment : Fragment() {
         }
     }
 
-    private fun createAlertDialog(notification: Notification) {
+    private fun createAlertDialogForRemoveNotification(notification: Notification) {
         alertDialog?.setPositiveButton(R.string.yes) { dialog, _ ->
             setCancelAlarmBtnClickListener(notification.id)
             repo.clearDbWithWereArgs(NOTIFICATION_TIME_NAME, "$ID = ${notification.id}")

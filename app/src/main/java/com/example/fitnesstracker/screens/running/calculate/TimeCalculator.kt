@@ -10,6 +10,12 @@ class TimeCalculator {
 
     companion object {
         private const val FORMAT = "%02d"
+        private const val MILLIS_IN_SEC = 1000
+        private const val SEC_IN_MIN = 60
+        private const val SEC_IN_HOUR = 3600
+        private const val HANDLER_DELAY = 40L
+        private const val SECONDS_CALCULATE = 60
+        private const val MILLIS_CALCULATE = 100
     }
 
     private var tMilliSec = 0L
@@ -27,7 +33,7 @@ class TimeCalculator {
             calculateTime(tStart)
             setCalendarTimeForTimer(calendar)
             view.text = createString()
-            handler.postDelayed(this, 40)
+            handler.postDelayed(this, HANDLER_DELAY)
         }
     }
 
@@ -51,10 +57,10 @@ class TimeCalculator {
     private fun calculateTime(tStart: Long) {
         tMilliSec = SystemClock.elapsedRealtime() - tStart
         tUpdate = tBuff + tMilliSec
-        sec = (tUpdate / 1000).toInt()
-        min = sec / 60
-        hours = sec / 3600
-        sec %= 60
-        millis = (tUpdate % 100).toInt()
+        sec = (tUpdate / MILLIS_IN_SEC).toInt()
+        min = sec / SEC_IN_MIN
+        hours = sec / SEC_IN_HOUR
+        sec %= SECONDS_CALCULATE
+        millis = (tUpdate % MILLIS_CALCULATE).toInt()
     }
 }

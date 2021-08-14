@@ -65,7 +65,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_and_register)
 
-        if (getTokenFromSharedPref() != "") {
+        if (getTokenFromSharedPref() != null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
@@ -73,9 +73,9 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         registerBtn.paint.isUnderlineText = true
     }
 
-    private fun getTokenFromSharedPref(): String {
+    private fun getTokenFromSharedPref(): String? {
         return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .getString(CURRENT_TOKEN, "").toString()
+            .getString(CURRENT_TOKEN, null)
     }
 
     private fun initAllViews() {

@@ -9,12 +9,12 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import bolts.Task
 import com.example.fitnesstracker.App
+import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
+import com.example.fitnesstracker.App.Companion.UTC
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.points.PointsRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
-import com.example.fitnesstracker.screens.running.RunningActivity.Companion.PATTERN
-import com.example.fitnesstracker.screens.running.RunningActivity.Companion.UTC
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -32,10 +32,11 @@ class TrackFragment : Fragment() {
         private const val CURRENT_RUNNING_TIME = "CURRENT_RUNNING_TIME"
         private const val CURRENT_DISTANCE = "CURRENT_DISTANCE"
         private const val CURRENT_DB_ID = "CURRENT_ID"
+        private const val MAP_PADDING = 200
 
         fun newInstance(
             id: Int,
-            serverId: Int,
+            serverId: Int?,
             beginTime: Long,
             runningTime: Long,
             distance: Int,
@@ -44,7 +45,7 @@ class TrackFragment : Fragment() {
             val trackFragment = TrackFragment()
             val bundle = Bundle()
             bundle.putInt(CURRENT_DB_ID, id)
-            bundle.putInt(CURRENT_TRACK_ID, serverId)
+            bundle.putInt(CURRENT_TRACK_ID, serverId ?: 0)
             bundle.putLong(CURRENT_BEGIN_TIME, beginTime)
             bundle.putLong(CURRENT_RUNNING_TIME, runningTime)
             bundle.putInt(CURRENT_DISTANCE, distance)
@@ -87,7 +88,7 @@ class TrackFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         trackFragment?.getMapAsync(callback)
-        val format = SimpleDateFormat(PATTERN, Locale.getDefault())
+        val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
         val timeZone = SimpleTimeZone.getTimeZone(UTC)
         format.timeZone = timeZone
         runningTime.text = format.format(arguments?.getLong(CURRENT_RUNNING_TIME))
@@ -103,7 +104,7 @@ class TrackFragment : Fragment() {
         repo.getPointsForCurrentTrack(
             pointsRequest = createPointsRequest(),
             idInDb = arguments?.getInt(CURRENT_DB_ID) ?: 0,
-            serverId = arguments?.getInt(CURRENT_TRACK_ID)!!
+            serverId = arguments?.getInt(CURRENT_TRACK_ID) ?: 0
         ).continueWith({
             processResult(it)
         }, Task.UI_THREAD_EXECUTOR)
@@ -128,7 +129,9 @@ class TrackFragment : Fragment() {
     }
 
     private fun createAlertDialog(error: String?) {
-        alertDialog?.setPositiveButton(R.string.ok_thanks) { _, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+            dialog.dismiss()
+            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.error)
         alertDialog?.setMessage(error)
@@ -164,7 +167,7 @@ class TrackFragment : Fragment() {
         }
         val track = CameraUpdateFactory.newLatLngBounds(
             runningWayBuilder.build(),
-            200
+            MAP_PADDING
         )
         googleMap?.animateCamera(track)
     }
@@ -187,11 +190,17 @@ class TrackFragment : Fragment() {
         )
     }
 
-    private fun createPointsRequest() = PointsRequest(
-        arguments?.getString(CURRENT_TOKEN)!!, arguments?.getInt(
+    private fun createPointsRequest(): PointsRequest? {
+        val token = arguments?.getString(CURRENT_TOKEN)
+        val trackId = arguments?.getInt(
             CURRENT_TRACK_ID
-        )!!
-    )
+        )
+        return if (token != null && trackId != null) {
+            PointsRequest(token, trackId)
+        } else {
+            null
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

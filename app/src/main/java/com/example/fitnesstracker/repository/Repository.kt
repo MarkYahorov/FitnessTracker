@@ -20,11 +20,11 @@ import java.util.*
 interface Repository {
     fun login(loginRequest: LoginRequest): Task<LoginResponse>
     fun registration(registrationRequest: RegistrationRequest): Task<RegistrationResponse>
-    fun getTracks(trackRequest: TrackRequest): Task<TrackResponse>
+    fun getTracks(trackRequest: TrackRequest?): Task<TrackResponse>
     fun getPointsForCurrentTrack(
         idInDb: Int,
         serverId: Int,
-        pointsRequest: PointsRequest
+        pointsRequest: PointsRequest?
     ): Task<List<PointForData>>
 
     fun saveTrack(saveTrackRequest: SaveTrackRequest): Task<SaveTrackResponse>

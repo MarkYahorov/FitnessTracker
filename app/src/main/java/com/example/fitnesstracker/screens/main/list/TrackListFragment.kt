@@ -54,16 +54,16 @@ class TrackListFragment : Fragment() {
         )
     }
 
-    private lateinit var trackRecyclerView: RecyclerView
-    private lateinit var addTrackBtn: FloatingActionButton
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private lateinit var progressBar: CircularProgressIndicator
+    private var trackRecyclerView: RecyclerView? = null
+    private var addTrackBtn: FloatingActionButton? = null
+    private var swipeRefreshLayout: SwipeRefreshLayout? = null
+    private var progressBar: CircularProgressIndicator? = null
+    private var navigator: Navigator? = null
+    private var builder: AlertDialog.Builder? = null
 
     private var trackList = mutableListOf<Tracks>()
     private var oldListSize = 0
     private val repositoryImpl = App.INSTANCE.repositoryImpl
-    private var navigator: Navigator? = null
-    private var builder: AlertDialog.Builder? = null
     private var isFirstInApp: Boolean = true
     private var isLoading = false
     private var position = 0
@@ -102,7 +102,7 @@ class TrackListFragment : Fragment() {
         if (savedInstanceState != null) {
             oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
             position = savedInstanceState.getInt(POSITION)
-            trackRecyclerView.adapter?.notifyItemRangeInserted(0, oldListSize)
+            trackRecyclerView?.adapter?.notifyItemRangeInserted(0, oldListSize)
         }
     }
 
@@ -112,7 +112,7 @@ class TrackListFragment : Fragment() {
                 CURRENT_TOKEN
             )
             if (token != null) {
-                adapter = TrackListAdapter(listOfTrackForData = trackList, goToCurrentTrack = {
+                this?.adapter = TrackListAdapter(listOfTrackForData = trackList, goToCurrentTrack = {
                     navigator?.goToTrackScreen(
                         id = it.id,
                         serverId = it.serverId,
@@ -123,7 +123,7 @@ class TrackListFragment : Fragment() {
                     )
                 })
             }
-            layoutManager =
+            this?.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
     }
@@ -131,7 +131,7 @@ class TrackListFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         if (isFirstInApp) {
-            progressBar.isVisible = true
+            progressBar?.isVisible = true
             putIsFirstValueInSharedPref()
             createAlertDialogToDisableBatterySaver()
             getTracksFromServer()
@@ -171,8 +171,8 @@ class TrackListFragment : Fragment() {
                     trackList.addAll(listOfTracks.result)
                     trackList.sortByDescending { it.beginTime }
                 }
-                trackRecyclerView.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
-                trackRecyclerView.scrollToPosition(position)
+                trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
+                trackRecyclerView?.scrollToPosition(position)
                 getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
     }
@@ -196,11 +196,11 @@ class TrackListFragment : Fragment() {
                         }
                     }
                     isLoading = false
-                    progressBar.isVisible = false
-                    swipeRefreshLayout.isRefreshing = false
+                    progressBar?.isVisible = false
+                    swipeRefreshLayout?.isRefreshing = false
                 }, Task.UI_THREAD_EXECUTOR)
         } else {
-            swipeRefreshLayout.isRefreshing = false
+            swipeRefreshLayout?.isRefreshing = false
         }
     }
 
@@ -208,7 +208,7 @@ class TrackListFragment : Fragment() {
         if (listOfTrack.size > trackList.size) {
             oldListSize = listOfTrack.size - trackList.size
             trackList.clear()
-            trackRecyclerView.adapter?.notifyItemRangeRemoved(LIST_START_POSITION, trackList.size)
+            trackRecyclerView?.adapter?.notifyItemRangeRemoved(LIST_START_POSITION, trackList.size)
             var id = listOfTrack.size
             listOfTrack.forEach {
                 trackList.add(
@@ -222,14 +222,14 @@ class TrackListFragment : Fragment() {
                 )
                 id -= 1
             }
-            trackRecyclerView.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
-            trackRecyclerView.scrollToPosition(LIST_START_POSITION)
+            trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
+            trackRecyclerView?.scrollToPosition(LIST_START_POSITION)
             oldListSize = trackList.size
         }
     }
 
     private fun addScrollListener() {
-        trackRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        trackRecyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
@@ -239,17 +239,17 @@ class TrackListFragment : Fragment() {
     }
 
     private fun setSwipeLayoutListener() {
-        swipeRefreshLayout.setOnRefreshListener {
+        swipeRefreshLayout?.setOnRefreshListener {
             if (!isLoading) {
                 getTracksFromServer()
             } else {
-                swipeRefreshLayout.isRefreshing = false
+                swipeRefreshLayout?.isRefreshing = false
             }
         }
     }
 
     private fun setFABListener() {
-        addTrackBtn.setOnClickListener {
+        addTrackBtn?.setOnClickListener {
             val token = arguments?.getString(CURRENT_TOKEN)
             if (token != null) {
                 navigator?.goToRunningScreen(
@@ -302,13 +302,17 @@ class TrackListFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        trackRecyclerView.clearOnScrollListeners()
-        addTrackBtn.setOnClickListener(null)
-        swipeRefreshLayout.setOnRefreshListener(null)
+        trackRecyclerView?.clearOnScrollListeners()
+        addTrackBtn?.setOnClickListener(null)
+        swipeRefreshLayout?.setOnRefreshListener(null)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         builder = null
+        trackRecyclerView = null
+        addTrackBtn = null
+        swipeRefreshLayout = null
+        progressBar = null
     }
 }

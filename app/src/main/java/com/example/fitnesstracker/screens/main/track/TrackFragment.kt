@@ -55,8 +55,8 @@ class TrackFragment : Fragment() {
         }
     }
 
-    private lateinit var runningTime: TextView
-    private lateinit var distance: TextView
+    private var runningTime: TextView? = null
+    private var distance: TextView? = null
 
     private var googleMap: GoogleMap? = null
     private var alertDialog: AlertDialog.Builder? = null
@@ -91,8 +91,8 @@ class TrackFragment : Fragment() {
         val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
         val timeZone = SimpleTimeZone.getTimeZone(UTC)
         format.timeZone = timeZone
-        runningTime.text = format.format(arguments?.getLong(CURRENT_RUNNING_TIME))
-        distance.text = arguments?.getInt(CURRENT_DISTANCE).toString()
+        runningTime?.text = format.format(arguments?.getLong(CURRENT_RUNNING_TIME))
+        distance?.text = arguments?.getInt(CURRENT_DISTANCE).toString()
     }
 
     override fun onResume() {
@@ -207,5 +207,7 @@ class TrackFragment : Fragment() {
         googleMap = null
         alertDialog = null
         trackFragment = null
+        runningTime = null
+        distance = null
     }
 }

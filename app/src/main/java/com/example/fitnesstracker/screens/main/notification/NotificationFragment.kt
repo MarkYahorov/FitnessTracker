@@ -40,12 +40,12 @@ class NotificationFragment : Fragment() {
         private const val CURRENT_POSITION = "CURRENT_POSITION"
     }
 
-    private lateinit var notificationRecyclerView: RecyclerView
-    private lateinit var addNotificationBtn: FloatingActionButton
-    private lateinit var alarmManager: AlarmManager
+    private var notificationRecyclerView: RecyclerView? = null
+    private var addNotificationBtn: FloatingActionButton? = null
+    private var alarmManager: AlarmManager? = null
+    private var alertDialog: AlertDialog.Builder? = null
 
     private val notificationList = mutableListOf<Notification>()
-    private var alertDialog: AlertDialog.Builder? = null
     private var calendar = Calendar.getInstance()
     private val repo = App.INSTANCE.repositoryImpl
     private var currentDate = 0L
@@ -66,6 +66,7 @@ class NotificationFragment : Fragment() {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler)
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
         alertDialog = AlertDialog.Builder(requireContext())
+        alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -77,7 +78,7 @@ class NotificationFragment : Fragment() {
             currentMinutes = savedInstanceState.getInt(CURRENT_ALARM_TIME)
             currentHour = savedInstanceState.getInt(CURRENT_TIME)
             scrollPositionOfRecycler = savedInstanceState.getInt(CURRENT_POSITION)
-            notificationRecyclerView.scrollToPosition(scrollPositionOfRecycler)
+            notificationRecyclerView?.scrollToPosition(scrollPositionOfRecycler)
         }
     }
 
@@ -85,13 +86,13 @@ class NotificationFragment : Fragment() {
         repo.getListOfNotification()
             .continueWith({
                 notificationList.addAll(it.result)
-                notificationRecyclerView.adapter?.notifyDataSetChanged()
+                notificationRecyclerView?.adapter?.notifyDataSetChanged()
             }, Task.UI_THREAD_EXECUTOR)
     }
 
     private fun initRecycler() {
         with(notificationRecyclerView) {
-            adapter = NotificationListAdapter(
+            this?.adapter = NotificationListAdapter(
                 notificationList = notificationList,
                 enableNotification = {
                     setAlarmManager(
@@ -105,13 +106,12 @@ class NotificationFragment : Fragment() {
                 }, changeNotification = {
                     updateAlarm(currentId = it.id, position = it.position)
                 })
-            layoutManager =
+            this?.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
     }
 
     private fun setAlarmManager(channelMustHave: Int, date: Long, hours: Int, minutes: Int) {
-        val alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), AlarmReceiver::class.java)
             .putExtra(NEW_REQUEST_CODE, channelMustHave)
         val pendingIntent =
@@ -122,7 +122,7 @@ class NotificationFragment : Fragment() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (System.currentTimeMillis() < calendar.time.time) {
                 val info = AlarmManager.AlarmClockInfo(calendar.time.time, pendingIntent)
-                alarmManager.setAlarmClock(info, pendingIntent)
+                alarmManager?.setAlarmClock(info, pendingIntent)
             }
         }
     }
@@ -133,7 +133,7 @@ class NotificationFragment : Fragment() {
             repo.clearDbWithWereArgs(NOTIFICATION_TIME_NAME, "$ID = ${notification.id}")
                 .continueWith({
                     notificationList.removeAt(notification.position)
-                    notificationRecyclerView.adapter?.notifyItemRemoved(notification.id)
+                    notificationRecyclerView?.adapter?.notifyItemRemoved(notification.id)
                     dialog.dismiss()
                     dialog.cancel()
                 }, Task.UI_THREAD_EXECUTOR)
@@ -149,10 +149,9 @@ class NotificationFragment : Fragment() {
     }
 
     private fun setCancelAlarmBtnClickListener(channelMustHave: Int) {
-        alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
         val intent = Intent(requireContext(), AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
-        alarmManager.cancel(pendingIntent)
+        alarmManager?.cancel(pendingIntent)
     }
 
     private fun updateAlarm(currentId: Int, position: Int) {
@@ -207,7 +206,7 @@ class NotificationFragment : Fragment() {
             notificationList[position].date = currentDate
             notificationList[position].hours = currentHour
             notificationList[position].minutes = currentMinutes
-            notificationRecyclerView.adapter?.notifyDataSetChanged()
+            notificationRecyclerView?.adapter?.notifyDataSetChanged()
         }
     }
 
@@ -226,13 +225,13 @@ class NotificationFragment : Fragment() {
     }
 
     private fun selectTimeBtnClickListener() {
-        addNotificationBtn.setOnClickListener {
+        addNotificationBtn?.setOnClickListener {
             createAlarm()
         }
     }
 
     private fun addScrollListener() {
-        notificationRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        notificationRecyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
@@ -272,7 +271,7 @@ class NotificationFragment : Fragment() {
                         hours = currentHour,
                         minutes = currentMinutes
                     )
-                    notificationRecyclerView.adapter?.notifyDataSetChanged()
+                    notificationRecyclerView?.adapter?.notifyDataSetChanged()
                 }, Task.UI_THREAD_EXECUTOR)
         }
     }
@@ -291,6 +290,14 @@ class NotificationFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        addNotificationBtn.setOnClickListener(null)
+        addNotificationBtn?.setOnClickListener(null)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        notificationRecyclerView = null
+        addNotificationBtn = null
+        alertDialog = null
+        alarmManager = null
     }
 }

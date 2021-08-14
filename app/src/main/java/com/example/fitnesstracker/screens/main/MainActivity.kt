@@ -38,11 +38,11 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         private const val CURRENT_TRACK = "CURRENT_TRACK"
     }
 
-    private lateinit var toolbar: Toolbar
-    private lateinit var navDrawer: DrawerLayout
-    private lateinit var toggle: ActionBarDrawerToggle
-    private lateinit var navigationView: NavigationView
-    private lateinit var logout: ConstraintLayout
+    private var toolbar: Toolbar? = null
+    private var navDrawer: DrawerLayout? = null
+    private var toggle: ActionBarDrawerToggle? = null
+    private var navigationView: NavigationView? = null
+    private var logout: ConstraintLayout? = null
 
     private var track: Tracks? = null
 
@@ -143,12 +143,12 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
-        toggle.syncState()
+        toggle?.syncState()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        toggle.onConfigurationChanged(newConfig)
+        toggle?.onConfigurationChanged(newConfig)
     }
 
     override fun onStart() {
@@ -157,11 +157,11 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     }
 
     private fun setListeners() {
-        toggle.setToolbarNavigationClickListener {
+        toggle?.setToolbarNavigationClickListener {
             onBackPressed()
         }
-        navDrawer.addDrawerListener(toggle)
-        navigationView.setNavigationItemSelectedListener(createNavListener())
+        toggle?.let { navDrawer?.addDrawerListener(it) }
+        navigationView?.setNavigationItemSelectedListener(createNavListener())
         setLogoutBtnListener()
     }
 
@@ -195,7 +195,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     }
 
     private fun setLogoutBtnListener() {
-        logout.setOnClickListener {
+        logout?.setOnClickListener {
             App.INSTANCE.repositoryImpl.clearDb(this)
                 .continueWith({
                     track = null
@@ -259,8 +259,8 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     }
 
     override fun onBackPressed() {
-        if (navDrawer.isDrawerVisible(GravityCompat.START)) {
-            navDrawer.closeDrawer(GravityCompat.START)
+        if (navDrawer?.isDrawerVisible(GravityCompat.START) == true) {
+            navDrawer?.closeDrawer(GravityCompat.START)
             return
         }
         if (supportFragmentManager.backStackEntryCount > DEFAULT_BACK_STACK_SIZE) {
@@ -284,9 +284,17 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     override fun onStop() {
         super.onStop()
-        toggle.toolbarNavigationClickListener = null
-        navDrawer.removeDrawerListener(toggle)
-        navigationView.setNavigationItemSelectedListener(null)
-        logout.setOnClickListener(null)
+        toggle?.toolbarNavigationClickListener = null
+        toggle?.let { navDrawer?.removeDrawerListener(it) }
+        navigationView?.setNavigationItemSelectedListener(null)
+        logout?.setOnClickListener(null)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        toolbar = null
+        navDrawer = null
+        navigationView = null
+        logout = null
     }
 }

@@ -24,7 +24,7 @@ class SplashScreenActivity : AppCompatActivity() {
         private const val HANDLER_DELAY = 3000L
     }
 
-    private lateinit var logo: ImageView
+    private var logo: ImageView? = null
 
     private var isFirstInApp = true
 
@@ -45,7 +45,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
     private fun startAnimation() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.logo_animation)
-        logo.animation = anim
+        logo?.animation = anim
     }
 
     private fun goToNextActivity() {
@@ -65,5 +65,10 @@ class SplashScreenActivity : AppCompatActivity() {
                 }
             }
         }, HANDLER_DELAY)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        logo = null
     }
 }

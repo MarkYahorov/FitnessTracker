@@ -27,12 +27,12 @@ class TimeCalculator {
     private var hours = 0
     private val handler = Handler(Looper.getMainLooper())
 
-    fun createTimer(view: TextView, tStart: Long, calendar: Calendar) = object : Runnable {
+    fun createTimer(view: TextView?, tStart: Long, calendar: Calendar) = object : Runnable {
 
         override fun run() {
             calculateTime(tStart)
             setCalendarTimeForTimer(calendar)
-            view.text = createString()
+            view?.text = createString()
             handler.postDelayed(this, HANDLER_DELAY)
         }
     }

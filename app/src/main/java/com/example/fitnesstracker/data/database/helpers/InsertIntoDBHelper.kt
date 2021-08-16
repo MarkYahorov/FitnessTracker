@@ -2,17 +2,17 @@ package com.example.fitnesstracker.data.database.helpers
 
 import android.database.sqlite.SQLiteDatabase
 
-class InsertDBHelper {
+class InsertIntoDBHelper {
 
     private var tableName: String = ""
     private val selectedFieldsInTable = mutableMapOf<String, String>()
 
-    fun setTableName(name: String): InsertDBHelper {
+    fun setTableName(name: String): InsertIntoDBHelper {
         this.tableName = name
         return this
     }
 
-    fun addFieldsAndValuesToInsert(nameOfField: String, insertingValue: String?): InsertDBHelper {
+    fun addFieldsAndValuesToInsert(nameOfField: String, insertingValue: String?): InsertIntoDBHelper {
         insertingValue?.let { selectedFieldsInTable.put(nameOfField, it) }
         return this
     }

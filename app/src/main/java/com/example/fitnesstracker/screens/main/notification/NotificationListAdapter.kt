@@ -65,8 +65,8 @@ class NotificationListAdapter(
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
-        super.onViewRecycled(holder)
         holder.unbind()
+        super.onViewRecycled(holder)
     }
 
     override fun getItemCount(): Int = notificationList.size

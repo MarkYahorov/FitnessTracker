@@ -66,13 +66,14 @@ class RunningActivity : AppCompatActivity() {
     private var finishBtn: Button? = null
     private var timeRunningTextView: TextView? = null
     private var distanceTextView: TextView? = null
-    private var finishTimeRunning: TextView? = null
+    private var finishTimeRunningTextView: TextView? = null
     private var toolbar: Toolbar? = null
     private var navDrawer: DrawerLayout? = null
     private var toggle: ActionBarDrawerToggle? = null
     private var startBtnLayout: ConstraintLayout? = null
     private var runningLayout: ConstraintLayout? = null
     private var finishLayout: ConstraintLayout? = null
+    private var calculator: TimeCalculator? = null
 
     private var alertDialog: AlertDialog.Builder? = null
     private var handler: Handler? = null
@@ -89,9 +90,9 @@ class RunningActivity : AppCompatActivity() {
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val distanceFromBroadcast = intent?.getFloatArrayExtra(DISTANCE_FROM_SERVICE)
-            distance = distanceFromBroadcast?.sum()!!.toInt()
-            distanceTextView?.text = distanceFromBroadcast.sum().toLong().toString()
+            val trackDistance = intent?.getFloatArrayExtra(DISTANCE_FROM_SERVICE)
+            distance = trackDistance?.sum()!!.toInt()
+            distanceTextView?.text = distance.toString()
             coordinateList.addAll(
                 intent.getParcelableArrayListExtra<PointForData>(ALL_COORDINATES)!!
                     .toMutableList()
@@ -127,18 +128,16 @@ class RunningActivity : AppCompatActivity() {
             beginTime = savedInstanceState.getLong(BEGIN_TIME)
             isFinish = savedInstanceState.getBoolean(IS_FINISH)
             distanceTextView?.text = savedInstanceState.getString(DISTANCE)
-            finishTimeRunning?.text = savedInstanceState.getString(FINISH_TIME)
+            finishTimeRunningTextView?.text = savedInstanceState.getString(FINISH_TIME)
             runningLayout?.isVisible = savedInstanceState.getBoolean(RUNNING_VISIBLE)
             finishLayout?.isVisible = savedInstanceState.getBoolean(FINISH_VISIBLE)
             tStart = savedInstanceState.getLong(START)
-            timer = TimeCalculator().createTimer(
-                view = timeRunningTextView,
+            calculator?.getView(timeRunningTextView)
+            timer = calculator?.createTimer(
                 tStart = tStart,
                 calendar = calendar
             )
-            if (timer!=null) {
-                handler?.postDelayed(timer!!, HANDLER_DELAY)
-            }
+            handler?.postDelayed(timer!!, HANDLER_DELAY)
             checkLayoutsVisibility()
         }
     }
@@ -174,7 +173,7 @@ class RunningActivity : AppCompatActivity() {
         startBtn = findViewById(R.id.start_btn)
         finishBtn = findViewById(R.id.finish_btn)
         timeRunningTextView = findViewById(R.id.time_text)
-        finishTimeRunning = findViewById(R.id.finish_trunning_time)
+        finishTimeRunningTextView = findViewById(R.id.finish_trunning_time)
         toolbar = findViewById(R.id.running_toolbar)
         navDrawer = findViewById(R.id.running_drawer)
         startBtnLayout = findViewById(R.id.start_btn_layout)
@@ -182,6 +181,7 @@ class RunningActivity : AppCompatActivity() {
         finishLayout = findViewById(R.id.finish_running_layout)
         alertDialog = AlertDialog.Builder(this)
         handler = Handler(Looper.getMainLooper())
+        calculator = TimeCalculator()
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -228,7 +228,8 @@ class RunningActivity : AppCompatActivity() {
 
     private fun startTimer() {
         tStart = SystemClock.elapsedRealtime()
-        timer = TimeCalculator().createTimer(timeRunningTextView, tStart, calendar)
+        calculator?.getView(timeRunningTextView)
+        timer = calculator?.createTimer(tStart, calendar)
         beginTime = System.currentTimeMillis()
         handler?.postDelayed(timer!!, HANDLER_DELAY)
     }
@@ -252,7 +253,7 @@ class RunningActivity : AppCompatActivity() {
     private fun createFinishTimeText() {
         val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
         format.timeZone = timeZone
-        finishTimeRunning?.text = format.format(calendar.time.time)
+        finishTimeRunningTextView?.text = format.format(calendar.time.time)
     }
 
     private fun setToolbar() {
@@ -337,13 +338,12 @@ class RunningActivity : AppCompatActivity() {
         finishLayout?.let { outState.putBoolean(FINISH_VISIBLE, it.isVisible) }
         outState.putLong(START, tStart)
         outState.putString(DISTANCE, distanceTextView?.text.toString())
-        outState.putString(FINISH_TIME, finishTimeRunning?.text.toString())
+        outState.putString(FINISH_TIME, finishTimeRunningTextView?.text.toString())
     }
 
     private fun createAlertDialog(message: Int) {
         alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.error)
         alertDialog?.setMessage(message)
@@ -354,7 +354,6 @@ class RunningActivity : AppCompatActivity() {
     private fun createAlertDialog(message: String) {
         alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.error)
         alertDialog?.setMessage(message)
@@ -391,6 +390,8 @@ class RunningActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        calculator?.clearView()
+        calculator = null
         alertDialog = null
         handler = null
         timer = null
@@ -398,7 +399,7 @@ class RunningActivity : AppCompatActivity() {
         startBtn = null
         finishBtn = null
         timeRunningTextView = null
-        finishTimeRunning = null
+        finishTimeRunningTextView = null
         toolbar = null
         navDrawer = null
         startBtnLayout = null

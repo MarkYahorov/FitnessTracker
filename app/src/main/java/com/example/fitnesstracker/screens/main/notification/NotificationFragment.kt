@@ -135,12 +135,10 @@ class NotificationFragment : Fragment() {
                     notificationList.removeAt(notification.position)
                     notificationRecyclerView?.adapter?.notifyItemRemoved(notification.id)
                     dialog.dismiss()
-                    dialog.cancel()
                 }, Task.UI_THREAD_EXECUTOR)
         }
         alertDialog?.setNegativeButton(R.string.no) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.alarm)
         alertDialog?.setMessage(R.string.sure)

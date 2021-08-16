@@ -32,6 +32,9 @@ class CheckLocationService : Service(), LocationListener {
         private const val MIN_TIME_MS = 3000L
         private const val MIN_DISTANCE_M = 5F
         private const val FOREGROUND_ID = 1
+        private const val PENDING_INTENT_REQUEST_CODE = 0
+        private const val FIRST_ELEMENT_IN_LIST = 0
+        private const val SIZE_OF_FLOAT_ARRAY = 1
     }
 
     private var currentLatitude: Double = 0.0
@@ -39,7 +42,7 @@ class CheckLocationService : Service(), LocationListener {
     private var oldLatitude: Double? = null
     private var oldLongitude: Double? = null
     private val listOfPoints = mutableListOf<PointForData>()
-    private val distanceList = FloatArray(1)
+    private val distanceList = FloatArray(SIZE_OF_FLOAT_ARRAY)
     private val allDistanceList = mutableListOf<Float>()
     private var locationManager: LocationManager? = null
 
@@ -49,13 +52,13 @@ class CheckLocationService : Service(), LocationListener {
         createNotifyChanel()
         startForeground()
         locationManager =
-            applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
     private fun startForeground() {
         val pendingIntent: PendingIntent =
             Intent(this, CheckLocationService::class.java).let { notificationIntent ->
-                PendingIntent.getActivity(this, 0, notificationIntent, 0)
+                PendingIntent.getActivity(this, PENDING_INTENT_REQUEST_CODE, notificationIntent, 0)
             }
         val notification = createNotification(pendingIntent = pendingIntent)
         startForeground(FOREGROUND_ID, notification)
@@ -87,7 +90,6 @@ class CheckLocationService : Service(), LocationListener {
             val endIntent = Intent(LOCATION_UPDATE)
                 .putExtra(ALL_COORDINATES, listOfPoints as ArrayList<PointForData>)
                 .putExtra(DISTANCE_FROM_SERVICE, allDistanceList.toFloatArray())
-            locationManager = null
             sendBroadcast(endIntent)
             stopForeground(true)
             stopSelf(startId)
@@ -121,7 +123,7 @@ class CheckLocationService : Service(), LocationListener {
             oldLongitude = location.longitude
         }
         calculateDistance()
-        allDistanceList.add(distanceList[0])
+        allDistanceList.add(distanceList[FIRST_ELEMENT_IN_LIST])
         oldLatitude = currentLatitude
         oldLongitude = currentLongitude
     }
@@ -134,5 +136,11 @@ class CheckLocationService : Service(), LocationListener {
             oldLongitude!!,
             distanceList
         )
+    }
+
+    override fun onDestroy() {
+        locationManager?.removeUpdates(this)
+        locationManager = null
+        super.onDestroy()
     }
 }

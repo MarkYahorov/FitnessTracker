@@ -26,8 +26,14 @@ class TimeCalculator {
     private var millis = 0
     private var hours = 0
     private val handler = Handler(Looper.getMainLooper())
+    private var view: TextView? = null
 
-    fun createTimer(view: TextView?, tStart: Long, calendar: Calendar) = object : Runnable {
+    fun getView(view: TextView?): TimeCalculator {
+        this.view = view
+        return this
+    }
+
+    fun createTimer(tStart: Long, calendar: Calendar) = object : Runnable {
 
         override fun run() {
             calculateTime(tStart)
@@ -35,6 +41,10 @@ class TimeCalculator {
             view?.text = createString()
             handler.postDelayed(this, HANDLER_DELAY)
         }
+    }
+
+    fun clearView(){
+        this.view = null
     }
 
     private fun formatString(time: Int) = String.format(

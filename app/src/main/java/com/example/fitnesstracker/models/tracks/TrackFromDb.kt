@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Tracks(
+data class TrackFromDb(
     var id: Int,
     var serverId: Int?,
     var beginTime: Long,

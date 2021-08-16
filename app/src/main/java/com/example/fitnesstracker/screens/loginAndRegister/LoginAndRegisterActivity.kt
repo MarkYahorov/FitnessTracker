@@ -219,7 +219,6 @@ class LoginAndRegisterActivity : AppCompatActivity() {
             ?.setIcon(R.drawable.ic_baseline_error_outline_24)
             ?.setPositiveButton(getString(R.string.Ok)) { dialog, _ ->
                 dialog.dismiss()
-                dialog.cancel()
             }
     }
 

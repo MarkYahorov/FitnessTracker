@@ -33,6 +33,8 @@ class TrackFragment : Fragment() {
         private const val CURRENT_DISTANCE = "CURRENT_DISTANCE"
         private const val CURRENT_DB_ID = "CURRENT_ID"
         private const val MAP_PADDING = 200
+        private const val ZERO_RESULT = 0
+        private const val FIRST_ELEMENT_IN_LIST = 0
 
         fun newInstance(
             id: Int,
@@ -103,8 +105,8 @@ class TrackFragment : Fragment() {
     private fun getTrackPoints() {
         repo.getPointsForCurrentTrack(
             pointsRequest = createPointsRequest(),
-            idInDb = arguments?.getInt(CURRENT_DB_ID) ?: 0,
-            serverId = arguments?.getInt(CURRENT_TRACK_ID) ?: 0
+            idInDb = arguments?.getInt(CURRENT_DB_ID) ?: ZERO_RESULT,
+            serverId = arguments?.getInt(CURRENT_TRACK_ID) ?: ZERO_RESULT
         ).continueWith({
             processResult(it)
         }, Task.UI_THREAD_EXECUTOR)
@@ -131,7 +133,6 @@ class TrackFragment : Fragment() {
     private fun createAlertDialog(error: String?) {
         alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         alertDialog?.setTitle(R.string.error)
         alertDialog?.setMessage(error)
@@ -143,7 +144,7 @@ class TrackFragment : Fragment() {
         listOfPoints: List<PointForData>,
         listOfLatLng: MutableList<LatLng>
     ) {
-        val startCoordinate = listOfPoints[0]
+        val startCoordinate = listOfPoints[FIRST_ELEMENT_IN_LIST]
         val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
         val finishCoordinate = listOfPoints[listOfPoints.lastIndex]
         val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)

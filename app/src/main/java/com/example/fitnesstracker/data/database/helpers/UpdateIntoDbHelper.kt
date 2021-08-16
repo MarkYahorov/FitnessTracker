@@ -2,27 +2,27 @@ package com.example.fitnesstracker.data.database.helpers
 
 import android.database.sqlite.SQLiteDatabase
 
-class UpdateDbHelper {
+class UpdateIntoDbHelper {
     private var tableName = ""
     private val updatesFields = mutableMapOf<String, Any>()
     private var whereArgs = ""
 
-    fun setName(tableName: String): UpdateDbHelper {
+    fun setName(tableName: String): UpdateIntoDbHelper {
         this.tableName = tableName
         return this
     }
 
-    fun updatesValues(nameOfField: String, updateValue: Int): UpdateDbHelper {
+    fun updatesValues(nameOfField: String, updateValue: Int): UpdateIntoDbHelper {
         this.updatesFields[nameOfField] = updateValue
         return this
     }
 
-    fun updatesValues(nameOfField: String, updateValue: Long): UpdateDbHelper {
+    fun updatesValues(nameOfField: String, updateValue: Long): UpdateIntoDbHelper {
         this.updatesFields[nameOfField] = updateValue
         return this
     }
 
-    fun where(whereArgs: String): UpdateDbHelper {
+    fun where(whereArgs: String): UpdateIntoDbHelper {
         this.whereArgs = whereArgs
         return this
     }

@@ -33,7 +33,7 @@
             app:layout_constraintTop_toBottomOf="@id/running_toolbar">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/textView7"
+                android:id="@+id/start_running_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/discription_running"
@@ -49,13 +49,13 @@
                 style="@style/TextColor.running_activity_btns"
                 android:layout_width="0dp"
                 android:layout_height="@dimen/running_activity_btns_height"
-                android:text="@string/start"
                 android:backgroundTint="@color/orange"
+                android:text="@string/start"
                 app:cornerRadius="@dimen/btns_radius"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView7"
+                app:layout_constraintTop_toBottomOf="@+id/start_running_text"
                 tools:ignore="UnusedAttribute" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -122,9 +122,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/running_activity_distance"
-                app:layout_constraintEnd_toEndOf="@+id/textView6"
-                app:layout_constraintStart_toStartOf="@+id/textView6"
-                app:layout_constraintTop_toBottomOf="@+id/textView6" />
+                app:layout_constraintEnd_toEndOf="@+id/time_running_text_descr"
+                app:layout_constraintStart_toStartOf="@+id/time_running_text_descr"
+                app:layout_constraintTop_toBottomOf="@+id/time_running_text_descr" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/distance_description"
@@ -138,7 +138,7 @@
                 app:layout_constraintStart_toStartOf="parent" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/textView6"
+                android:id="@+id/time_running_text_descr"
                 style="@style/TextColor.running_activity_no_main_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

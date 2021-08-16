@@ -9,16 +9,16 @@ import com.example.fitnesstracker.App.Companion.PATTERN_WITHOUT_SECONDS
 import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
 import com.example.fitnesstracker.App.Companion.UTC
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.models.tracks.Tracks
+import com.example.fitnesstracker.models.tracks.TrackFromDb
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TrackListAdapter(
-    private val listOfTrackForData: MutableList<Tracks>,
-    private val goToCurrentTrack: (Tracks) -> Unit,
+    private val listOfTrackForData: MutableList<TrackFromDb>,
+    private val goToCurrentTrack: (TrackFromDb) -> Unit,
 ) : RecyclerView.Adapter<TrackListAdapter.ViewHolder>() {
 
-    class ViewHolder(private val item: View, private val goToCurrentTrack: (Tracks) -> Unit) :
+    class ViewHolder(private val item: View, private val goToCurrentTrack: (TrackFromDb) -> Unit) :
         RecyclerView.ViewHolder(item) {
         private val beginTime: TextView = item.findViewById(R.id.begin_time)
         private val time: TextView = item.findViewById(R.id.time_running)
@@ -27,7 +27,7 @@ class TrackListAdapter(
         private var currentTimeFormat: SimpleDateFormat? = null
         private var timeZone: TimeZone? = null
 
-        fun bind(trackForData: Tracks) {
+        fun bind(trackForData: TrackFromDb) {
             date = SimpleDateFormat(PATTERN_WITHOUT_SECONDS, Locale.getDefault())
             currentTimeFormat = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
             timeZone = SimpleTimeZone.getTimeZone(UTC)
@@ -60,8 +60,8 @@ class TrackListAdapter(
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
-        super.onViewRecycled(holder)
         holder.unbind()
+        super.onViewRecycled(holder)
     }
 
     override fun getItemCount(): Int = listOfTrackForData.size

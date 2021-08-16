@@ -7,14 +7,13 @@ import com.example.fitnesstracker.models.login.LoginResponse
 import com.example.fitnesstracker.models.notification.Notification
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.points.PointsRequest
-import com.example.fitnesstracker.models.points.PointsResponse
 import com.example.fitnesstracker.models.registration.RegistrationRequest
 import com.example.fitnesstracker.models.registration.RegistrationResponse
 import com.example.fitnesstracker.models.save.SaveTrackRequest
 import com.example.fitnesstracker.models.save.SaveTrackResponse
 import com.example.fitnesstracker.models.tracks.TrackRequest
 import com.example.fitnesstracker.models.tracks.TrackResponse
-import com.example.fitnesstracker.models.tracks.Tracks
+import com.example.fitnesstracker.models.tracks.TrackFromDb
 import java.util.*
 
 interface Repository {
@@ -28,7 +27,7 @@ interface Repository {
     ): Task<List<PointForData>>
 
     fun saveTrack(saveTrackRequest: SaveTrackRequest): Task<SaveTrackResponse>
-    fun getListOfTrack(): Task<List<Tracks>>
+    fun getListOfTrack(): Task<List<TrackFromDb>>
     fun getListOfNotification(): Task<List<Notification>>
     fun insertNotification(
         alarmDate: Long,

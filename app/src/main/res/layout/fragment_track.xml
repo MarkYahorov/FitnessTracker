@@ -35,7 +35,7 @@
             android:layout_height="match_parent">
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/appCompatTextView"
+                android:id="@+id/time_running_in_track"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/time_running"
@@ -51,9 +51,9 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorTextInList"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/appCompatTextView"
-                app:layout_constraintStart_toStartOf="@+id/appCompatTextView"
-                app:layout_constraintTop_toBottomOf="@+id/appCompatTextView" />
+                app:layout_constraintEnd_toEndOf="@+id/time_running_in_track"
+                app:layout_constraintStart_toStartOf="@+id/time_running_in_track"
+                app:layout_constraintTop_toBottomOf="@+id/time_running_in_track" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 

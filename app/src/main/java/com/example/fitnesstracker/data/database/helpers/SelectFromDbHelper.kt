@@ -3,23 +3,23 @@ package com.example.fitnesstracker.data.database.helpers
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 
-class SelectDbHelper {
+class SelectFromDbHelper {
 
     private var table: String = ""
     private var whereArgs: String = ""
     private var allParams: MutableList<String> = mutableListOf()
 
-    fun nameOfTable(table: String): SelectDbHelper {
+    fun nameOfTable(table: String): SelectFromDbHelper {
         this.table = table
         return this
     }
 
-    fun where(whereArgs: String): SelectDbHelper {
+    fun where(whereArgs: String): SelectFromDbHelper {
         this.whereArgs = whereArgs
         return this
     }
 
-    fun selectParams(allParams: String): SelectDbHelper {
+    fun selectParams(allParams: String): SelectFromDbHelper {
         this.allParams.add(allParams)
         return this
     }

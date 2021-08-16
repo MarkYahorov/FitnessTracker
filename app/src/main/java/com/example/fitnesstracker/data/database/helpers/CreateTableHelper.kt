@@ -2,16 +2,16 @@ package com.example.fitnesstracker.data.database.helpers
 
 import android.database.sqlite.SQLiteDatabase
 
-class CreateDBHelper {
+class CreateTableHelper {
     private var name: String = ""
     private var fields: MutableMap<String, String> = mutableMapOf()
 
-    fun setName(table: String): CreateDBHelper {
+    fun setName(table: String): CreateTableHelper {
         this.name = table
         return this
     }
 
-    fun addField(title: String, condition: String): CreateDBHelper {
+    fun addField(title: String, condition: String): CreateTableHelper {
         this.fields[title] = condition
         return this
     }

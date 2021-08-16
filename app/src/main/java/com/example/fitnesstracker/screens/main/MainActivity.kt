@@ -15,7 +15,7 @@ import androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
 import bolts.Task
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.models.tracks.Tracks
+import com.example.fitnesstracker.models.tracks.TrackFromDb
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.loginAndRegister.LoginAndRegisterActivity
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     private var navigationView: NavigationView? = null
     private var logout: ConstraintLayout? = null
 
-    private var track: Tracks? = null
+    private var track: TrackFromDb? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -234,7 +234,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
         distance: Int,
         token: String
     ) {
-        track = Tracks(id, serverId, beginTime, runningTime, distance)
+        track = TrackFromDb(id, serverId, beginTime, runningTime, distance)
         val trackFragment = TrackFragment.newInstance(
             id = id,
             serverId = serverId,
@@ -283,11 +283,11 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     }
 
     override fun onStop() {
-        super.onStop()
         toggle?.toolbarNavigationClickListener = null
         toggle?.let { navDrawer?.removeDrawerListener(it) }
         navigationView?.setNavigationItemSelectedListener(null)
         logout?.setOnClickListener(null)
+        super.onStop()
     }
 
     override fun onDestroy() {

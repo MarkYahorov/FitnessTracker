@@ -17,7 +17,6 @@ import com.example.fitnesstracker.screens.main.IS_FROM_NOTIFICATION
 import com.example.fitnesstracker.screens.main.notification.NotificationFragment.Companion.NEW_REQUEST_CODE
 import com.example.fitnesstracker.screens.running.RunningActivity
 
-
 class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
@@ -57,8 +56,8 @@ class AlarmReceiver : BroadcastReceiver() {
                 ALARM_CHANNEL_NAME,
                 IMPORTANCE_HIGH
             )
-            val manager = context.getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
         }
     }
 }

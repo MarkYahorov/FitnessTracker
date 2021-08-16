@@ -3,7 +3,7 @@ package com.example.fitnesstracker.data.database
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.example.fitnesstracker.data.database.helpers.CreateDBHelper
+import com.example.fitnesstracker.data.database.helpers.CreateTableHelper
 
 const val FITNESS_DB = "FITNESS.db"
 const val VERSION_DB = 1
@@ -43,7 +43,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
     }
 
     private fun createTrackersTable(db: SQLiteDatabase?) {
-        CreateDBHelper()
+        CreateTableHelper()
             .setName(table = TRACKERS)
             .addField(title = ID, condition = INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(title = ID_FROM_SERVER, condition = INTEGER)
@@ -55,7 +55,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
     }
 
     private fun createPointsTable(db: SQLiteDatabase?) {
-        CreateDBHelper()
+        CreateTableHelper()
             .setName(table = ALL_POINTS)
             .addField(title = ID, condition = INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(title = ID_FROM_SERVER, condition = INTEGER)
@@ -66,7 +66,7 @@ class FitnessDatabase(context: Context) : SQLiteOpenHelper(context, FITNESS_DB, 
     }
 
     private fun createNotificationDb(db: SQLiteDatabase?) {
-        CreateDBHelper()
+        CreateTableHelper()
             .setName(table = NOTIFICATION_TIME_NAME)
             .addField(title = ID, condition = INTEGER_NOT_NULL_PRIMARY_KEY_AUTOINCREMENT)
             .addField(title = NOTIFICATION_TIME, condition = LONG_NOT_NULL)

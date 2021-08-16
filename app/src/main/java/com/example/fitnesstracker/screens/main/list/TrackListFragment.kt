@@ -16,7 +16,7 @@ import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.models.tracks.TrackForData
 import com.example.fitnesstracker.models.tracks.TrackRequest
-import com.example.fitnesstracker.models.tracks.Tracks
+import com.example.fitnesstracker.models.tracks.TrackFromDb
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -33,6 +33,7 @@ class TrackListFragment : Fragment() {
         private const val TRACK_LIST = "TRACK_LIST"
         private const val ERROR = "error"
         private const val POSITION = "POSITION"
+        private const val ONE_FOR_ID = 1
 
         fun newInstance(token: String) =
             TrackListFragment().apply {
@@ -61,10 +62,10 @@ class TrackListFragment : Fragment() {
     private var navigator: Navigator? = null
     private var builder: AlertDialog.Builder? = null
 
-    private var trackList = mutableListOf<Tracks>()
+    private var trackList = mutableListOf<TrackFromDb>()
     private var oldListSize = 0
     private val repositoryImpl = App.INSTANCE.repositoryImpl
-    private var isFirstInApp: Boolean = true
+    private var isFirstTimeInApp: Boolean = true
     private var isLoading = false
     private var position = 0
 
@@ -84,7 +85,7 @@ class TrackListFragment : Fragment() {
     }
 
     private fun setIsFirst() {
-        isFirstInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+        isFirstTimeInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             ?.getBoolean(IS_FIRST, true)!!
     }
 
@@ -102,7 +103,7 @@ class TrackListFragment : Fragment() {
         if (savedInstanceState != null) {
             oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
             position = savedInstanceState.getInt(POSITION)
-            trackRecyclerView?.adapter?.notifyItemRangeInserted(0, oldListSize)
+            trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
         }
     }
 
@@ -130,7 +131,7 @@ class TrackListFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        if (isFirstInApp) {
+        if (isFirstTimeInApp) {
             progressBar?.isVisible = true
             putIsFirstValueInSharedPref()
             createAlertDialogToDisableBatterySaver()
@@ -154,7 +155,6 @@ class TrackListFragment : Fragment() {
     private fun createAlertDialogToDisableBatterySaver() {
         builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         builder?.setTitle(R.string.attention)
         builder?.setMessage(R.string.waring)
@@ -212,7 +212,7 @@ class TrackListFragment : Fragment() {
             var id = listOfTrack.size
             listOfTrack.forEach {
                 trackList.add(
-                    Tracks(
+                    TrackFromDb(
                         id = id,
                         serverId = it.serverId,
                         beginTime = it.beginTime,
@@ -254,7 +254,7 @@ class TrackListFragment : Fragment() {
             if (token != null) {
                 navigator?.goToRunningScreen(
                     token = token,
-                    trackId = trackList.size + 1
+                    trackId = trackList.size + ONE_FOR_ID
                 )
             } else {
                 createAlertDialog()
@@ -265,7 +265,7 @@ class TrackListFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(OLD_LIST_SIZE, oldListSize)
-        outState.putParcelableArrayList(TRACK_LIST, trackList as ArrayList<Tracks>)
+        outState.putParcelableArrayList(TRACK_LIST, trackList as ArrayList<TrackFromDb>)
         outState.putInt(POSITION, position)
     }
 
@@ -281,7 +281,6 @@ class TrackListFragment : Fragment() {
     private fun createAlertDialog(error: String?) {
         builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         builder?.setTitle(R.string.error)
         builder?.setMessage(error)
@@ -292,7 +291,6 @@ class TrackListFragment : Fragment() {
     private fun createAlertDialog() {
         builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
-            dialog.cancel()
         }
         builder?.setTitle(R.string.error)
         builder?.setMessage(R.string.re_login)

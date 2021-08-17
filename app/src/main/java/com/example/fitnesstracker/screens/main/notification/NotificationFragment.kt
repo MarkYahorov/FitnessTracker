@@ -47,7 +47,7 @@ class NotificationFragment : Fragment() {
 
     private val notificationList = mutableListOf<Notification>()
     private var calendar = Calendar.getInstance()
-    private val repo = App.INSTANCE.repositoryImpl
+    private val repo = App.INSTANCE.repositoryForDb
     private var currentDate = 0L
     private var currentHour = 0
     private var currentMinutes = 0

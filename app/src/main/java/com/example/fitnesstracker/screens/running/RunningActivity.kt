@@ -78,7 +78,8 @@ class RunningActivity : AppCompatActivity() {
     private var timer: Runnable? = null
 
     private val coordinateList = mutableListOf<PointForData>()
-    private val repo = App.INSTANCE.repositoryImpl
+    private val serverRepo = App.INSTANCE.repositoryImpl
+    private val dbRepo = App.INSTANCE.repositoryForDb
     private var calendar = Calendar.getInstance()
     private val timeZone = SimpleTimeZone.getTimeZone(UTC)
     private var isFinish = true
@@ -97,9 +98,9 @@ class RunningActivity : AppCompatActivity() {
                     .toMutableList()
             )
             if (coordinateList.size > 1) {
-                repo.saveTrack(saveTrackRequest = createSaveTrackRequest())
+                serverRepo.saveTrack(saveTrackRequest = createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
-                        repo.insertTrackAndPointsInDbAfterSavingInServer(
+                        dbRepo.insertTrackAndPointsInDbAfterSavingInServer(
                             saveTrackResponse = saveTrackResponse,
                             beginTime = beginTime,
                             calendar = calendar,

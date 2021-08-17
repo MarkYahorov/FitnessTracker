@@ -195,7 +195,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     private fun setLogoutBtnListener() {
         logout?.setOnClickListener {
-            App.INSTANCE.repositoryImpl.clearDb(this)
+            App.INSTANCE.repositoryForDb.clearDb(this)
                 .continueWith({
                     track = null
                     startActivity(Intent(this, LoginAndRegisterActivity::class.java))

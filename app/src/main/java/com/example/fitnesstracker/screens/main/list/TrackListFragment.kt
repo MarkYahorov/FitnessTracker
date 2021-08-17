@@ -64,7 +64,8 @@ class TrackListFragment : Fragment() {
 
     private var trackList = mutableListOf<TrackFromDb>()
     private var oldListSize = 0
-    private val repositoryImpl = App.INSTANCE.repositoryImpl
+    private val serverRepository = App.INSTANCE.repositoryImpl
+    private val dbRepository = App.INSTANCE.repositoryForDb
     private var isFirstTimeInApp: Boolean = true
     private var isLoading = false
     private var position = 0
@@ -163,7 +164,7 @@ class TrackListFragment : Fragment() {
     }
 
     private fun getTracksFromDb() {
-        repositoryImpl.getListOfTrack()
+        dbRepository.getListOfTrack()
             .continueWith({ listOfTracks ->
                 oldListSize = listOfTracks.result.size - trackList.size
                 if (trackList.size < listOfTracks.result.size) {
@@ -180,7 +181,7 @@ class TrackListFragment : Fragment() {
     private fun getTracksFromServer() {
         if (!isLoading) {
             isLoading = true
-            repositoryImpl.getTracks(createTrackRequest())
+            serverRepository.getTracks(createTrackRequest())
                 .continueWith({ response ->
                     when {
                         response.error != null -> {

@@ -5,6 +5,11 @@ import android.database.sqlite.SQLiteDatabase
 
 class SelectFromDbHelper {
 
+    companion object{
+        private const val SEPARATOR = ","
+        private const val EMPTY_STRING = ""
+    }
+
     private var table: String = ""
     private var whereArgs: String = ""
     private var allParams: MutableList<String> = mutableListOf()
@@ -25,8 +30,8 @@ class SelectFromDbHelper {
     }
 
     fun select(db: SQLiteDatabase): Cursor {
-        val allParamsText = allParams.joinToString(",")
-        return if (whereArgs == "") {
+        val allParamsText = allParams.joinToString(SEPARATOR)
+        return if (whereArgs == EMPTY_STRING) {
             db.rawQuery("SELECT $allParamsText FROM $table", null)
         } else {
             db.rawQuery("SELECT $allParamsText FROM $table WHERE $whereArgs", null)

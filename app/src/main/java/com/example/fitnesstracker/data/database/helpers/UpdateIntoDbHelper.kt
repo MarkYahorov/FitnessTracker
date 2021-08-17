@@ -3,6 +3,11 @@ package com.example.fitnesstracker.data.database.helpers
 import android.database.sqlite.SQLiteDatabase
 
 class UpdateIntoDbHelper {
+
+    companion object{
+        private const val EMPTY_STRING = ""
+    }
+
     private var tableName = ""
     private val updatesFields = mutableMapOf<String, Any>()
     private var whereArgs = ""
@@ -36,7 +41,7 @@ class UpdateIntoDbHelper {
     }
 
     fun delete(db: SQLiteDatabase) {
-        if (whereArgs == "") {
+        if (whereArgs == EMPTY_STRING) {
             db.execSQL("DELETE FROM $tableName")
         } else {
             db.execSQL("DELETE FROM $tableName WHERE $whereArgs")

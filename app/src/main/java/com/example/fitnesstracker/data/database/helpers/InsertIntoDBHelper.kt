@@ -4,6 +4,12 @@ import android.database.sqlite.SQLiteDatabase
 
 class InsertIntoDBHelper {
 
+    companion object{
+        private const val ERROR = "Введи нормальные данные"
+        private const val QUESTION = "?"
+        private const val EMPTY_STRING = ""
+    }
+
     private var tableName: String = ""
     private val selectedFieldsInTable = mutableMapOf<String, String>()
 
@@ -22,11 +28,11 @@ class InsertIntoDBHelper {
         val questionList = mutableListOf<String>()
         val size = selectedFieldsInTable.size
         while (questionList.size != size) {
-            questionList.add("?")
+            questionList.add(QUESTION)
         }
         val stringBuilderForQuestion = questionList.joinToString()
-        if (tableName == "" || selectedFieldsInTable.isEmpty()) {
-            error("Введи нормальные данные")
+        if (tableName == EMPTY_STRING || selectedFieldsInTable.isEmpty()) {
+            error(ERROR)
         } else {
             val statement =
                 db.compileStatement("INSERT INTO $tableName ($selectedFields) VALUES ($stringBuilderForQuestion)")

@@ -28,7 +28,7 @@ class TimeCalculator {
     private val handler = Handler(Looper.getMainLooper())
     private var view: TextView? = null
 
-    fun getView(view: TextView?): TimeCalculator {
+    fun setView(view: TextView?): TimeCalculator {
         this.view = view
         return this
     }

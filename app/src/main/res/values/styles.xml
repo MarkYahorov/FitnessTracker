@@ -2,37 +2,41 @@
 <resources>
 
     <style name="Login_And_Register_Screen_Edit_Texts">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">@dimen/login_screen_text_size</item>
     </style>
 
     <style name="Login_And_Register_Screen_Edit_Texts.login_field">
-        <item name="android:layout_marginTop">70dp</item>
-        <item name="android:layout_marginEnd">24dp</item>
-        <item name="android:layout_marginStart">24dp</item>
+        <item name="android:layout_marginTop">@dimen/login_screen_login_fields_margin_top</item>
+        <item name="android:layout_marginEnd">
+            @dimen/login_screen_login_fields_margin_end_and_start
+        </item>
+        <item name="android:layout_marginStart">
+            @dimen/login_screen_login_fields_margin_end_and_start
+        </item>
     </style>
 
     <style name="Login_And_Register_Screen_Edit_Texts.password_field">
-        <item name="android:layout_marginTop">40dp</item>
+        <item name="android:layout_marginTop">@dimen/login_screen_margin_top</item>
     </style>
 
     <style name="Login_And_Register_Screen_Edit_Texts.register_fields">
-        <item name="android:layout_marginTop">40dp</item>
+        <item name="android:layout_marginTop">@dimen/login_screen_margin_top</item>
     </style>
 
     <style name="Login_And_Register_Screen_Edit_Texts.password_field_in_login">
-        <item name="android:layout_marginTop">20dp</item>
+        <item name="android:layout_marginTop">@dimen/login_screen_password_field_in_login</item>
     </style>
 
     <style name="login_btn">
-        <item name="android:layout_marginStart">12dp</item>
-        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:layout_marginStart">@dimen/login_screen_login_btn_margin_start</item>
+        <item name="android:layout_marginEnd">@dimen/login_screen_login_btn_margin_end</item>
     </style>
 
     <style name="register_btn">
-        <item name="android:layout_marginTop">40dp</item>
-        <item name="android:layout_marginBottom">150dp</item>
-        <item name="android:layout_marginEnd">12dp</item>
-        <item name="android:layout_marginStart">6dp</item>
+        <item name="android:layout_marginTop">@dimen/login_screen_margin_top</item>
+        <item name="android:layout_marginBottom">@dimen/login_screen_registr_btn_margin_bottom</item>
+        <item name="android:layout_marginEnd">@dimen/login_screen_registr_btn_margin_end</item>
+        <item name="android:layout_marginStart">@dimen/login_screen_registr_btn_margin_start</item>
     </style>
 
     <style name="main_activity_nav_drawer_log_out_text">
@@ -54,7 +58,7 @@
     </style>
 
     <style name="TextColor.running_activity_main_text">
-        <item name="android:textSize">@dimen/running_activity_main_text_size</item>
+        <item name="android:textSize">@dimen/main_text_size</item>
     </style>
 
     <style name="TextColor.running_activity_no_main_text">

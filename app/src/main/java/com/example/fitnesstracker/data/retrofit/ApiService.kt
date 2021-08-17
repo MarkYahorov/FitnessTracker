@@ -29,5 +29,5 @@ interface ApiService {
     fun getPointsForCurrentTrack(@Body pointsRequest: PointsRequest?): Call<PointsResponse>
 
     @POST("lesson-26.php?method=save")
-    fun saveTrack(@Body savePointsRequest: SaveTrackRequest): Call<SaveTrackResponse>
+    fun saveTrack(@Body savePointsRequest: SaveTrackRequest?): Call<SaveTrackResponse>
 }

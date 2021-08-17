@@ -3,6 +3,7 @@ package com.example.fitnesstracker
 import android.app.Application
 import android.database.sqlite.SQLiteDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
 import com.example.fitnesstracker.repository.Repository
 import com.example.fitnesstracker.repository.RepositoryImpl
 
@@ -19,6 +20,7 @@ class App : Application() {
 
     lateinit var myDataBase: SQLiteDatabase
     val repositoryImpl: Repository = RepositoryImpl()
+    val apiService = RetrofitBuilder().apiService
 
     override fun onCreate() {
         super.onCreate()

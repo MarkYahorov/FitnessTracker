@@ -26,7 +26,7 @@ interface Repository {
         pointsRequest: PointsRequest?
     ): Task<List<PointForData>>
 
-    fun saveTrack(saveTrackRequest: SaveTrackRequest): Task<SaveTrackResponse>
+    fun saveTrack(saveTrackRequest: SaveTrackRequest?): Task<SaveTrackResponse>
     fun getListOfTrack(): Task<List<TrackFromDb>>
     fun getListOfNotification(): Task<List<Notification>>
     fun insertNotification(

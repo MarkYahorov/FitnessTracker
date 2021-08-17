@@ -112,12 +112,12 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/first_screen_text"
             android:layout_width="wrap_content"
-            android:layout_height="90dp"
-            android:layout_marginTop="48dp"
+            android:layout_height="@dimen/login_screen_text_height"
+            android:layout_marginTop="@dimen/login_screen_text_margin_top"
             android:gravity="center"
             android:text="@string/welcome_login_text"
             android:textColor="@color/colorTextInList"
-            android:textSize="35sp"
+            android:textSize="@dimen/main_text_size"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -127,16 +127,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="top"
-            app:constraint_referenced_ids="repeat_edit_text"
-            tools:layout_editor_absoluteY="378dp" />
+            app:constraint_referenced_ids="repeat_edit_text"/>
 
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/bottom_barrier"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="bottom"
-            app:constraint_referenced_ids="last_name_edit_text"
-            tools:layout_editor_absoluteY="378dp" />
+            app:constraint_referenced_ids="last_name_edit_text" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

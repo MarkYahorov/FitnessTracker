@@ -208,13 +208,6 @@ class NotificationFragment : Fragment() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putLong(CURRENT_DATE, currentDate)
-        outState.putInt(CURRENT_ALARM_TIME, currentMinutes)
-        outState.putInt(CURRENT_TIME, currentHour)
-        outState.putInt(CURRENT_POSITION, scrollPositionOfRecycler)
-    }
 
     override fun onStart() {
         super.onStart()
@@ -289,6 +282,14 @@ class NotificationFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         addNotificationBtn?.setOnClickListener(null)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong(CURRENT_DATE, currentDate)
+        outState.putInt(CURRENT_ALARM_TIME, currentMinutes)
+        outState.putInt(CURRENT_TIME, currentHour)
+        outState.putInt(CURRENT_POSITION, scrollPositionOfRecycler)
     }
 
     override fun onDestroyView() {

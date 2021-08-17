@@ -8,7 +8,7 @@
     <dimen name="running_activity_btns_margin_top">80dp</dimen>
     <dimen name="running_activity_btns_height">100dp</dimen>
     <dimen name="running_activity_first_text_layout_size">23sp</dimen>
-    <dimen name="running_activity_main_text_size">32sp</dimen>
+    <dimen name="main_text_size">32sp</dimen>
     <dimen name="running_activity_no_main_text_size">27sp</dimen>
     <dimen name="running_activity_distance">32dp</dimen>
     <dimen name="running_activity_margin_top_of_finish">96dp</dimen>
@@ -24,4 +24,16 @@
     <dimen name="item_list_margin_image">6dp</dimen>
     <dimen name="item_list_margin_start">24dp</dimen>
     <dimen name="item_list_margin_end">72dp</dimen>
-</resources>
+    <dimen name="login_screen_text_height">90dp</dimen>
+    <dimen name="login_screen_text_margin_top">48dp</dimen>
+    <dimen name="login_screen_text_size">18dp</dimen>
+    <dimen name="login_screen_login_fields_margin_top">70dp</dimen>
+    <dimen name="login_screen_login_fields_margin_end_and_start">24dp</dimen>
+    <dimen name="login_screen_margin_top">40dp</dimen>
+    <dimen name="login_screen_password_field_in_login">20dp</dimen>
+    <dimen name="login_screen_login_btn_margin_start">12dp</dimen>
+    <dimen name="login_screen_login_btn_margin_end">6dp</dimen>
+    <dimen name="login_screen_registr_btn_margin_bottom">150dp</dimen>
+    <dimen name="login_screen_registr_btn_margin_end">12dp</dimen>
+    <dimen name="login_screen_registr_btn_margin_start">6dp</dimen>
+    </resources>

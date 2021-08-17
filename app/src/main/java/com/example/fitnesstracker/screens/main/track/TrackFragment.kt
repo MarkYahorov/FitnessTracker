@@ -59,14 +59,13 @@ class TrackFragment : Fragment() {
 
     private var runningTime: TextView? = null
     private var distance: TextView? = null
-
     private var googleMap: GoogleMap? = null
     private var alertDialog: AlertDialog.Builder? = null
     private var trackFragment: SupportMapFragment? = null
+
     private val allDistanceOfTrack = mutableListOf<PointForData>()
     private val allPointsInLatLng = mutableListOf<LatLng>()
     private val repo = App.INSTANCE.repositoryImpl
-
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
     }
@@ -108,7 +107,7 @@ class TrackFragment : Fragment() {
             idInDb = arguments?.getInt(CURRENT_DB_ID) ?: ZERO_RESULT,
             serverId = arguments?.getInt(CURRENT_TRACK_ID) ?: ZERO_RESULT
         ).continueWith({
-            processResult(it)
+            processResult(taskOfPoints = it)
         }, Task.UI_THREAD_EXECUTOR)
     }
 

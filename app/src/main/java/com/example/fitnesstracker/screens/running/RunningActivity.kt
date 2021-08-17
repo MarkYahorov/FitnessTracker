@@ -26,9 +26,7 @@ import com.example.fitnesstracker.App.Companion.MAIN_ACTIVITY_MARKER
 import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
 import com.example.fitnesstracker.App.Companion.RUNNING_ACTIVITY_MARKER
 import com.example.fitnesstracker.App.Companion.UTC
-import com.example.fitnesstracker.screens.running.service.CheckLocationService
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.screens.running.calculate.TimeCalculator
 import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.save.SaveTrackRequest
 import com.example.fitnesstracker.models.save.SaveTrackResponse
@@ -36,6 +34,8 @@ import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.main.IS_FROM_NOTIFICATION
 import com.example.fitnesstracker.screens.main.MainActivity
+import com.example.fitnesstracker.screens.running.calculate.TimeCalculator
+import com.example.fitnesstracker.screens.running.service.CheckLocationService
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -57,7 +57,6 @@ class RunningActivity : AppCompatActivity() {
         private const val FINISH_VISIBLE = "FINISH_VISIBLE"
         private const val START = "start"
         private const val FINISH_TIME = "FINISH_TIME"
-        private const val EMPTY_VALUE = ""
         private const val DEFAULT_REQUEST_CODE = 100
         private const val HANDLER_DELAY = 0L
     }
@@ -74,10 +73,10 @@ class RunningActivity : AppCompatActivity() {
     private var runningLayout: ConstraintLayout? = null
     private var finishLayout: ConstraintLayout? = null
     private var calculator: TimeCalculator? = null
-
     private var alertDialog: AlertDialog.Builder? = null
     private var handler: Handler? = null
     private var timer: Runnable? = null
+
     private val coordinateList = mutableListOf<PointForData>()
     private val repo = App.INSTANCE.repositoryImpl
     private var calendar = Calendar.getInstance()
@@ -132,7 +131,7 @@ class RunningActivity : AppCompatActivity() {
             runningLayout?.isVisible = savedInstanceState.getBoolean(RUNNING_VISIBLE)
             finishLayout?.isVisible = savedInstanceState.getBoolean(FINISH_VISIBLE)
             tStart = savedInstanceState.getLong(START)
-            calculator?.getView(timeRunningTextView)
+            calculator?.setView(timeRunningTextView)
             timer = calculator?.createTimer(
                 tStart = tStart,
                 calendar = calendar
@@ -228,7 +227,7 @@ class RunningActivity : AppCompatActivity() {
 
     private fun startTimer() {
         tStart = SystemClock.elapsedRealtime()
-        calculator?.getView(timeRunningTextView)
+        calculator?.setView(timeRunningTextView)
         timer = calculator?.createTimer(tStart, calendar)
         beginTime = System.currentTimeMillis()
         handler?.postDelayed(timer!!, HANDLER_DELAY)
@@ -287,19 +286,26 @@ class RunningActivity : AppCompatActivity() {
             .apply()
     }
 
-    private fun getTokenFromSharedPref(): String {
+    private fun getTokenFromSharedPref(): String? {
         return getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
-            .getString(CURRENT_TOKEN, EMPTY_VALUE).toString()
+            .getString(CURRENT_TOKEN, null)
     }
 
-    private fun createSaveTrackRequest() = SaveTrackRequest(
-        token = getTokenFromSharedPref(),
-        serverId = null,
-        beginTime = beginTime,
-        time = calendar.time.time,
-        distance = distance,
-        pointForData = coordinateList
-    )
+    private fun createSaveTrackRequest(): SaveTrackRequest? {
+        val token = getTokenFromSharedPref()
+        return if (token!=null) {
+            SaveTrackRequest(
+                token = token,
+                serverId = null,
+                beginTime = beginTime,
+                time = calendar.time.time,
+                distance = distance,
+                pointForData = coordinateList
+            )
+        } else {
+            return null
+        }
+    }
 
     private fun isGpsEnabled(): Boolean {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager

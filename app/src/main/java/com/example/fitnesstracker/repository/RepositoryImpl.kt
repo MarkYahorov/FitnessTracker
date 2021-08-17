@@ -23,7 +23,6 @@ import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.TRACKE
 import com.example.fitnesstracker.data.database.helpers.InsertIntoDBHelper
 import com.example.fitnesstracker.data.database.helpers.SelectFromDbHelper
 import com.example.fitnesstracker.data.database.helpers.UpdateIntoDbHelper
-import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
 import com.example.fitnesstracker.models.columnIndex.NotificationColumnIndexFromDb
 import com.example.fitnesstracker.models.columnIndex.TrackColumnIndexFromDb
 import com.example.fitnesstracker.models.login.LoginRequest
@@ -37,9 +36,9 @@ import com.example.fitnesstracker.models.registration.RegistrationResponse
 import com.example.fitnesstracker.models.save.SaveTrackRequest
 import com.example.fitnesstracker.models.save.SaveTrackResponse
 import com.example.fitnesstracker.models.tracks.TrackForData
+import com.example.fitnesstracker.models.tracks.TrackFromDb
 import com.example.fitnesstracker.models.tracks.TrackRequest
 import com.example.fitnesstracker.models.tracks.TrackResponse
-import com.example.fitnesstracker.models.tracks.TrackFromDb
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
@@ -51,7 +50,7 @@ class RepositoryImpl : Repository {
 
     override fun login(loginRequest: LoginRequest): Task<LoginResponse> {
         return Task.callInBackground {
-            val execute = RetrofitBuilder().apiService.login(loginRequest = loginRequest)
+            val execute = App.INSTANCE.apiService.login(loginRequest = loginRequest)
             execute.execute().body()
         }
     }
@@ -59,14 +58,14 @@ class RepositoryImpl : Repository {
     override fun registration(registrationRequest: RegistrationRequest): Task<RegistrationResponse> {
         return Task.callInBackground {
             val execute =
-                RetrofitBuilder().apiService.registration(registrationRequest = registrationRequest)
+                App.INSTANCE.apiService.registration(registrationRequest = registrationRequest)
             execute.execute().body()
         }
     }
 
     override fun getTracks(trackRequest: TrackRequest?): Task<TrackResponse> {
         return Task.callInBackground {
-            val execute = RetrofitBuilder().apiService.getTracks(trackRequest = trackRequest)
+            val execute = App.INSTANCE.apiService.getTracks(trackRequest = trackRequest)
             val body = execute.execute().body()
             val list = getListOfTracks()
             if (body != null && body.trackForData.size > list.size) {
@@ -125,10 +124,10 @@ class RepositoryImpl : Repository {
             }
     }
 
-    override fun saveTrack(saveTrackRequest: SaveTrackRequest): Task<SaveTrackResponse> {
+    override fun saveTrack(saveTrackRequest: SaveTrackRequest?): Task<SaveTrackResponse> {
         return Task.callInBackground {
             val execute =
-                RetrofitBuilder().apiService.saveTrack(savePointsRequest = saveTrackRequest)
+                App.INSTANCE.apiService.saveTrack(savePointsRequest = saveTrackRequest)
             execute.clone().execute().body()
         }
     }
@@ -248,7 +247,7 @@ class RepositoryImpl : Repository {
     private fun getPointsFromServer(pointsRequest: PointsRequest?): Task<PointsResponse> {
         return Task.callInBackground {
             val execute =
-                RetrofitBuilder().apiService.getPointsForCurrentTrack(pointsRequest = pointsRequest)
+                App.INSTANCE.apiService.getPointsForCurrentTrack(pointsRequest = pointsRequest)
             execute.clone().execute().body()
         }
     }

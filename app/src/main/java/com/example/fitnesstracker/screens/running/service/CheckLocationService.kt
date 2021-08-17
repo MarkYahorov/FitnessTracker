@@ -46,6 +46,7 @@ class CheckLocationService : Service(), LocationListener {
     private val allDistanceList = mutableListOf<Float>()
     private var locationManager: LocationManager? = null
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
     override fun onCreate() {
         super.onCreate()
@@ -53,6 +54,18 @@ class CheckLocationService : Service(), LocationListener {
         startForeground()
         locationManager =
             getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotifyChanel() {
+        val notificationChannel = NotificationChannel(
+            EXAMPLE_SERVICE_CHANNEL_ID,
+            EXAMPLE_SERVICE_CHANNEL_NAME,
+            IMPORTANCE_HIGH
+        )
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        manager.createNotificationChannel(notificationChannel)
     }
 
     private fun startForeground() {
@@ -95,19 +108,6 @@ class CheckLocationService : Service(), LocationListener {
             stopSelf(startId)
         }
         return START_NOT_STICKY
-    }
-
-    private fun createNotifyChanel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notChan = NotificationChannel(
-                EXAMPLE_SERVICE_CHANNEL_ID,
-                EXAMPLE_SERVICE_CHANNEL_NAME,
-                IMPORTANCE_HIGH
-            )
-            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            notChan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-            manager.createNotificationChannel(notChan)
-        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

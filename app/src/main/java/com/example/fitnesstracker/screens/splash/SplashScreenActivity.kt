@@ -26,31 +26,31 @@ class SplashScreenActivity : AppCompatActivity() {
 
     private var logo: ImageView? = null
 
-    private var isFirstInApp = true
+    private var isFirstTimeInApp = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
         logo = findViewById(R.id.logo_image)
-        isFirstInApp = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
+        isFirstTimeInApp = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .getBoolean(IS_FIRST, true)
     }
 
     override fun onStart() {
         super.onStart()
-        startAnimation()
+        startLogoAnimation()
         supportActionBar?.hide()
         goToNextActivity()
     }
 
-    private fun startAnimation() {
+    private fun startLogoAnimation() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.logo_animation)
         logo?.animation = anim
     }
 
     private fun goToNextActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
-            if (isFirstInApp) {
+            if (isFirstTimeInApp) {
                 startActivity(Intent(this, LoginAndRegisterActivity::class.java))
                 finish()
             } else {

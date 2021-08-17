@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
     private var toggle: ActionBarDrawerToggle? = null
     private var navigationView: NavigationView? = null
     private var logout: ConstraintLayout? = null
-
     private var track: TrackFromDb? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {

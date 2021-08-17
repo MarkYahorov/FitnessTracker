@@ -49,15 +49,15 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     private lateinit var email: EditText
     private lateinit var password: EditText
     private lateinit var repeatPassword: EditText
-    private lateinit var firstName: EditText
-    private lateinit var lastName: EditText
-    private lateinit var openLoginWindowBtn: Button
+    private lateinit var firstNameText: EditText
+    private lateinit var lastNameText: EditText
+    private lateinit var loginBtn: Button
     private lateinit var registerBtn: Button
 
     private var isLoadingBtnActive = true
     private var textWatcher: TextWatcher? = null
     private val repositoryImpl = App.INSTANCE.repositoryImpl
-    private var dialog: AlertDialog.Builder? = null
+    private var alertDialog: AlertDialog.Builder? = null
     private val emailPattern = Pattern.compile(CHECK_EMAIL_VALIDATE)
     private val passwordPattern = Pattern.compile(CHECK_PASSWORD_VALIDATE)
 
@@ -83,11 +83,11 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         email = findViewById(R.id.email_edit_text_to_login)
         password = findViewById(R.id.password_edit_text_to_login)
         repeatPassword = findViewById(R.id.repeat_edit_text)
-        firstName = findViewById(R.id.first_name_edit_text)
-        lastName = findViewById(R.id.last_name_edit_text)
-        openLoginWindowBtn = findViewById(R.id.open_login_views_btn)
+        firstNameText = findViewById(R.id.first_name_edit_text)
+        lastNameText = findViewById(R.id.last_name_edit_text)
+        loginBtn = findViewById(R.id.open_login_views_btn)
         registerBtn = findViewById(R.id.registr_btn)
-        dialog = AlertDialog.Builder(this)
+        alertDialog = AlertDialog.Builder(this)
         textWatcher = createTextListener()
     }
 
@@ -105,11 +105,11 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     private fun setRegistrBtnListener() {
         registerBtn.setOnClickListener {
             if (isLoadingBtnActive) {
-                openLoginWindowBtn.paint.isUnderlineText = true
+                loginBtn.paint.isUnderlineText = true
                 registerBtn.paint.isUnderlineText = false
                 setVisibilityViews(isVisible = true)
                 welcomeText.text = getString(R.string.welcome_registr_text)
-                openLoginWindowBtn.isEnabled = true
+                loginBtn.isEnabled = true
                 registerBtn.isEnabled = false
             } else {
                 if (checkEmailIsEqualsRegex() && checkPasswordIsEqualsRegex() && checkPasswordMatching()) {
@@ -123,7 +123,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     }
 
     private fun setLoginBtnListener() {
-        openLoginWindowBtn.setOnClickListener {
+        loginBtn.setOnClickListener {
             if (isLoadingBtnActive) {
                 if (checkEmailIsEqualsRegex() && checkPasswordIsEqualsRegex()) {
                     login()
@@ -132,10 +132,10 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                 }
             } else {
                 registerBtn.paint.isUnderlineText = true
-                openLoginWindowBtn.paint.isUnderlineText = false
+                loginBtn.paint.isUnderlineText = false
                 setVisibilityViews(isVisible = false)
                 welcomeText.text = getString(R.string.welcome_login_text)
-                openLoginWindowBtn.isEnabled = false
+                loginBtn.isEnabled = false
                 registerBtn.isEnabled = true
             }
             isLoadingBtnActive = true
@@ -214,7 +214,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         passwordPattern.matcher(password.text.toString()).matches()
 
     private fun createAlertDialog(error: String?): AlertDialog.Builder? {
-        return dialog?.setTitle(getString(R.string.error))
+        return alertDialog?.setTitle(getString(R.string.error))
             ?.setMessage(error)
             ?.setIcon(R.drawable.ic_baseline_error_outline_24)
             ?.setPositiveButton(getString(R.string.Ok)) { dialog, _ ->
@@ -228,15 +228,15 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         outState.putString(CURRENT_EMAIL, email.text.toString())
         outState.putString(CURRENT_PASSWORD, password.text.toString())
         outState.putString(CURRENT_REPEAT_PASSWORD, repeatPassword.text.toString())
-        outState.putString(CURRENT_FIRST_NAME, firstName.text.toString())
-        outState.putString(CURRENT_LAST_NAME, lastName.text.toString())
-        outState.putBoolean(UNDERLINE_LOGIN, openLoginWindowBtn.paint.isUnderlineText)
+        outState.putString(CURRENT_FIRST_NAME, firstNameText.text.toString())
+        outState.putString(CURRENT_LAST_NAME, lastNameText.text.toString())
+        outState.putBoolean(UNDERLINE_LOGIN, loginBtn.paint.isUnderlineText)
         outState.putBoolean(UNDERLINE_REGISTR, registerBtn.paint.isUnderlineText)
-        outState.putBoolean(ENABLED_LOGIN_BTN, openLoginWindowBtn.isEnabled)
+        outState.putBoolean(ENABLED_LOGIN_BTN, loginBtn.isEnabled)
         outState.putBoolean(ENABLED_REGISTR_BTN, registerBtn.isEnabled)
         outState.putBoolean(REPEAT_PASSWORD_VISIBLE, repeatPassword.isVisible)
-        outState.putBoolean(FIRST_NAME_VISIBLE, firstName.isVisible)
-        outState.putBoolean(LAST_NAME_VISIBLE, lastName.isVisible)
+        outState.putBoolean(FIRST_NAME_VISIBLE, firstNameText.isVisible)
+        outState.putBoolean(LAST_NAME_VISIBLE, lastNameText.isVisible)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -245,15 +245,15 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         email.setText(savedInstanceState.getString(CURRENT_EMAIL))
         password.setText(savedInstanceState.getString(CURRENT_PASSWORD))
         repeatPassword.setText(savedInstanceState.getString(CURRENT_REPEAT_PASSWORD))
-        firstName.setText(savedInstanceState.getString(CURRENT_FIRST_NAME))
-        lastName.setText(savedInstanceState.getString(CURRENT_LAST_NAME))
-        openLoginWindowBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_LOGIN)
+        firstNameText.setText(savedInstanceState.getString(CURRENT_FIRST_NAME))
+        lastNameText.setText(savedInstanceState.getString(CURRENT_LAST_NAME))
+        loginBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_LOGIN)
         registerBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_REGISTR)
-        openLoginWindowBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_LOGIN_BTN)
+        loginBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_LOGIN_BTN)
         registerBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_REGISTR_BTN)
         repeatPassword.isVisible = savedInstanceState.getBoolean(REPEAT_PASSWORD_VISIBLE)
-        firstName.isVisible = savedInstanceState.getBoolean(FIRST_NAME_VISIBLE)
-        lastName.isVisible = savedInstanceState.getBoolean(LAST_NAME_VISIBLE)
+        firstNameText.isVisible = savedInstanceState.getBoolean(FIRST_NAME_VISIBLE)
+        lastNameText.isVisible = savedInstanceState.getBoolean(LAST_NAME_VISIBLE)
     }
 
     private fun createLoginRequest() =
@@ -263,15 +263,15 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         email.addTextChangedListener(textWatcher)
         password.addTextChangedListener(textWatcher)
         repeatPassword.addTextChangedListener(textWatcher)
-        firstName.addTextChangedListener(textWatcher)
-        lastName.addTextChangedListener(textWatcher)
+        firstNameText.addTextChangedListener(textWatcher)
+        lastNameText.addTextChangedListener(textWatcher)
     }
 
     private fun createRegistrationRequest() = RegistrationRequest(
         email.text.toString(),
         password.text.toString(),
-        firstName.text.toString(),
-        lastName.text.toString()
+        firstNameText.text.toString(),
+        lastNameText.text.toString()
     )
 
     private fun saveTokenInSharedPref(token: String?) {
@@ -291,11 +291,11 @@ class LoginAndRegisterActivity : AppCompatActivity() {
                     registerBtn.isEnabled = email.text.isNotEmpty()
                             && password.text.isNotEmpty()
                             && repeatPassword.text.isNotEmpty()
-                            && firstName.text.isNotEmpty()
-                            && lastName.text.isNotEmpty()
+                            && firstNameText.text.isNotEmpty()
+                            && lastNameText.text.isNotEmpty()
                 }
                 if (isLoadingBtnActive) {
-                    openLoginWindowBtn.isEnabled = email.text.isNotEmpty()
+                    loginBtn.isEnabled = email.text.isNotEmpty()
                             && password.text.isNotEmpty()
                 }
             }
@@ -307,8 +307,8 @@ class LoginAndRegisterActivity : AppCompatActivity() {
 
     private fun setVisibilityViews(isVisible: Boolean) {
         repeatPassword.isVisible = isVisible
-        firstName.isVisible = isVisible
-        lastName.isVisible = isVisible
+        firstNameText.isVisible = isVisible
+        lastNameText.isVisible = isVisible
     }
 
     private fun createIntent() {
@@ -319,14 +319,14 @@ class LoginAndRegisterActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        openLoginWindowBtn.setOnClickListener(null)
+        loginBtn.setOnClickListener(null)
         registerBtn.setOnClickListener(null)
-        dialog = null
+        alertDialog = null
         email.removeTextChangedListener(textWatcher)
         password.removeTextChangedListener(textWatcher)
         repeatPassword.removeTextChangedListener(textWatcher)
-        firstName.removeTextChangedListener(textWatcher)
-        lastName.removeTextChangedListener(textWatcher)
+        firstNameText.removeTextChangedListener(textWatcher)
+        lastNameText.removeTextChangedListener(textWatcher)
         textWatcher = null
     }
 }

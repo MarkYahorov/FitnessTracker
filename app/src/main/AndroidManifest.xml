@@ -34,7 +34,6 @@
             android:name=".screens.running.service.CheckLocationService"
             android:enabled="true"
             android:exported="true"
-            android:stopWithTask="true"
             android:foregroundServiceType="location" />
 
         <meta-data

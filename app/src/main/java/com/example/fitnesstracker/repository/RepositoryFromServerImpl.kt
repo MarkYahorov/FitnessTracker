@@ -33,7 +33,7 @@ import com.example.fitnesstracker.models.tracks.TrackRequest
 import com.example.fitnesstracker.models.tracks.TrackResponse
 import com.example.fitnesstracker.screens.running.RunningActivity.Companion.ERROR
 
-class RepositoryImpl : Repository {
+class RepositoryFromServerImpl : RepositoryFromServer {
 
     override fun login(loginRequest: LoginRequest): Task<LoginResponse> {
         return Task.callInBackground {

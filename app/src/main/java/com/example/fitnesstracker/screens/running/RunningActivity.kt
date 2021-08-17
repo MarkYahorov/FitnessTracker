@@ -78,7 +78,7 @@ class RunningActivity : AppCompatActivity() {
     private var timer: Runnable? = null
 
     private val coordinateList = mutableListOf<PointForData>()
-    private val serverRepo = App.INSTANCE.repositoryImpl
+    private val serverRepo = App.INSTANCE.repositoryFromServerImpl
     private val dbRepo = App.INSTANCE.repositoryForDb
     private var calendar = Calendar.getInstance()
     private val timeZone = SimpleTimeZone.getTimeZone(UTC)

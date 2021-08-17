@@ -16,7 +16,7 @@ import com.example.fitnesstracker.models.tracks.TrackResponse
 import com.example.fitnesstracker.models.tracks.TrackFromDb
 import java.util.*
 
-interface Repository {
+interface RepositoryFromServer {
     fun login(loginRequest: LoginRequest): Task<LoginResponse>
     fun registration(registrationRequest: RegistrationRequest): Task<RegistrationResponse>
     fun getTracks(trackRequest: TrackRequest?): Task<TrackResponse>

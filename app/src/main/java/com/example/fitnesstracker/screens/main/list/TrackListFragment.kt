@@ -64,7 +64,7 @@ class TrackListFragment : Fragment() {
 
     private var trackList = mutableListOf<TrackFromDb>()
     private var oldListSize = 0
-    private val serverRepository = App.INSTANCE.repositoryImpl
+    private val serverRepository = App.INSTANCE.repositoryFromServerImpl
     private val dbRepository = App.INSTANCE.repositoryForDb
     private var isFirstTimeInApp: Boolean = true
     private var isLoading = false

@@ -56,7 +56,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
 
     private var isLoadingBtnActive = true
     private var textWatcher: TextWatcher? = null
-    private val repositoryImpl = App.INSTANCE.repositoryImpl
+    private val repositoryImpl = App.INSTANCE.repositoryFromServerImpl
     private var alertDialog: AlertDialog.Builder? = null
     private val emailPattern = Pattern.compile(CHECK_EMAIL_VALIDATE)
     private val passwordPattern = Pattern.compile(CHECK_PASSWORD_VALIDATE)

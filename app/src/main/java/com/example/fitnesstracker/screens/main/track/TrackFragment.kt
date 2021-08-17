@@ -65,7 +65,7 @@ class TrackFragment : Fragment() {
 
     private val allDistanceOfTrack = mutableListOf<PointForData>()
     private val allPointsInLatLng = mutableListOf<LatLng>()
-    private val repo = App.INSTANCE.repositoryImpl
+    private val repo = App.INSTANCE.repositoryFromServerImpl
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
     }

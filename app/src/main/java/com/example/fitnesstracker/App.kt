@@ -4,10 +4,10 @@ import android.app.Application
 import android.database.sqlite.SQLiteDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
-import com.example.fitnesstracker.repository.Repository
+import com.example.fitnesstracker.repository.RepositoryFromServer
 import com.example.fitnesstracker.repository.RepositoryForDB
 import com.example.fitnesstracker.repository.RepositoryForDbImpl
-import com.example.fitnesstracker.repository.RepositoryImpl
+import com.example.fitnesstracker.repository.RepositoryFromServerImpl
 
 class App : Application() {
 
@@ -21,7 +21,7 @@ class App : Application() {
     }
 
     lateinit var myDataBase: SQLiteDatabase
-    val repositoryImpl: Repository = RepositoryImpl()
+    val repositoryFromServerImpl: RepositoryFromServer = RepositoryFromServerImpl()
     val apiService = RetrofitBuilder().apiService
     val repositoryForDb: RepositoryForDB = RepositoryForDbImpl()
 

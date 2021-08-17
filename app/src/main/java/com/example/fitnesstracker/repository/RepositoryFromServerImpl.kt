@@ -87,12 +87,12 @@ class RepositoryFromServerImpl : RepositoryFromServer {
             .continueWith {
                 when {
                     it.error != null -> {
-                        getPointsForCurrentTrackFromDb(trackId = idInDb).forEach { listFromDb ->
+                        getListOfPointsToCurrentTrack(trackId = idInDb).forEach { listFromDb ->
                             list.add(PointForData(listFromDb.lng, listFromDb.lat))
                         }
                     }
                     it.result.status == ERROR -> {
-                        getPointsForCurrentTrackFromDb(trackId = idInDb).forEach { listFromDb ->
+                        getListOfPointsToCurrentTrack(trackId = idInDb).forEach { listFromDb ->
                             list.add(PointForData(listFromDb.lng, listFromDb.lat))
                         }
                     }
@@ -118,11 +118,6 @@ class RepositoryFromServerImpl : RepositoryFromServer {
             execute.clone().execute().body()
         }
     }
-
-    private fun getPointsForCurrentTrackFromDb(trackId: Int): List<PointForData> {
-        return getListOfPointsToCurrentTrack(trackId = trackId)
-    }
-
 
     private fun getPointsFromServer(pointsRequest: PointsRequest?): Task<PointsResponse> {
         return Task.callInBackground {

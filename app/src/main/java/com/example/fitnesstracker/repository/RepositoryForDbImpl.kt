@@ -4,7 +4,22 @@ import android.content.Context
 import android.database.Cursor
 import bolts.Task
 import com.example.fitnesstracker.App
-import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ALL_POINTS
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.BEGIN_TIME
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_HOUR
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_MINUTE
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.CURRENT_TRACK
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.DISTANCE
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID_FROM_SERVER
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.IS_SEND
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LATITUDE
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.LONGITUDE
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.NOTIFICATION_TIME
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.NOTIFICATION_TIME_NAME
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.POSITION_IN_LIST
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.RUNNING_TIME
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.TRACKERS
 import com.example.fitnesstracker.data.database.helpers.InsertIntoDBHelper
 import com.example.fitnesstracker.data.database.helpers.SelectFromDbHelper
 import com.example.fitnesstracker.data.database.helpers.UpdateIntoDbHelper
@@ -17,11 +32,17 @@ import com.example.fitnesstracker.models.tracks.TrackFromDb
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
-import com.example.fitnesstracker.screens.main.notification.NotificationFragment
+import com.example.fitnesstracker.screens.main.notification.NotificationFragment.Companion.MAX
 import com.example.fitnesstracker.screens.running.RunningActivity
 import java.util.*
 
 class RepositoryForDbImpl: RepositoryForDB {
+
+    companion object {
+        private const val SELECT_ALL = "*"
+        private const val NOT_SEND = 1
+        private const val WAS_SEND = 0
+    }
 
     override fun getListOfTrack(): Task<List<TrackFromDb>> {
         return Task.callInBackground {
@@ -49,7 +70,7 @@ class RepositoryForDbImpl: RepositoryForDB {
                 listOfNotifications = listOfNotifications
             )
         }.continueWith {
-            getLastPositionInDb(FitnessDatabase.NOTIFICATION_TIME_NAME)
+            getLastPositionInDb(NOTIFICATION_TIME_NAME)
         }
     }
 
@@ -61,11 +82,11 @@ class RepositoryForDbImpl: RepositoryForDB {
     ): Task<Unit> {
         return Task.callInBackground {
             UpdateIntoDbHelper()
-                .setName(tableName = FitnessDatabase.NOTIFICATION_TIME_NAME)
-                .updatesValues(nameOfField = FitnessDatabase.NOTIFICATION_TIME, updateValue = updateValue)
-                .updatesValues(nameOfField = FitnessDatabase.CURRENT_HOUR, updateValue = hours)
-                .updatesValues(nameOfField = FitnessDatabase.CURRENT_MINUTE, updateValue = minutes)
-                .where(whereArgs = "${FitnessDatabase.ID} = $id")
+                .setName(tableName = NOTIFICATION_TIME_NAME)
+                .updatesValues(nameOfField = NOTIFICATION_TIME, updateValue = updateValue)
+                .updatesValues(nameOfField = CURRENT_HOUR, updateValue = hours)
+                .updatesValues(nameOfField = CURRENT_MINUTE, updateValue = minutes)
+                .where(whereArgs = "$ID = $id")
                 .update(db = App.INSTANCE.myDataBase)
         }
     }
@@ -73,9 +94,9 @@ class RepositoryForDbImpl: RepositoryForDB {
     override fun clearDb(context: Context): Task<Unit> {
         return Task.callInBackground {
             setSharedPrefToDefaultValues(context = context)
-            App.INSTANCE.myDataBase.execSQL("DROP TABLE ${FitnessDatabase.TRACKERS}")
-            App.INSTANCE.myDataBase.execSQL("DROP TABLE ${FitnessDatabase.ALL_POINTS}")
-            App.INSTANCE.myDataBase.execSQL("DROP TABLE ${FitnessDatabase.NOTIFICATION_TIME_NAME}")
+            App.INSTANCE.myDataBase.execSQL("DROP TABLE $TRACKERS")
+            App.INSTANCE.myDataBase.execSQL("DROP TABLE $ALL_POINTS")
+            App.INSTANCE.myDataBase.execSQL("DROP TABLE $NOTIFICATION_TIME_NAME")
         }
     }
 
@@ -104,7 +125,7 @@ class RepositoryForDbImpl: RepositoryForDB {
                         calendar = calendar,
                         distance = distance,
                         listOfPoints = listOfPoints,
-                        isSend = 1
+                        isSend = NOT_SEND
                     )
                 }
                 saveTrackResponse.result.status == RunningActivity.ERROR -> {
@@ -114,7 +135,7 @@ class RepositoryForDbImpl: RepositoryForDB {
                         calendar = calendar,
                         distance = distance,
                         listOfPoints = listOfPoints,
-                        isSend = 1
+                        isSend = NOT_SEND
                     )
                 }
                 else -> {
@@ -124,7 +145,7 @@ class RepositoryForDbImpl: RepositoryForDB {
                         calendar = calendar,
                         distance = distance,
                         listOfPoints = listOfPoints,
-                        isSend = 0
+                        isSend = WAS_SEND
                     )
                 }
             }
@@ -136,8 +157,8 @@ class RepositoryForDbImpl: RepositoryForDB {
         val listOfTracks = mutableListOf<TrackFromDb>()
         try {
             cursor = SelectFromDbHelper()
-                .nameOfTable(table = FitnessDatabase.TRACKERS)
-                .selectParams(allParams = "*")
+                .nameOfTable(table = TRACKERS)
+                .selectParams(allParams = SELECT_ALL)
                 .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val index = getColumnIndex(cursor = cursor)
@@ -161,11 +182,11 @@ class RepositoryForDbImpl: RepositoryForDB {
     )
 
     private fun getColumnIndex(cursor: Cursor) = TrackColumnIndexFromDb(
-        id = cursor.getColumnIndexOrThrow(FitnessDatabase.ID),
-        serverId = cursor.getColumnIndexOrThrow(FitnessDatabase.ID_FROM_SERVER),
-        beginAt = cursor.getColumnIndexOrThrow(FitnessDatabase.BEGIN_TIME),
-        time = cursor.getColumnIndexOrThrow(FitnessDatabase.RUNNING_TIME),
-        distance = cursor.getColumnIndexOrThrow(FitnessDatabase.DISTANCE)
+        id = cursor.getColumnIndexOrThrow(ID),
+        serverId = cursor.getColumnIndexOrThrow(ID_FROM_SERVER),
+        beginAt = cursor.getColumnIndexOrThrow(BEGIN_TIME),
+        time = cursor.getColumnIndexOrThrow(RUNNING_TIME),
+        distance = cursor.getColumnIndexOrThrow(DISTANCE)
     )
 
     private fun insertDataAfterRunning(
@@ -183,7 +204,7 @@ class RepositoryForDbImpl: RepositoryForDB {
             calendar = calendar,
             distance = distance
         )
-        val trackIdInDb = getLastPositionInDb(FitnessDatabase.TRACKERS)
+        val trackIdInDb = getLastPositionInDb(TRACKERS)
         insertThePoints(
             serverId = id,
             trackIdInDb = trackIdInDb!!,
@@ -198,21 +219,21 @@ class RepositoryForDbImpl: RepositoryForDB {
     ) {
         listOfPoints.forEach {
             InsertIntoDBHelper()
-                .setTableName(name = FitnessDatabase.ALL_POINTS)
+                .setTableName(name = ALL_POINTS)
                 .addFieldsAndValuesToInsert(
-                    nameOfField = FitnessDatabase.ID_FROM_SERVER,
+                    nameOfField = ID_FROM_SERVER,
                     insertingValue = serverId.toString()
                 )
                 .addFieldsAndValuesToInsert(
-                    nameOfField = FitnessDatabase.LATITUDE,
+                    nameOfField = LATITUDE,
                     insertingValue = it.lat.toString()
                 )
                 .addFieldsAndValuesToInsert(
-                    nameOfField = FitnessDatabase.CURRENT_TRACK,
+                    nameOfField = CURRENT_TRACK,
                     insertingValue = trackIdInDb.toString()
                 )
                 .addFieldsAndValuesToInsert(
-                    nameOfField = FitnessDatabase.LONGITUDE,
+                    nameOfField = LONGITUDE,
                     insertingValue = it.lng.toString()
                 )
                 .insertTheValues(db = App.INSTANCE.myDataBase)
@@ -225,10 +246,10 @@ class RepositoryForDbImpl: RepositoryForDB {
         try {
             cursor = SelectFromDbHelper()
                 .nameOfTable(table = table)
-                .selectParams(allParams = NotificationFragment.MAX)
+                .selectParams(allParams = MAX)
                 .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
-                val idIndex = cursor.getColumnIndexOrThrow(FitnessDatabase.ID)
+                val idIndex = cursor.getColumnIndexOrThrow(ID)
                 do {
                     id = cursor.getInt(idIndex)
                 } while (cursor.moveToNext())
@@ -247,25 +268,25 @@ class RepositoryForDbImpl: RepositoryForDB {
         distance: Int
     ) {
         InsertIntoDBHelper()
-            .setTableName(name = FitnessDatabase.TRACKERS)
+            .setTableName(name = TRACKERS)
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.ID_FROM_SERVER,
+                nameOfField = ID_FROM_SERVER,
                 insertingValue = id.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.BEGIN_TIME,
+                nameOfField = BEGIN_TIME,
                 insertingValue = beginTime.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.RUNNING_TIME,
+                nameOfField = RUNNING_TIME,
                 insertingValue = calendar.time.time.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.IS_SEND,
+                nameOfField = IS_SEND,
                 insertingValue = isSend.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.DISTANCE,
+                nameOfField = DISTANCE,
                 insertingValue = distance.toString()
             )
             .insertTheValues(db = App.INSTANCE.myDataBase)
@@ -289,21 +310,21 @@ class RepositoryForDbImpl: RepositoryForDB {
         listOfNotifications: List<Notification>
     ) {
         InsertIntoDBHelper()
-            .setTableName(name = FitnessDatabase.NOTIFICATION_TIME_NAME)
+            .setTableName(name = NOTIFICATION_TIME_NAME)
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.NOTIFICATION_TIME,
+                nameOfField = NOTIFICATION_TIME,
                 insertingValue = alarmDate.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.CURRENT_HOUR,
+                nameOfField = CURRENT_HOUR,
                 insertingValue = alarmHours.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.CURRENT_MINUTE,
+                nameOfField = CURRENT_MINUTE,
                 insertingValue = alarmMinutes.toString()
             )
             .addFieldsAndValuesToInsert(
-                nameOfField = FitnessDatabase.POSITION_IN_LIST,
+                nameOfField = POSITION_IN_LIST,
                 insertingValue = listOfNotifications.size.toString()
             )
             .insertTheValues(db = App.INSTANCE.myDataBase)
@@ -314,8 +335,8 @@ class RepositoryForDbImpl: RepositoryForDB {
         val listOfNotification = mutableListOf<Notification>()
         try {
             cursor = SelectFromDbHelper()
-                .selectParams(allParams = "*")
-                .nameOfTable(table = FitnessDatabase.NOTIFICATION_TIME_NAME)
+                .selectParams(allParams = SELECT_ALL)
+                .nameOfTable(table = NOTIFICATION_TIME_NAME)
                 .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val indexFromDb = getNotificationColumnIndex(cursor = cursor)
@@ -332,11 +353,11 @@ class RepositoryForDbImpl: RepositoryForDB {
     }
 
     private fun getNotificationColumnIndex(cursor: Cursor) = NotificationColumnIndexFromDb(
-        dateIndex = cursor.getColumnIndexOrThrow(FitnessDatabase.NOTIFICATION_TIME),
-        idIndex = cursor.getColumnIndexOrThrow(FitnessDatabase.ID),
-        positionIndex = cursor.getColumnIndexOrThrow(FitnessDatabase.POSITION_IN_LIST),
-        hoursIndex = cursor.getColumnIndexOrThrow(FitnessDatabase.CURRENT_HOUR),
-        minutesIndex = cursor.getColumnIndexOrThrow(FitnessDatabase.CURRENT_MINUTE),
+        dateIndex = cursor.getColumnIndexOrThrow(NOTIFICATION_TIME),
+        idIndex = cursor.getColumnIndexOrThrow(ID),
+        positionIndex = cursor.getColumnIndexOrThrow(POSITION_IN_LIST),
+        hoursIndex = cursor.getColumnIndexOrThrow(CURRENT_HOUR),
+        minutesIndex = cursor.getColumnIndexOrThrow(CURRENT_MINUTE),
     )
 
     private fun createNotification(cursor: Cursor, indexFromDb: NotificationColumnIndexFromDb) =

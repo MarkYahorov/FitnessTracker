@@ -5,6 +5,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitBuilder {
 
+    companion object {
+        private const val BASE_URL = "https://pub.zame-dev.org/senla-training-addition/"
+    }
+
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -14,9 +18,5 @@ class RetrofitBuilder {
 
     val apiService: ApiService by lazy {
         retrofit.create(ApiService::class.java)
-    }
-
-    companion object {
-        private const val BASE_URL = "https://pub.zame-dev.org/senla-training-addition/"
     }
 }

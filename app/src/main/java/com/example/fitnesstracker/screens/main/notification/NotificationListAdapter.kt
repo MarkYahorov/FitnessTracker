@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.fitnesstracker.App.Companion.PATTERN_WITHOUT_SECONDS
+import com.example.fitnesstracker.App.Companion.PATTERN_DATE_HOURS_MINUTES
 import com.example.fitnesstracker.R
 import com.example.fitnesstracker.models.notification.Notification
 import java.text.SimpleDateFormat
@@ -33,7 +33,7 @@ class NotificationListAdapter(
             calendar?.time = Date(notification.date)
             calendar!![Calendar.HOUR_OF_DAY] = notification.hours
             calendar!![Calendar.MINUTE] = notification.minutes
-            date = SimpleDateFormat(PATTERN_WITHOUT_SECONDS, Locale.getDefault())
+            date = SimpleDateFormat(PATTERN_DATE_HOURS_MINUTES, Locale.getDefault())
             timeText.text = date?.format(calendar!!.time)
             enableNotification(notification)
             item.setOnClickListener {

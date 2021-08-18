@@ -35,6 +35,14 @@ import com.example.fitnesstracker.screens.running.RunningActivity.Companion.ERRO
 
 class RepositoryFromServerImpl : RepositoryFromServer {
 
+    companion object {
+        private const val SELECT_ALL = "*"
+        private const val EMPTY_VALUE = ""
+        private const val NOT_SEND = 1
+        private const val DEFAULT_VALUE_INT = 0
+        private const val DEFAULT_VALUE_LONG = 0L
+    }
+
     override fun login(loginRequest: LoginRequest): Task<LoginResponse> {
         return Task.callInBackground {
             val execute = App.INSTANCE.apiService.login(loginRequest = loginRequest)
@@ -59,7 +67,12 @@ class RepositoryFromServerImpl : RepositoryFromServer {
                 insertDataInDb(tracksInfo = body.trackForData)
             }
             if ((body?.error == null || body.status != ERROR) && getListNotSendTracksFromDb().isNotEmpty()) {
-                val trackForData = TrackForData(0, 0, 0, 0)
+                val trackForData = TrackForData(
+                    DEFAULT_VALUE_INT,
+                    DEFAULT_VALUE_LONG,
+                    DEFAULT_VALUE_LONG,
+                    DEFAULT_VALUE_INT
+                )
                 val listOfNotSendTracks = getListNotSendTracksFromDb()
                 listOfNotSendTracks.forEach {
                     trackForData.beginTime = it.beginTime
@@ -133,7 +146,7 @@ class RepositoryFromServerImpl : RepositoryFromServer {
         try {
             cursor = SelectFromDbHelper()
                 .nameOfTable(table = ALL_POINTS)
-                .selectParams(allParams = "*")
+                .selectParams(allParams = SELECT_ALL)
                 .where(whereArgs = "$CURRENT_TRACK = $currentTrackId")
                 .select(db = App.INSTANCE.myDataBase)
             haveData = cursor.moveToFirst()
@@ -189,11 +202,11 @@ class RepositoryFromServerImpl : RepositoryFromServer {
         trackForData: TrackForData,
         trackFromDb: TrackFromDb
     ) {
-        if (trackForData.serverId == 0) {
+        if (trackForData.serverId == DEFAULT_VALUE_INT) {
             trackForData.serverId = null
             saveTrack(
                 saveTrackRequest = SaveTrackRequest(
-                    token = trackRequest?.token ?: "",
+                    token = trackRequest?.token ?: EMPTY_VALUE,
                     serverId = trackForData.serverId,
                     beginTime = trackForData.beginTime,
                     time = trackForData.time,
@@ -242,7 +255,7 @@ class RepositoryFromServerImpl : RepositoryFromServer {
         try {
             cursor = SelectFromDbHelper()
                 .nameOfTable(table = ALL_POINTS)
-                .selectParams(allParams = "*")
+                .selectParams(allParams = SELECT_ALL)
                 .where(whereArgs = "$CURRENT_TRACK = $trackId")
                 .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
@@ -266,7 +279,7 @@ class RepositoryFromServerImpl : RepositoryFromServer {
         try {
             cursor = SelectFromDbHelper()
                 .nameOfTable(table = TRACKERS)
-                .selectParams(allParams = "*")
+                .selectParams(allParams = SELECT_ALL)
                 .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val index = getColumnIndex(cursor = cursor)
@@ -287,8 +300,8 @@ class RepositoryFromServerImpl : RepositoryFromServer {
         try {
             cursor = SelectFromDbHelper()
                 .nameOfTable(table = TRACKERS)
-                .selectParams(allParams = "*")
-                .where(whereArgs = "$IS_SEND = 1")
+                .selectParams(allParams = SELECT_ALL)
+                .where(whereArgs = "$IS_SEND = $NOT_SEND")
                 .select(db = App.INSTANCE.myDataBase)
             if (cursor.moveToFirst()) {
                 val index = getColumnIndex(cursor = cursor)

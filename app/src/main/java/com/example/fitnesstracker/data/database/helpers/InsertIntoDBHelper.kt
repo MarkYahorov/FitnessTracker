@@ -8,6 +8,7 @@ class InsertIntoDBHelper {
         private const val ERROR = "Введи нормальные данные"
         private const val QUESTION = "?"
         private const val EMPTY_STRING = ""
+        private const val INDEX_PLUS = 1
     }
 
     private var tableName: String = ""
@@ -37,7 +38,7 @@ class InsertIntoDBHelper {
             val statement =
                 db.compileStatement("INSERT INTO $tableName ($selectedFields) VALUES ($stringBuilderForQuestion)")
             selectedFieldsInTable.values.forEachIndexed { index, s ->
-                statement.bindString(index + 1, s)
+                statement.bindString(index + INDEX_PLUS, s)
             }
             statement.execute()
         }

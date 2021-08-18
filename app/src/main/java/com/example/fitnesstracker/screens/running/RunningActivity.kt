@@ -79,14 +79,14 @@ class RunningActivity : AppCompatActivity() {
 
     private val coordinateList = mutableListOf<PointForData>()
     private val serverRepo = App.INSTANCE.repositoryFromServerImpl
-    private val dbRepo = App.INSTANCE.repositoryForDb
+    private val dbRepo = App.INSTANCE.repositoryForDbImpl
     private var calendar = Calendar.getInstance()
     private val timeZone = SimpleTimeZone.getTimeZone(UTC)
     private var isFinish = true
     private var distance = 0
     private var beginTime = 0L
 
-    private var tStart = 0L
+    private var startTime = 0L
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -131,10 +131,10 @@ class RunningActivity : AppCompatActivity() {
             finishTimeRunningTextView?.text = savedInstanceState.getString(FINISH_TIME)
             runningLayout?.isVisible = savedInstanceState.getBoolean(RUNNING_VISIBLE)
             finishLayout?.isVisible = savedInstanceState.getBoolean(FINISH_VISIBLE)
-            tStart = savedInstanceState.getLong(START)
+            startTime = savedInstanceState.getLong(START)
             calculator?.setView(timeRunningTextView)
             timer = calculator?.createTimer(
-                tStart = tStart,
+                tStart = startTime,
                 calendar = calendar
             )
             handler?.postDelayed(timer!!, HANDLER_DELAY)
@@ -227,9 +227,9 @@ class RunningActivity : AppCompatActivity() {
     }
 
     private fun startTimer() {
-        tStart = SystemClock.elapsedRealtime()
+        startTime = SystemClock.elapsedRealtime()
         calculator?.setView(timeRunningTextView)
-        timer = calculator?.createTimer(tStart, calendar)
+        timer = calculator?.createTimer(startTime, calendar)
         beginTime = System.currentTimeMillis()
         handler?.postDelayed(timer!!, HANDLER_DELAY)
     }
@@ -343,7 +343,7 @@ class RunningActivity : AppCompatActivity() {
         outState.putLong(BEGIN_TIME, beginTime)
         runningLayout?.let { outState.putBoolean(RUNNING_VISIBLE, it.isVisible) }
         finishLayout?.let { outState.putBoolean(FINISH_VISIBLE, it.isVisible) }
-        outState.putLong(START, tStart)
+        outState.putLong(START, startTime)
         outState.putString(DISTANCE, distanceTextView?.text.toString())
         outState.putString(FINISH_TIME, finishTimeRunningTextView?.text.toString())
     }

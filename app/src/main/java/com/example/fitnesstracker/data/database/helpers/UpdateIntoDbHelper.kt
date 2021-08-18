@@ -6,6 +6,7 @@ class UpdateIntoDbHelper {
 
     companion object{
         private const val EMPTY_STRING = ""
+        private const val SEPARATOR = ","
     }
 
     private var tableName = ""
@@ -33,7 +34,7 @@ class UpdateIntoDbHelper {
     }
 
     fun update(db: SQLiteDatabase) {
-        val updatingFields = updatesFields.entries.joinToString(",")
+        val updatingFields = updatesFields.entries.joinToString(SEPARATOR)
         db.compileStatement(
             "UPDATE $tableName SET $updatingFields WHERE $whereArgs"
         ).execute()

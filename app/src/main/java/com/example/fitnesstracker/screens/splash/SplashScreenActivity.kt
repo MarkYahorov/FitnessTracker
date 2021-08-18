@@ -24,14 +24,14 @@ class SplashScreenActivity : AppCompatActivity() {
         private const val HANDLER_DELAY = 3000L
     }
 
-    private var logo: ImageView? = null
+    private var logoImage: ImageView? = null
 
     private var isFirstTimeInApp = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
-        logo = findViewById(R.id.logo_image)
+        logoImage = findViewById(R.id.logo_image)
         isFirstTimeInApp = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .getBoolean(IS_FIRST, true)
     }
@@ -45,7 +45,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
     private fun startLogoAnimation() {
         val anim = AnimationUtils.loadAnimation(this, R.anim.logo_animation)
-        logo?.animation = anim
+        logoImage?.animation = anim
     }
 
     private fun goToNextActivity() {
@@ -69,6 +69,6 @@ class SplashScreenActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        logo = null
+        logoImage = null
     }
 }

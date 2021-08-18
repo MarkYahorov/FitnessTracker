@@ -61,7 +61,7 @@ class TrackFragment : Fragment() {
     private var distance: TextView? = null
     private var googleMap: GoogleMap? = null
     private var alertDialog: AlertDialog.Builder? = null
-    private var trackFragment: SupportMapFragment? = null
+    private var mapFragment: SupportMapFragment? = null
 
     private val allDistanceOfTrack = mutableListOf<PointForData>()
     private val allPointsInLatLng = mutableListOf<LatLng>()
@@ -82,13 +82,13 @@ class TrackFragment : Fragment() {
     private fun initAll(view: View) {
         runningTime = view.findViewById(R.id.current_track_running_time)
         distance = view.findViewById(R.id.current_track_distance)
-        trackFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
+        mapFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
         alertDialog = AlertDialog.Builder(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        trackFragment?.getMapAsync(callback)
+        mapFragment?.getMapAsync(callback)
         val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
         val timeZone = SimpleTimeZone.getTimeZone(UTC)
         format.timeZone = timeZone
@@ -206,7 +206,7 @@ class TrackFragment : Fragment() {
         super.onDestroyView()
         googleMap = null
         alertDialog = null
-        trackFragment = null
+        mapFragment = null
         runningTime = null
         distance = null
     }

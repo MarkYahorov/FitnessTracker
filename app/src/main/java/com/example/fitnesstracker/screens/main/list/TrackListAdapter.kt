@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.fitnesstracker.App.Companion.PATTERN_WITHOUT_SECONDS
+import com.example.fitnesstracker.App.Companion.PATTERN_DATE_HOURS_MINUTES
 import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
 import com.example.fitnesstracker.App.Companion.UTC
 import com.example.fitnesstracker.R
@@ -28,7 +28,7 @@ class TrackListAdapter(
         private var timeZone: TimeZone? = null
 
         fun bind(trackForData: TrackFromDb) {
-            date = SimpleDateFormat(PATTERN_WITHOUT_SECONDS, Locale.getDefault())
+            date = SimpleDateFormat(PATTERN_DATE_HOURS_MINUTES, Locale.getDefault())
             currentTimeFormat = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
             timeZone = SimpleTimeZone.getTimeZone(UTC)
             currentTimeFormat?.timeZone = timeZone!!

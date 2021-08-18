@@ -14,7 +14,7 @@ class App : Application() {
     companion object {
         lateinit var INSTANCE: App
         const val PATTERN_WITH_SECONDS = "HH:mm:ss,SS"
-        const val PATTERN_WITHOUT_SECONDS = "dd.MM.yyyy HH:mm"
+        const val PATTERN_DATE_HOURS_MINUTES= "dd.MM.yyyy HH:mm"
         const val UTC = "UTC"
         const val RUNNING_ACTIVITY_MARKER = 1
         const val MAIN_ACTIVITY_MARKER = 0
@@ -23,7 +23,7 @@ class App : Application() {
     lateinit var myDataBase: SQLiteDatabase
     val repositoryFromServerImpl: RepositoryFromServer = RepositoryFromServerImpl()
     val apiService = RetrofitBuilder().apiService
-    val repositoryForDb: RepositoryForDB = RepositoryForDbImpl()
+    val repositoryForDbImpl: RepositoryForDB = RepositoryForDbImpl()
 
     override fun onCreate() {
         super.onCreate()

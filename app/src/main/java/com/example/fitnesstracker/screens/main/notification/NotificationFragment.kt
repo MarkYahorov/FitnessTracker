@@ -47,7 +47,7 @@ class NotificationFragment : Fragment() {
 
     private val notificationList = mutableListOf<Notification>()
     private var calendar = Calendar.getInstance()
-    private val repo = App.INSTANCE.repositoryForDb
+    private val repo = App.INSTANCE.repositoryForDbImpl
     private var currentDate = 0L
     private var currentHour = 0
     private var currentMinutes = 0
@@ -66,7 +66,7 @@ class NotificationFragment : Fragment() {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler)
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
         alertDialog = AlertDialog.Builder(requireContext())
-        alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
+        alarmManager = requireContext().getSystemService(ALARM_SERVICE) as AlarmManager
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

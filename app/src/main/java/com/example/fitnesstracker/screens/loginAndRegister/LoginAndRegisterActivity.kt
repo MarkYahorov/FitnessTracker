@@ -46,9 +46,9 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     }
 
     private lateinit var welcomeText: TextView
-    private lateinit var email: EditText
-    private lateinit var password: EditText
-    private lateinit var repeatPassword: EditText
+    private lateinit var emailText: EditText
+    private lateinit var passwordText: EditText
+    private lateinit var repeatPasswordText: EditText
     private lateinit var firstNameText: EditText
     private lateinit var lastNameText: EditText
     private lateinit var loginBtn: Button
@@ -80,9 +80,9 @@ class LoginAndRegisterActivity : AppCompatActivity() {
 
     private fun initAllViews() {
         welcomeText = findViewById(R.id.first_screen_text)
-        email = findViewById(R.id.email_edit_text_to_login)
-        password = findViewById(R.id.password_edit_text_to_login)
-        repeatPassword = findViewById(R.id.repeat_edit_text)
+        emailText = findViewById(R.id.email_edit_text_to_login)
+        passwordText = findViewById(R.id.password_edit_text_to_login)
+        repeatPasswordText = findViewById(R.id.repeat_edit_text)
         firstNameText = findViewById(R.id.first_name_edit_text)
         lastNameText = findViewById(R.id.last_name_edit_text)
         loginBtn = findViewById(R.id.open_login_views_btn)
@@ -183,35 +183,35 @@ class LoginAndRegisterActivity : AppCompatActivity() {
 
     private fun createErrorMessageForRegistration() {
         if (!checkEmailIsEqualsRegex() && !checkPasswordIsEqualsRegex() && !checkPasswordMatching()) {
-            email.error = getString(R.string.error_message_email)
-            password.error = getString(R.string.error_message_password)
-            repeatPassword.error = getString(R.string.error_message_repeat_password)
+            emailText.error = getString(R.string.error_message_email)
+            passwordText.error = getString(R.string.error_message_password)
+            repeatPasswordText.error = getString(R.string.error_message_repeat_password)
         } else if (!checkEmailIsEqualsRegex()) {
-            email.error = getString(R.string.error_message_email)
+            emailText.error = getString(R.string.error_message_email)
         } else if (!checkPasswordIsEqualsRegex()) {
-            password.error = getString(R.string.error_message_password)
+            passwordText.error = getString(R.string.error_message_password)
         } else if (!checkPasswordMatching()) {
-            repeatPassword.error = getString(R.string.error_message_repeat_password)
+            repeatPasswordText.error = getString(R.string.error_message_repeat_password)
         }
     }
 
     private fun createErrorMessageForLogin() {
         if (!checkEmailIsEqualsRegex() && !checkPasswordIsEqualsRegex()) {
-            email.error = getString(R.string.error_message_email)
-            password.error = getString(R.string.error_message_password)
+            emailText.error = getString(R.string.error_message_email)
+            passwordText.error = getString(R.string.error_message_password)
         } else if (!checkEmailIsEqualsRegex()) {
-            email.error = getString(R.string.error_message_email)
+            emailText.error = getString(R.string.error_message_email)
         } else if (!checkPasswordIsEqualsRegex()) {
-            password.error = getString(R.string.error_message_password)
+            passwordText.error = getString(R.string.error_message_password)
         }
     }
 
-    private fun checkEmailIsEqualsRegex() = emailPattern.matcher(email.text.toString()).matches()
+    private fun checkEmailIsEqualsRegex() = emailPattern.matcher(emailText.text.toString()).matches()
 
-    private fun checkPasswordMatching() = password.text.toString() == repeatPassword.text.toString()
+    private fun checkPasswordMatching() = passwordText.text.toString() == repeatPasswordText.text.toString()
 
     private fun checkPasswordIsEqualsRegex() =
-        passwordPattern.matcher(password.text.toString()).matches()
+        passwordPattern.matcher(passwordText.text.toString()).matches()
 
     private fun createAlertDialog(error: String?): AlertDialog.Builder? {
         return alertDialog?.setTitle(getString(R.string.error))
@@ -225,16 +225,16 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(CURRENT_STATE_OF_BTNS, isLoadingBtnActive)
-        outState.putString(CURRENT_EMAIL, email.text.toString())
-        outState.putString(CURRENT_PASSWORD, password.text.toString())
-        outState.putString(CURRENT_REPEAT_PASSWORD, repeatPassword.text.toString())
+        outState.putString(CURRENT_EMAIL, emailText.text.toString())
+        outState.putString(CURRENT_PASSWORD, passwordText.text.toString())
+        outState.putString(CURRENT_REPEAT_PASSWORD, repeatPasswordText.text.toString())
         outState.putString(CURRENT_FIRST_NAME, firstNameText.text.toString())
         outState.putString(CURRENT_LAST_NAME, lastNameText.text.toString())
         outState.putBoolean(UNDERLINE_LOGIN, loginBtn.paint.isUnderlineText)
         outState.putBoolean(UNDERLINE_REGISTR, registerBtn.paint.isUnderlineText)
         outState.putBoolean(ENABLED_LOGIN_BTN, loginBtn.isEnabled)
         outState.putBoolean(ENABLED_REGISTR_BTN, registerBtn.isEnabled)
-        outState.putBoolean(REPEAT_PASSWORD_VISIBLE, repeatPassword.isVisible)
+        outState.putBoolean(REPEAT_PASSWORD_VISIBLE, repeatPasswordText.isVisible)
         outState.putBoolean(FIRST_NAME_VISIBLE, firstNameText.isVisible)
         outState.putBoolean(LAST_NAME_VISIBLE, lastNameText.isVisible)
     }
@@ -242,34 +242,34 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         isLoadingBtnActive = savedInstanceState.getBoolean(CURRENT_STATE_OF_BTNS)
-        email.setText(savedInstanceState.getString(CURRENT_EMAIL))
-        password.setText(savedInstanceState.getString(CURRENT_PASSWORD))
-        repeatPassword.setText(savedInstanceState.getString(CURRENT_REPEAT_PASSWORD))
+        emailText.setText(savedInstanceState.getString(CURRENT_EMAIL))
+        passwordText.setText(savedInstanceState.getString(CURRENT_PASSWORD))
+        repeatPasswordText.setText(savedInstanceState.getString(CURRENT_REPEAT_PASSWORD))
         firstNameText.setText(savedInstanceState.getString(CURRENT_FIRST_NAME))
         lastNameText.setText(savedInstanceState.getString(CURRENT_LAST_NAME))
         loginBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_LOGIN)
         registerBtn.paint.isUnderlineText = savedInstanceState.getBoolean(UNDERLINE_REGISTR)
         loginBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_LOGIN_BTN)
         registerBtn.isEnabled = savedInstanceState.getBoolean(ENABLED_REGISTR_BTN)
-        repeatPassword.isVisible = savedInstanceState.getBoolean(REPEAT_PASSWORD_VISIBLE)
+        repeatPasswordText.isVisible = savedInstanceState.getBoolean(REPEAT_PASSWORD_VISIBLE)
         firstNameText.isVisible = savedInstanceState.getBoolean(FIRST_NAME_VISIBLE)
         lastNameText.isVisible = savedInstanceState.getBoolean(LAST_NAME_VISIBLE)
     }
 
     private fun createLoginRequest() =
-        LoginRequest(email = email.text.toString(), password = password.text.toString())
+        LoginRequest(email = emailText.text.toString(), password = passwordText.text.toString())
 
     private fun addTextListeners() {
-        email.addTextChangedListener(textWatcher)
-        password.addTextChangedListener(textWatcher)
-        repeatPassword.addTextChangedListener(textWatcher)
+        emailText.addTextChangedListener(textWatcher)
+        passwordText.addTextChangedListener(textWatcher)
+        repeatPasswordText.addTextChangedListener(textWatcher)
         firstNameText.addTextChangedListener(textWatcher)
         lastNameText.addTextChangedListener(textWatcher)
     }
 
     private fun createRegistrationRequest() = RegistrationRequest(
-        email.text.toString(),
-        password.text.toString(),
+        emailText.text.toString(),
+        passwordText.text.toString(),
         firstNameText.text.toString(),
         lastNameText.text.toString()
     )
@@ -288,15 +288,15 @@ class LoginAndRegisterActivity : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (!isLoadingBtnActive) {
-                    registerBtn.isEnabled = email.text.isNotEmpty()
-                            && password.text.isNotEmpty()
-                            && repeatPassword.text.isNotEmpty()
+                    registerBtn.isEnabled = emailText.text.isNotEmpty()
+                            && passwordText.text.isNotEmpty()
+                            && repeatPasswordText.text.isNotEmpty()
                             && firstNameText.text.isNotEmpty()
                             && lastNameText.text.isNotEmpty()
                 }
                 if (isLoadingBtnActive) {
-                    loginBtn.isEnabled = email.text.isNotEmpty()
-                            && password.text.isNotEmpty()
+                    loginBtn.isEnabled = emailText.text.isNotEmpty()
+                            && passwordText.text.isNotEmpty()
                 }
             }
 
@@ -306,7 +306,7 @@ class LoginAndRegisterActivity : AppCompatActivity() {
     }
 
     private fun setVisibilityViews(isVisible: Boolean) {
-        repeatPassword.isVisible = isVisible
+        repeatPasswordText.isVisible = isVisible
         firstNameText.isVisible = isVisible
         lastNameText.isVisible = isVisible
     }
@@ -322,9 +322,9 @@ class LoginAndRegisterActivity : AppCompatActivity() {
         loginBtn.setOnClickListener(null)
         registerBtn.setOnClickListener(null)
         alertDialog = null
-        email.removeTextChangedListener(textWatcher)
-        password.removeTextChangedListener(textWatcher)
-        repeatPassword.removeTextChangedListener(textWatcher)
+        emailText.removeTextChangedListener(textWatcher)
+        passwordText.removeTextChangedListener(textWatcher)
+        repeatPasswordText.removeTextChangedListener(textWatcher)
         firstNameText.removeTextChangedListener(textWatcher)
         lastNameText.removeTextChangedListener(textWatcher)
         textWatcher = null

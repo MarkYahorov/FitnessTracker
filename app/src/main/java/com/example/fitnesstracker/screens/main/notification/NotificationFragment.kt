@@ -44,6 +44,8 @@ class NotificationFragment : Fragment() {
     private var addNotificationBtn: FloatingActionButton? = null
     private var alarmManager: AlarmManager? = null
     private var alertDialog: AlertDialog.Builder? = null
+    private var timePicker: MaterialTimePicker? = null
+    private var datePicker: MaterialDatePicker<Long>? = null
 
     private val notificationList = mutableListOf<Notification>()
     private var calendar = Calendar.getInstance()
@@ -67,6 +69,8 @@ class NotificationFragment : Fragment() {
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
         alertDialog = AlertDialog.Builder(requireContext())
         alarmManager = requireContext().getSystemService(ALARM_SERVICE) as AlarmManager
+        datePicker = createDataBicker()
+        timePicker = createTimePicker()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -153,13 +157,11 @@ class NotificationFragment : Fragment() {
     }
 
     private fun updateAlarm(currentId: Int, position: Int) {
-        val datePicker = createDataBicker()
-        datePicker.show(childFragmentManager, DATE_PICKER)
-        datePicker.addOnPositiveButtonClickListener {
-            currentDate = datePicker.selection!!
-            val timePicker = createTimePicker()
-            timePicker.show(childFragmentManager, TIME_PICKER)
-            timePicker.addOnPositiveButtonClickListener {
+        datePicker?.show(childFragmentManager, DATE_PICKER)
+        datePicker?.addOnPositiveButtonClickListener {
+            currentDate = datePicker?.selection!!
+            timePicker?.show(childFragmentManager, TIME_PICKER)
+            timePicker?.addOnPositiveButtonClickListener {
                 setCalendarTime(timePicker = timePicker)
                 updateNotificationInDb(currentId = currentId, position = position)
             }
@@ -181,10 +183,12 @@ class NotificationFragment : Fragment() {
             .build()
     }
 
-    private fun setCalendarTime(timePicker: MaterialTimePicker) {
+    private fun setCalendarTime(timePicker: MaterialTimePicker?) {
         calendar.time = Date(currentDate)
-        currentHour = timePicker.hour
-        currentMinutes = timePicker.minute
+        if (timePicker != null) {
+            currentHour = timePicker.hour
+            currentMinutes = timePicker.minute
+        }
         calendar[Calendar.HOUR_OF_DAY] = currentHour
         calendar[Calendar.MINUTE] = currentMinutes
     }
@@ -232,20 +236,18 @@ class NotificationFragment : Fragment() {
     }
 
     private fun createAlarm() {
-        val datePicker = createDataBicker()
-        datePicker.show(childFragmentManager, DATE_PICKER)
-        datePicker.addOnPositiveButtonClickListener {
-            currentDate = datePicker.selection!!
-            val timePicker = createTimePicker()
-            timePicker.show(childFragmentManager, TIME_PICKER)
-            timePicker.addOnPositiveButtonClickListener {
+        datePicker?.show(childFragmentManager, DATE_PICKER)
+        datePicker?.addOnPositiveButtonClickListener {
+            currentDate = datePicker?.selection!!
+            timePicker?.show(childFragmentManager, TIME_PICKER)
+            timePicker?.addOnPositiveButtonClickListener {
                 createAlarmManagerForInsertIntoDb(timePicker = timePicker)
             }
         }
     }
 
     private fun createAlarmManagerForInsertIntoDb(
-        timePicker: MaterialTimePicker
+        timePicker: MaterialTimePicker?
     ) {
         setCalendarTime(timePicker = timePicker)
         if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
@@ -298,5 +300,7 @@ class NotificationFragment : Fragment() {
         addNotificationBtn = null
         alertDialog = null
         alarmManager = null
+        timePicker = null
+        datePicker = null
     }
 }

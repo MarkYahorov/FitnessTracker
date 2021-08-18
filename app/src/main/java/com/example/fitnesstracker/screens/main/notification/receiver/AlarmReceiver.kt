@@ -32,10 +32,8 @@ class AlarmReceiver : BroadcastReceiver() {
         val currentRequestCode = intent.getIntExtra(NEW_REQUEST_CODE, DEFAULT_REQUEST_CODE)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent = PendingIntent.getActivity(context, currentRequestCode, touchIntent, 0)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notification = createNotification(context, pendingIntent)
-            NotificationManagerCompat.from(context).notify(currentRequestCode, notification)
-        }
+        val notification = createNotification(context, pendingIntent)
+        NotificationManagerCompat.from(context).notify(currentRequestCode, notification)
     }
 
     private fun createNotification(context: Context, pendingIntent: PendingIntent): Notification {
@@ -56,7 +54,8 @@ class AlarmReceiver : BroadcastReceiver() {
                 ALARM_CHANNEL_NAME,
                 IMPORTANCE_HIGH
             )
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val manager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
     }

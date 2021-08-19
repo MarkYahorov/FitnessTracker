@@ -9,7 +9,7 @@ import com.example.fitnesstracker.models.tracks.TrackFromDb
 import java.util.*
 
 interface RepositoryForDB {
-    fun getListOfTrack(): Task<List<TrackFromDb>>
+    fun getTracksList(): Task<List<TrackFromDb>>
     fun getListOfNotification(): Task<List<Notification>>
     fun insertNotification(
         alarmDate: Long,

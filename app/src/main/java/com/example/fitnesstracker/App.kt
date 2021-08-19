@@ -27,6 +27,7 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
         INSTANCE = this
         myDataBase = FitnessDatabase(this).writableDatabase
     }

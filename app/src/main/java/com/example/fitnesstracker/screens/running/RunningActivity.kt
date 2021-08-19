@@ -121,6 +121,7 @@ class RunningActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_running)
+
         checkPermissions()
         initAll()
         calendar.timeZone = timeZone
@@ -187,6 +188,7 @@ class RunningActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         super.onStart()
+
         setStartBtnClickListener()
         setFinishBtnListener()
         setToolbar()
@@ -334,11 +336,13 @@ class RunningActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
         registerReceiver(broadcastReceiver, IntentFilter(LOCATION_UPDATE))
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+
         outState.putBoolean(IS_FINISH, isFinish)
         outState.putLong(BEGIN_TIME, beginTime)
         runningLayout?.let { outState.putBoolean(RUNNING_VISIBLE, it.isVisible) }
@@ -385,11 +389,13 @@ class RunningActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+
         unregisterReceiver(broadcastReceiver)
     }
 
     override fun onStop() {
         super.onStop()
+
         startBtn?.setOnClickListener(null)
         finishBtn?.setOnClickListener(null)
         toggle?.let { navDrawer?.removeDrawerListener(it) }
@@ -397,6 +403,7 @@ class RunningActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
         calculator?.clearView()
         calculator = null
         alertDialog = null

@@ -31,6 +31,7 @@ class SplashScreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
+
         logoImage = findViewById(R.id.logo_image)
         isFirstTimeInApp = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             .getBoolean(IS_FIRST, true)
@@ -68,6 +69,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
         logoImage = null
     }
 }

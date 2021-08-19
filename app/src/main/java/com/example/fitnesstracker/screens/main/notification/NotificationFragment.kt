@@ -31,7 +31,6 @@ class NotificationFragment : Fragment() {
 
     companion object {
         const val NEW_REQUEST_CODE = "NEW_REQUEST_CODE"
-        const val MAX = "max($ID) as $ID"
         private const val DATE_PICKER = "DATE_PICKER"
         private const val TIME_PICKER = "TIME_PICKER"
         private const val CURRENT_DATE = "CURRENT_DATE"

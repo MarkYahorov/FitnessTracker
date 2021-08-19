@@ -50,6 +50,7 @@ class CheckLocationService : Service(), LocationListener {
     @SuppressLint("MissingPermission")
     override fun onCreate() {
         super.onCreate()
+
         createNotifyChanel()
         startForeground()
         locationManager =

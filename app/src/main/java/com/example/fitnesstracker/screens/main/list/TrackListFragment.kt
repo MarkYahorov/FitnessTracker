@@ -99,6 +99,7 @@ class TrackListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         initTrackRecycler()
         setIsFirstTimeInApp()
         if (savedInstanceState != null) {
@@ -132,6 +133,7 @@ class TrackListFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+
         if (isFirstTimeInApp) {
             progressBar?.isVisible = true
             putIsFirstValueInSharedPref()
@@ -163,7 +165,7 @@ class TrackListFragment : Fragment() {
     }
 
     private fun getTracksFromDb() {
-        dbRepository.getListOfTrack()
+        dbRepository.getTracksList()
             .continueWith({ listOfTracks ->
                 oldListSize = listOfTracks.result.size - trackList.size
                 if (trackList.size < listOfTracks.result.size) {
@@ -264,6 +266,7 @@ class TrackListFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+
         outState.putInt(OLD_LIST_SIZE, oldListSize)
         outState.putParcelableArrayList(TRACK_LIST, trackList as ArrayList<TrackFromDb>)
         outState.putInt(POSITION, position)
@@ -300,6 +303,7 @@ class TrackListFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+
         trackRecyclerView?.clearOnScrollListeners()
         addTrackBtn?.setOnClickListener(null)
         swipeRefreshLayout?.setOnRefreshListener(null)
@@ -307,6 +311,7 @@ class TrackListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
         builder = null
         trackRecyclerView = null
         addTrackBtn = null

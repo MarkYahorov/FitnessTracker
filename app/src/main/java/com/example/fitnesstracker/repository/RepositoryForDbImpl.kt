@@ -32,7 +32,6 @@ import com.example.fitnesstracker.models.tracks.TrackFromDb
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.example.fitnesstracker.screens.loginAndRegister.FITNESS_SHARED
 import com.example.fitnesstracker.screens.main.list.TrackListFragment
-import com.example.fitnesstracker.screens.main.notification.NotificationFragment.Companion.MAX
 import com.example.fitnesstracker.screens.running.RunningActivity
 import java.util.*
 
@@ -42,9 +41,10 @@ class RepositoryForDbImpl: RepositoryForDB {
         private const val SELECT_ALL = "*"
         private const val NOT_SEND = 1
         private const val WAS_SEND = 0
+        private const val MAX = "max($ID) as $ID"
     }
 
-    override fun getListOfTrack(): Task<List<TrackFromDb>> {
+    override fun getTracksList(): Task<List<TrackFromDb>> {
         return Task.callInBackground {
             getListOfTracks()
         }

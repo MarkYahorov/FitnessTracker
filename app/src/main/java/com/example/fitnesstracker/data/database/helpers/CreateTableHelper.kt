@@ -10,7 +10,7 @@ class CreateTableHelper {
         private const val EMPTY_STRING = ""
     }
 
-    private var name: String = ""
+    private var name: String = EMPTY_STRING
     private var fields: MutableMap<String, String> = mutableMapOf()
 
     fun setName(table: String): CreateTableHelper {

@@ -71,6 +71,7 @@ class NotificationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         getNotificationFromDb()
         initRecycler()
         if (savedInstanceState != null) {
@@ -105,7 +106,9 @@ class NotificationFragment : Fragment() {
                     createAlertDialogForRemoveNotification(notification = it)
                 }, changeNotification = {
                     updateAlarm(currentId = it.id, position = it.position)
-                })
+                },
+                calendar = calendar
+            )
             this?.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
@@ -211,6 +214,7 @@ class NotificationFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+
         selectTimeBtnClickListener()
         addScrollListener()
     }
@@ -281,11 +285,13 @@ class NotificationFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+
         addNotificationBtn?.setOnClickListener(null)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+
         outState.putLong(CURRENT_DATE, currentDate)
         outState.putInt(CURRENT_ALARM_TIME, currentMinutes)
         outState.putInt(CURRENT_TIME, currentHour)
@@ -294,6 +300,7 @@ class NotificationFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
         notificationRecyclerView = null
         addNotificationBtn = null
         alertDialog = null

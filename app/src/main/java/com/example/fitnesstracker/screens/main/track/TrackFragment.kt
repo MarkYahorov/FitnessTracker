@@ -34,7 +34,6 @@ class TrackFragment : Fragment() {
         private const val CURRENT_DB_ID = "CURRENT_ID"
         private const val MAP_PADDING = 200
         private const val ZERO_RESULT = 0
-        private const val FIRST_ELEMENT_IN_LIST = 0
 
         fun newInstance(
             id: Int,
@@ -47,7 +46,7 @@ class TrackFragment : Fragment() {
             val trackFragment = TrackFragment()
             val bundle = Bundle()
             bundle.putInt(CURRENT_DB_ID, id)
-            bundle.putInt(CURRENT_TRACK_ID, serverId ?: 0)
+            bundle.putInt(CURRENT_TRACK_ID, serverId ?: ZERO_RESULT)
             bundle.putLong(CURRENT_BEGIN_TIME, beginTime)
             bundle.putLong(CURRENT_RUNNING_TIME, runningTime)
             bundle.putInt(CURRENT_DISTANCE, distance)
@@ -88,6 +87,7 @@ class TrackFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         mapFragment?.getMapAsync(callback)
         val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
         val timeZone = SimpleTimeZone.getTimeZone(UTC)
@@ -98,6 +98,7 @@ class TrackFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+
         getTrackPoints()
     }
 
@@ -143,9 +144,9 @@ class TrackFragment : Fragment() {
         listOfPoints: List<PointForData>,
         listOfLatLng: MutableList<LatLng>
     ) {
-        val startCoordinate = listOfPoints[FIRST_ELEMENT_IN_LIST]
+        val startCoordinate = listOfPoints.first()
         val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
-        val finishCoordinate = listOfPoints[listOfPoints.lastIndex]
+        val finishCoordinate = listOfPoints.last()
         val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)
         listOfPoints.forEach { points ->
             listOfLatLng.add(LatLng(points.lat, points.lng))
@@ -204,6 +205,7 @@ class TrackFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
         googleMap = null
         alertDialog = null
         mapFragment = null

@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 replaceFragmentsIfLocatedInBackStack(container = R.id.fragment_container_view)
             } else if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                replaceFragmentsIfLocatedInBackStack(container = R.id.fragment_container_view_for_all)
+                replaceFragmentsIfLocatedInBackStack(container = R.id.not_list_fragment_container)
             }
         }
     }
@@ -142,16 +142,19 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
+
         toggle?.syncState()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+
         toggle?.onConfigurationChanged(newConfig)
     }
 
     override fun onStart() {
         super.onStart()
+
         setListeners()
     }
 
@@ -184,7 +187,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
                     replaceFragment(
                         fragment = NotificationFragment(),
                         backStackName = NOTIFICATION,
-                        container = R.id.fragment_container_view_for_all
+                        container = R.id.not_list_fragment_container
                     )
                 }
                 onBackPressed()
@@ -222,6 +225,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+
         outState.putParcelable(CURRENT_TRACK, track)
     }
 
@@ -252,7 +256,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             replaceFragment(
                 fragment = trackFragment,
                 backStackName = TRACK,
-                container = R.id.fragment_container_view_for_all
+                container = R.id.not_list_fragment_container
             )
         }
     }
@@ -291,6 +295,7 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
 
     override fun onDestroy() {
         super.onDestroy()
+
         toolbar = null
         navDrawer = null
         navigationView = null

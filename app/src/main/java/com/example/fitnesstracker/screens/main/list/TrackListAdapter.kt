@@ -15,23 +15,24 @@ import java.util.*
 
 class TrackListAdapter(
     private val listOfTrackForData: MutableList<TrackFromDb>,
-    private val goToCurrentTrack: (TrackFromDb) -> Unit,
+    private val goToCurrentTrack: (TrackFromDb) -> Unit
 ) : RecyclerView.Adapter<TrackListAdapter.ViewHolder>() {
 
-    class ViewHolder(private val item: View, private val goToCurrentTrack: (TrackFromDb) -> Unit) :
+    class ViewHolder(
+        private val item: View,
+        private val goToCurrentTrack: (TrackFromDb) -> Unit
+    ) :
         RecyclerView.ViewHolder(item) {
         private val beginTime: TextView = item.findViewById(R.id.begin_time)
         private val time: TextView = item.findViewById(R.id.time_running)
         private val distance: TextView = item.findViewById(R.id.distance)
         private var date: SimpleDateFormat? = null
         private var currentTimeFormat: SimpleDateFormat? = null
-        private var timeZone: TimeZone? = null
 
         fun bind(trackForData: TrackFromDb) {
             date = SimpleDateFormat(PATTERN_DATE_HOURS_MINUTES, Locale.getDefault())
             currentTimeFormat = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
-            timeZone = SimpleTimeZone.getTimeZone(UTC)
-            currentTimeFormat?.timeZone = timeZone!!
+            currentTimeFormat?.timeZone = SimpleTimeZone.getTimeZone(UTC)
             beginTime.text = date?.format(trackForData.beginTime)
             time.text = currentTimeFormat?.format(trackForData.time)
             distance.text = trackForData.distance.toString()
@@ -44,7 +45,6 @@ class TrackListAdapter(
             item.setOnClickListener(null)
             date = null
             currentTimeFormat = null
-            timeZone = null
         }
     }
 

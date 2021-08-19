@@ -6,7 +6,7 @@
     android:layout_height="@dimen/running_activity_btns_height"
     android:layout_margin="@dimen/item_list_margin_top"
     android:backgroundTint="@color/non"
-    app:cardCornerRadius="@dimen/btns_radius"
+    app:cardCornerRadius="@dimen/radius"
     tools:targetApi="lollipop">
 
     <androidx.constraintlayout.widget.ConstraintLayout

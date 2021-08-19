@@ -9,9 +9,9 @@ class UpdateIntoDbHelper {
         private const val SEPARATOR = ","
     }
 
-    private var tableName = ""
+    private var tableName = EMPTY_STRING
     private val updatesFields = mutableMapOf<String, Any>()
-    private var whereArgs = ""
+    private var whereArgs = EMPTY_STRING
 
     fun setName(tableName: String): UpdateIntoDbHelper {
         this.tableName = tableName

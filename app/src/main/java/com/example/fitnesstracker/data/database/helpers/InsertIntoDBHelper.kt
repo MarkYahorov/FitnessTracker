@@ -11,7 +11,7 @@ class InsertIntoDBHelper {
         private const val INDEX_PLUS = 1
     }
 
-    private var tableName: String = ""
+    private var tableName: String = EMPTY_STRING
     private val selectedFieldsInTable = mutableMapOf<String, String>()
 
     fun setTableName(name: String): InsertIntoDBHelper {

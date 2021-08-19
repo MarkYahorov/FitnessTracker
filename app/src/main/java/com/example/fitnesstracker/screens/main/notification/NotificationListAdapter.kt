@@ -16,6 +16,7 @@ class NotificationListAdapter(
     private val enableNotification: (Notification) -> Unit,
     private val closeNotification: (Notification) -> Unit,
     private val changeNotification: (Notification) -> Unit,
+    private val calendar: Calendar
 ) : RecyclerView.Adapter<NotificationListAdapter.ViewHolder>() {
 
     class ViewHolder(
@@ -23,18 +24,17 @@ class NotificationListAdapter(
         private val enableNotification: (Notification) -> Unit,
         private val closeNotification: (Notification) -> Unit,
         private val changeTimeOfNotification: (Notification) -> Unit,
+        private val calendar: Calendar
     ) : RecyclerView.ViewHolder(item) {
         private val timeText = item.findViewById<TextView>(R.id.notification_time)
-        private var calendar: Calendar? = null
         private var date: SimpleDateFormat? = null
 
         fun bind(notification: Notification) {
-            calendar = Calendar.getInstance()
-            calendar?.time = Date(notification.date)
-            calendar!![Calendar.HOUR_OF_DAY] = notification.hours
-            calendar!![Calendar.MINUTE] = notification.minutes
+            calendar.time = Date(notification.date)
+            calendar[Calendar.HOUR_OF_DAY] = notification.hours
+            calendar[Calendar.MINUTE] = notification.minutes
             date = SimpleDateFormat(PATTERN_DATE_HOURS_MINUTES, Locale.getDefault())
-            timeText.text = date?.format(calendar!!.time)
+            timeText.text = date?.format(calendar.time)
             enableNotification(notification)
             item.setOnClickListener {
                 changeTimeOfNotification(notification)
@@ -48,7 +48,6 @@ class NotificationListAdapter(
         fun unbind() {
             item.setOnClickListener(null)
             item.setOnLongClickListener(null)
-            calendar = null
             date = null
         }
     }
@@ -57,7 +56,7 @@ class NotificationListAdapter(
         val view = LayoutInflater.from(parent.context).inflate(
             R.layout.notification_item, parent, false
         )
-        return ViewHolder(view, enableNotification, closeNotification, changeNotification)
+        return ViewHolder(view, enableNotification, closeNotification, changeNotification, calendar)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

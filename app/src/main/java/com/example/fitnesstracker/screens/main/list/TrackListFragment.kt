@@ -66,7 +66,7 @@ class TrackListFragment : Fragment() {
     private var oldListSize = 0
     private val serverRepository = App.INSTANCE.repositoryFromServerImpl
     private val dbRepository = App.INSTANCE.repositoryForDbImpl
-    private var isFirstTimeInApp: Boolean = true
+    private var isFirstTimeInApp = true
     private var isLoading = false
     private var position = 0
 
@@ -80,12 +80,11 @@ class TrackListFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track_list, container, false)
-        setIsFirst()
         initAll(view = view)
         return view
     }
 
-    private fun setIsFirst() {
+    private fun setIsFirstTimeInApp() {
         isFirstTimeInApp = activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             ?.getBoolean(IS_FIRST, true)!!
     }
@@ -101,6 +100,7 @@ class TrackListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initTrackRecycler()
+        setIsFirstTimeInApp()
         if (savedInstanceState != null) {
             oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
             position = savedInstanceState.getInt(POSITION)
@@ -140,7 +140,6 @@ class TrackListFragment : Fragment() {
         } else {
             getTracksFromDb()
         }
-        setIsFirst()
         setFABListener()
         setSwipeLayoutListener()
         addScrollListener()
@@ -221,7 +220,7 @@ class TrackListFragment : Fragment() {
                         distance = it.distance
                     )
                 )
-                id -= 1
+                id -= ONE_FOR_ID
             }
             trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
             trackRecyclerView?.scrollToPosition(LIST_START_POSITION)

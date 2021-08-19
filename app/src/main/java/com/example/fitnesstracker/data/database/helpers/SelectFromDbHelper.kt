@@ -10,8 +10,8 @@ class SelectFromDbHelper {
         private const val EMPTY_STRING = ""
     }
 
-    private var table: String = ""
-    private var whereArgs: String = ""
+    private var table: String = EMPTY_STRING
+    private var whereArgs: String = EMPTY_STRING
     private var allParams: MutableList<String> = mutableListOf()
 
     fun nameOfTable(table: String): SelectFromDbHelper {

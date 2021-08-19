@@ -4,7 +4,7 @@
     <dimen name="logout_text_margin_start">15dp</dimen>
     <dimen name="logout_height">50dp</dimen>
     <dimen name="running_layouts_margin">50dp</dimen>
-    <dimen name="btns_radius">20dp</dimen>
+    <dimen name="radius">20dp</dimen>
     <dimen name="running_activity_btns_margin_top">80dp</dimen>
     <dimen name="running_activity_btns_height">100dp</dimen>
     <dimen name="running_activity_first_text_layout_size">23sp</dimen>
@@ -36,4 +36,6 @@
     <dimen name="login_screen_registr_btn_margin_bottom">150dp</dimen>
     <dimen name="login_screen_registr_btn_margin_end">12dp</dimen>
     <dimen name="login_screen_registr_btn_margin_start">6dp</dimen>
+    <dimen name="notification_item_height">100dp</dimen>
+    <dimen name="notification_item_margin">8dp</dimen>
     </resources>

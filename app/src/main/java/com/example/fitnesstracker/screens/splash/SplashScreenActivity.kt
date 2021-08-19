@@ -38,6 +38,7 @@ class SplashScreenActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+
         startLogoAnimation()
         supportActionBar?.hide()
         goToNextActivity()
@@ -52,18 +53,16 @@ class SplashScreenActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             if (isFirstTimeInApp) {
                 startActivity(Intent(this, LoginAndRegisterActivity::class.java))
-                finish()
             } else {
                 val currentActivity = getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
                     .getInt(CURRENT_ACTIVITY, MAIN_ACTIVITY_MARKER)
                 if (currentActivity == MAIN_ACTIVITY_MARKER) {
                     startActivity(Intent(this, MainActivity::class.java))
-                    finish()
                 } else if (currentActivity == RUNNING_ACTIVITY_MARKER) {
                     startActivity(Intent(this, RunningActivity::class.java))
-                    finish()
                 }
             }
+            finish()
         }, HANDLER_DELAY)
     }
 

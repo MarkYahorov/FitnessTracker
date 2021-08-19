@@ -39,6 +39,7 @@ class RepositoryFromServerImpl : RepositoryFromServer {
         private const val SELECT_ALL = "*"
         private const val EMPTY_VALUE = ""
         private const val NOT_SEND = 1
+        private const val WAS_SEND = 0
         private const val DEFAULT_VALUE_INT = 0
         private const val DEFAULT_VALUE_LONG = 0L
     }
@@ -243,7 +244,7 @@ class RepositoryFromServerImpl : RepositoryFromServer {
             updateOneField(
                 tableName = TRACKERS,
                 fieldName = IS_SEND,
-                value = 0,
+                value = WAS_SEND,
                 whereArgs = "$ID = ${trackFromDb.id}"
             )
         }

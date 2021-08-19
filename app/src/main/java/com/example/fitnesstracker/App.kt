@@ -3,6 +3,7 @@ package com.example.fitnesstracker
 import android.app.Application
 import android.database.sqlite.SQLiteDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase
+import com.example.fitnesstracker.data.retrofit.ApiService
 import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
 import com.example.fitnesstracker.repository.RepositoryFromServer
 import com.example.fitnesstracker.repository.RepositoryForDB
@@ -21,8 +22,8 @@ class App : Application() {
     }
 
     lateinit var myDataBase: SQLiteDatabase
+    lateinit var apiService: ApiService
     val repositoryFromServerImpl: RepositoryFromServer = RepositoryFromServerImpl()
-    val apiService = RetrofitBuilder().apiService
     val repositoryForDbImpl: RepositoryForDB = RepositoryForDbImpl()
 
     override fun onCreate() {
@@ -30,5 +31,6 @@ class App : Application() {
 
         INSTANCE = this
         myDataBase = FitnessDatabase(this).writableDatabase
+        apiService = RetrofitBuilder().apiService
     }
 }

@@ -101,9 +101,10 @@ class CheckLocationService : Service(), LocationListener {
         if (intent?.extras?.get(IS_START) == true) {
             locationManager?.requestLocationUpdates(GPS_PROVIDER, MIN_TIME_MS, MIN_DISTANCE_M, this)
         } else {
+            val distance = allDistanceList.sum().toInt()
             val endIntent = Intent(LOCATION_UPDATE)
                 .putExtra(ALL_COORDINATES, listOfPoints as ArrayList<PointForData>)
-                .putExtra(DISTANCE_FROM_SERVICE, allDistanceList.toFloatArray())
+                .putExtra(DISTANCE_FROM_SERVICE, distance)
             sendBroadcast(endIntent)
             stopForeground(true)
             stopSelf(startId)

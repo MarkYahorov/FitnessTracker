@@ -56,4 +56,5 @@
     <string name="add_notification">Add notification</string>
     <string name="re_login">Re-login please</string>
     <string name="error_in_db_helpers">Заполнить имя или поля</string>
+    <string name="dont_close_app">Just roll up, do not close the app</string>
 </resources>

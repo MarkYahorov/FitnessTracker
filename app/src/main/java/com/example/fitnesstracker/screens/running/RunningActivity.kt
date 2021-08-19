@@ -55,10 +55,12 @@ class RunningActivity : AppCompatActivity() {
         private const val DISTANCE = "DISTANCE"
         private const val RUNNING_VISIBLE = "RUNNING_VISIBLE"
         private const val FINISH_VISIBLE = "FINISH_VISIBLE"
-        private const val START = "start"
+        private const val START_TIME = "start"
         private const val FINISH_TIME = "FINISH_TIME"
         private const val DEFAULT_REQUEST_CODE = 100
         private const val HANDLER_DELAY = 0L
+        private const val DEFAULT_DISTANCE = 0
+        private const val MIN_GOOD_VALUE_SIZE_LIST = 1
     }
 
     private var startBtn: Button? = null
@@ -90,14 +92,16 @@ class RunningActivity : AppCompatActivity() {
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val trackDistance = intent?.getFloatArrayExtra(DISTANCE_FROM_SERVICE)
-            distance = trackDistance?.sum()!!.toInt()
-            distanceTextView?.text = distance.toString()
-            coordinateList.addAll(
-                intent.getParcelableArrayListExtra<PointForData>(ALL_COORDINATES)!!
-                    .toMutableList()
-            )
-            if (coordinateList.size > 1) {
+            if (intent != null) {
+                distance = intent.getIntExtra(DISTANCE_FROM_SERVICE, DEFAULT_DISTANCE)
+                distanceTextView?.text = distance.toString()
+                intent.getParcelableArrayListExtra<PointForData>(ALL_COORDINATES)?.let {
+                    coordinateList.addAll(
+                        it.toMutableList()
+                    )
+                }
+            }
+            if (coordinateList.size > MIN_GOOD_VALUE_SIZE_LIST) {
                 serverRepo.saveTrack(saveTrackRequest = createSaveTrackRequest())
                     .continueWith({ saveTrackResponse ->
                         dbRepo.insertTrackAndPointsInDbAfterSavingInServer(
@@ -132,7 +136,7 @@ class RunningActivity : AppCompatActivity() {
             finishTimeRunningTextView?.text = savedInstanceState.getString(FINISH_TIME)
             runningLayout?.isVisible = savedInstanceState.getBoolean(RUNNING_VISIBLE)
             finishLayout?.isVisible = savedInstanceState.getBoolean(FINISH_VISIBLE)
-            startTime = savedInstanceState.getLong(START)
+            startTime = savedInstanceState.getLong(START_TIME)
             calculator?.setView(timeRunningTextView)
             timer = calculator?.createTimer(
                 tStart = startTime,
@@ -230,8 +234,8 @@ class RunningActivity : AppCompatActivity() {
 
     private fun startTimer() {
         startTime = SystemClock.elapsedRealtime()
-        calculator?.setView(timeRunningTextView)
-        timer = calculator?.createTimer(startTime, calendar)
+        calculator?.setView(view = timeRunningTextView)
+        timer = calculator?.createTimer(tStart = startTime, calendar = calendar)
         beginTime = System.currentTimeMillis()
         handler?.postDelayed(timer!!, HANDLER_DELAY)
     }
@@ -241,8 +245,8 @@ class RunningActivity : AppCompatActivity() {
             if (isGpsEnabled()) {
                 finishBtn?.isEnabled = false
                 isFinish = true
-                startAnimation(runningLayout, R.animator.anim_close)
-                startAnimation(finishLayout, R.animator.anim_open)
+                startAnimation(view = runningLayout, idAnimatorRes = R.animator.anim_close)
+                startAnimation(view = finishLayout, idAnimatorRes = R.animator.anim_open)
                 finishLayout?.isVisible = true
                 startService(value = false)
                 handler?.removeCallbacks(timer!!)
@@ -253,9 +257,9 @@ class RunningActivity : AppCompatActivity() {
     }
 
     private fun createFinishTimeText() {
-        val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
-        format.timeZone = timeZone
-        finishTimeRunningTextView?.text = format.format(calendar.time.time)
+        val dateFormat = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
+        dateFormat.timeZone = timeZone
+        finishTimeRunningTextView?.text = dateFormat.format(calendar.time.time)
     }
 
     private fun setToolbar() {
@@ -296,7 +300,7 @@ class RunningActivity : AppCompatActivity() {
 
     private fun createSaveTrackRequest(): SaveTrackRequest? {
         val token = getTokenFromSharedPref()
-        return if (token!=null) {
+        return if (token != null) {
             SaveTrackRequest(
                 token = token,
                 serverId = null,
@@ -347,7 +351,7 @@ class RunningActivity : AppCompatActivity() {
         outState.putLong(BEGIN_TIME, beginTime)
         runningLayout?.let { outState.putBoolean(RUNNING_VISIBLE, it.isVisible) }
         finishLayout?.let { outState.putBoolean(FINISH_VISIBLE, it.isVisible) }
-        outState.putLong(START, startTime)
+        outState.putLong(START_TIME, startTime)
         outState.putString(DISTANCE, distanceTextView?.text.toString())
         outState.putString(FINISH_TIME, finishTimeRunningTextView?.text.toString())
     }
@@ -401,9 +405,16 @@ class RunningActivity : AppCompatActivity() {
         toggle?.let { navDrawer?.removeDrawerListener(it) }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun getMarkerActivity() =
+        getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE).getInt(
+            CURRENT_ACTIVITY,
+            MAIN_ACTIVITY_MARKER
+        )
 
+    override fun onDestroy() {
+        if (getMarkerActivity() == RUNNING_ACTIVITY_MARKER) {
+            startService(value = false)
+        }
         calculator?.clearView()
         calculator = null
         alertDialog = null
@@ -419,5 +430,7 @@ class RunningActivity : AppCompatActivity() {
         startBtnLayout = null
         runningLayout = null
         finishLayout = null
+
+        super.onDestroy()
     }
 }

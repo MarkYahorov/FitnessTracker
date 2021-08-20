@@ -1,4 +1,4 @@
-package com.example.fitnesstracker.repository
+package com.example.fitnesstracker.repository.dataBaseRepo
 
 import android.content.Context
 import bolts.Task

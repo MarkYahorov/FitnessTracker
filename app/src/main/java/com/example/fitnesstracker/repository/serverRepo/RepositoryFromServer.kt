@@ -1,4 +1,4 @@
-package com.example.fitnesstracker.repository
+package com.example.fitnesstracker.repository.serverRepo
 
 import bolts.Task
 import com.example.fitnesstracker.models.login.LoginRequest

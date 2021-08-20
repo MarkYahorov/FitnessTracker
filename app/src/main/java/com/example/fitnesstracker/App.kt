@@ -5,10 +5,10 @@ import android.database.sqlite.SQLiteDatabase
 import com.example.fitnesstracker.data.database.FitnessDatabase
 import com.example.fitnesstracker.data.retrofit.ApiService
 import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
-import com.example.fitnesstracker.repository.RepositoryFromServer
-import com.example.fitnesstracker.repository.RepositoryForDB
-import com.example.fitnesstracker.repository.RepositoryForDbImpl
-import com.example.fitnesstracker.repository.RepositoryFromServerImpl
+import com.example.fitnesstracker.repository.serverRepo.RepositoryFromServer
+import com.example.fitnesstracker.repository.dataBaseRepo.RepositoryForDB
+import com.example.fitnesstracker.repository.dataBaseRepo.RepositoryForDbImpl
+import com.example.fitnesstracker.repository.serverRepo.RepositoryFromServerImpl
 
 class App : Application() {
 

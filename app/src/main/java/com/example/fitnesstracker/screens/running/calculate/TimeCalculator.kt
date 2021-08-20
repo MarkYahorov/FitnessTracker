@@ -65,7 +65,7 @@ class TimeCalculator {
     }
 
     private fun calculateTime(tStart: Long) {
-        tMilliSec = SystemClock.elapsedRealtime() - tStart
+        tMilliSec = Calendar.getInstance().timeInMillis - tStart
         tUpdate = tBuff + tMilliSec
         sec = (tUpdate / MILLIS_IN_SEC).toInt()
         min = sec / SEC_IN_MIN

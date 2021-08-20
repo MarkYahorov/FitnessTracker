@@ -139,19 +139,25 @@ class RunningActivity : AppCompatActivity() {
             startTime = savedInstanceState.getLong(START_TIME)
             calculator?.setView(timeRunningTextView)
             timer = calculator?.createTimer(
-                tStart = startTime,
+                tStart = beginTime,
                 calendar = calendar
             )
             handler?.postDelayed(timer!!, HANDLER_DELAY)
             checkLayoutsVisibility()
+        } else if (getMarkerActivity() == 1) {
+            startBtnLayout?.isVisible = false
+            runningLayout?.isVisible = true
+            beginTime =
+                getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE).getLong(BEGIN_TIME, 0L)
+            startTimer()
         }
     }
 
     private fun checkLayoutsVisibility() {
-        if (runningLayout?.isVisible == true) {
-            startBtnLayout?.isVisible = false
-        } else if (finishLayout?.isVisible == true) {
+        if (finishLayout?.isVisible == true) {
             runningLayout?.isVisible = false
+            startBtnLayout?.isVisible = false
+        } else if (runningLayout?.isVisible == true) {
             startBtnLayout?.isVisible = false
         }
     }
@@ -206,6 +212,7 @@ class RunningActivity : AppCompatActivity() {
             if (!checkPermissions() && isGpsEnabled()) {
                 startBtn?.isEnabled = false
                 isFinish = false
+                beginTime = System.currentTimeMillis()
                 startTimer()
                 startAnimation(startBtnLayout, R.animator.anim_close)
                 startAnimation(runningLayout, R.animator.anim_open)
@@ -233,11 +240,11 @@ class RunningActivity : AppCompatActivity() {
     }
 
     private fun startTimer() {
-        startTime = SystemClock.elapsedRealtime()
         calculator?.setView(view = timeRunningTextView)
-        timer = calculator?.createTimer(tStart = startTime, calendar = calendar)
-        beginTime = System.currentTimeMillis()
+        timer = calculator?.createTimer(tStart = beginTime, calendar = calendar)
         handler?.postDelayed(timer!!, HANDLER_DELAY)
+        getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE).edit()
+            .putLong(BEGIN_TIME, beginTime).apply()
     }
 
     private fun setFinishBtnListener() {
@@ -412,9 +419,6 @@ class RunningActivity : AppCompatActivity() {
         )
 
     override fun onDestroy() {
-        if (getMarkerActivity() == RUNNING_ACTIVITY_MARKER) {
-            startService(value = false)
-        }
         calculator?.clearView()
         calculator = null
         alertDialog = null

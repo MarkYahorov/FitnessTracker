@@ -28,7 +28,7 @@ class TrackListFragment : Fragment() {
 
     companion object {
         const val IS_FIRST = "IS_FIRST"
-        private const val OLD_LIST_SIZE = "OLD_LIST_SIZE"
+        private const val RANGE_FOR_INSERT = 1
         private const val LIST_START_POSITION = 0
         private const val TRACK_LIST = "TRACK_LIST"
         private const val ERROR = "error"
@@ -60,15 +60,14 @@ class TrackListFragment : Fragment() {
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private var progressBar: CircularProgressIndicator? = null
     private var navigator: Navigator? = null
-    private var builder: AlertDialog.Builder? = null
+    private var alertDialog: AlertDialog.Builder? = null
 
     private var trackList = mutableListOf<TrackFromDb>()
-    private var oldListSize = 0
     private val serverRepository = App.INSTANCE.repositoryFromServerImpl
     private val dbRepository = App.INSTANCE.repositoryForDbImpl
     private var isFirstTimeInApp = true
     private var isLoading = false
-    private var position = 0
+    private var scrollPositionOfRecycler = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -94,7 +93,7 @@ class TrackListFragment : Fragment() {
         addTrackBtn = view.findViewById(R.id.open_screen_running_btn)
         swipeRefreshLayout = view.findViewById(R.id.swipe_layout)
         progressBar = view.findViewById(R.id.loading_progress)
-        builder = AlertDialog.Builder(requireContext())
+        alertDialog = AlertDialog.Builder(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -103,9 +102,8 @@ class TrackListFragment : Fragment() {
         initTrackRecycler()
         setIsFirstTimeInApp()
         if (savedInstanceState != null) {
-            oldListSize = savedInstanceState.getInt(OLD_LIST_SIZE)
-            position = savedInstanceState.getInt(POSITION)
-            trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
+            scrollPositionOfRecycler = savedInstanceState.getInt(POSITION)
+            trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, RANGE_FOR_INSERT)
         }
     }
 
@@ -136,7 +134,7 @@ class TrackListFragment : Fragment() {
 
         if (isFirstTimeInApp) {
             progressBar?.isVisible = true
-            putIsFirstValueInSharedPref()
+            putIsFirstTimeInAppValueInSharedPref()
             createAlertDialogToDisableBatterySaver()
             getTracksFromServer()
         } else {
@@ -147,7 +145,7 @@ class TrackListFragment : Fragment() {
         addScrollListener()
     }
 
-    private fun putIsFirstValueInSharedPref() {
+    private fun putIsFirstTimeInAppValueInSharedPref() {
         activity?.getSharedPreferences(FITNESS_SHARED, Context.MODE_PRIVATE)
             ?.edit()
             ?.putBoolean(IS_FIRST, false)
@@ -155,26 +153,26 @@ class TrackListFragment : Fragment() {
     }
 
     private fun createAlertDialogToDisableBatterySaver() {
-        builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
         }
-        builder?.setTitle(R.string.attention)
-        builder?.setMessage(R.string.waring)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.attention)
+        alertDialog?.setMessage(R.string.waring)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     private fun getTracksFromDb() {
         dbRepository.getTracksList()
             .continueWith({ listOfTracks ->
-                oldListSize = listOfTracks.result.size - trackList.size
+                val range = listOfTracks.result.size - trackList.size
                 if (trackList.size < listOfTracks.result.size) {
                     trackList.clear()
                     trackList.addAll(listOfTracks.result)
                     trackList.sortByDescending { it.beginTime }
                 }
-                trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
-                trackRecyclerView?.scrollToPosition(position)
+                trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, range)
+                trackRecyclerView?.scrollToPosition(scrollPositionOfRecycler)
                 getTracksFromServer()
             }, Task.UI_THREAD_EXECUTOR)
     }
@@ -208,7 +206,7 @@ class TrackListFragment : Fragment() {
 
     private fun addTracksIfDbIsEmpty(listOfTrack: List<TrackForData>) {
         if (listOfTrack.size > trackList.size) {
-            oldListSize = listOfTrack.size - trackList.size
+            val range = listOfTrack.size - trackList.size
             trackList.clear()
             trackRecyclerView?.adapter?.notifyItemRangeRemoved(LIST_START_POSITION, trackList.size)
             var id = listOfTrack.size
@@ -224,9 +222,8 @@ class TrackListFragment : Fragment() {
                 )
                 id -= ONE_FOR_ID
             }
-            trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, oldListSize)
+            trackRecyclerView?.adapter?.notifyItemRangeInserted(LIST_START_POSITION, range)
             trackRecyclerView?.scrollToPosition(LIST_START_POSITION)
-            oldListSize = trackList.size
         }
     }
 
@@ -235,7 +232,7 @@ class TrackListFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                position = layoutManager.findFirstVisibleItemPosition()
+                scrollPositionOfRecycler = layoutManager.findFirstVisibleItemPosition()
             }
         })
     }
@@ -267,9 +264,8 @@ class TrackListFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putInt(OLD_LIST_SIZE, oldListSize)
         outState.putParcelableArrayList(TRACK_LIST, trackList as ArrayList<TrackFromDb>)
-        outState.putInt(POSITION, position)
+        outState.putInt(POSITION, scrollPositionOfRecycler)
     }
 
     private fun createTrackRequest(): TrackRequest? {
@@ -282,23 +278,23 @@ class TrackListFragment : Fragment() {
     }
 
     private fun createAlertDialog(error: String?) {
-        builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
         }
-        builder?.setTitle(R.string.error)
-        builder?.setMessage(error)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.error)
+        alertDialog?.setMessage(error)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     private fun createAlertDialog() {
-        builder?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
             dialog.dismiss()
         }
-        builder?.setTitle(R.string.error)
-        builder?.setMessage(R.string.re_login)
-        builder?.setIcon(R.drawable.ic_baseline_error_outline_24)
-        builder?.show()
+        alertDialog?.setTitle(R.string.error)
+        alertDialog?.setMessage(R.string.re_login)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
     }
 
     override fun onStop() {
@@ -312,7 +308,7 @@ class TrackListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
 
-        builder = null
+        alertDialog = null
         trackRecyclerView = null
         addTrackBtn = null
         swipeRefreshLayout = null

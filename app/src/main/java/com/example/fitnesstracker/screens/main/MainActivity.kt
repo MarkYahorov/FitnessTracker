@@ -213,7 +213,6 @@ class MainActivity : AppCompatActivity(), TrackListFragment.Navigator {
             .replace(container, fragment)
             .addToBackStack(backStackName)
             .commit()
-
     }
 
     override fun goToRunningScreen(token: String, trackId: Int) {

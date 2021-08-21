@@ -1,8 +1,7 @@
 package com.example.fitnesstracker.screens.main.track
 
-import android.database.Cursor
+import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +9,10 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import bolts.Task
 import com.example.fitnesstracker.App
+import com.example.fitnesstracker.App.Companion.PATTERN_WITH_SECONDS
+import com.example.fitnesstracker.App.Companion.UTC
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.data.database.FitnessDatabase
-import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
-import com.example.fitnesstracker.models.points.Point
+import com.example.fitnesstracker.models.points.PointForData
 import com.example.fitnesstracker.models.points.PointsRequest
 import com.example.fitnesstracker.screens.loginAndRegister.CURRENT_TOKEN
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -21,6 +20,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class TrackFragment : Fragment() {
@@ -30,9 +31,13 @@ class TrackFragment : Fragment() {
         private const val CURRENT_BEGIN_TIME = "CURRENT_BEGIN_TIME"
         private const val CURRENT_RUNNING_TIME = "CURRENT_RUNNING_TIME"
         private const val CURRENT_DISTANCE = "CURRENT_DISTANCE"
+        private const val CURRENT_DB_ID = "CURRENT_ID"
+        private const val MAP_PADDING = 200
+        private const val ZERO_RESULT = 0
 
         fun newInstance(
             id: Int,
+            serverId: Int?,
             beginTime: Long,
             runningTime: Long,
             distance: Int,
@@ -40,7 +45,8 @@ class TrackFragment : Fragment() {
         ): TrackFragment {
             val trackFragment = TrackFragment()
             val bundle = Bundle()
-            bundle.putInt(CURRENT_TRACK_ID, id)
+            bundle.putInt(CURRENT_DB_ID, id)
+            bundle.putInt(CURRENT_TRACK_ID, serverId ?: ZERO_RESULT)
             bundle.putLong(CURRENT_BEGIN_TIME, beginTime)
             bundle.putLong(CURRENT_RUNNING_TIME, runningTime)
             bundle.putInt(CURRENT_DISTANCE, distance)
@@ -50,15 +56,15 @@ class TrackFragment : Fragment() {
         }
     }
 
-    private lateinit var runningTime: TextView
-    private lateinit var distance: TextView
-
+    private var runningTime: TextView? = null
+    private var distance: TextView? = null
     private var googleMap: GoogleMap? = null
-    private var trackFragment: SupportMapFragment? = null
-    private val allDistanceOfTrack = mutableListOf<Point>()
-    private val allPointsInLatLng = mutableListOf<LatLng>()
-    private val repo = App.INSTANCE.repositoryImpl
+    private var alertDialog: AlertDialog.Builder? = null
+    private var mapFragment: SupportMapFragment? = null
 
+    private val allDistanceOfTrack = mutableListOf<PointForData>()
+    private val allPointsInLatLng = mutableListOf<LatLng>()
+    private val repo = App.INSTANCE.repositoryFromServerImpl
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
     }
@@ -68,101 +74,142 @@ class TrackFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_track, container, false)
-        initAll(view)
+        initAll(view = view)
         return view
     }
 
     private fun initAll(view: View) {
         runningTime = view.findViewById(R.id.current_track_running_time)
         distance = view.findViewById(R.id.current_track_distance)
+        mapFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
+        alertDialog = AlertDialog.Builder(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        trackFragment = childFragmentManager.findFragmentById(R.id.track_map) as SupportMapFragment
-        trackFragment?.getMapAsync(callback)
-        runningTime.text = arguments?.getLong(CURRENT_RUNNING_TIME).toString()
-        distance.text = arguments?.getInt(CURRENT_DISTANCE).toString()
+
+        mapFragment?.getMapAsync(callback)
+        val format = SimpleDateFormat(PATTERN_WITH_SECONDS, Locale.getDefault())
+        val timeZone = SimpleTimeZone.getTimeZone(UTC)
+        format.timeZone = timeZone
+        runningTime?.text = format.format(arguments?.getLong(CURRENT_RUNNING_TIME))
+        distance?.text = arguments?.getInt(CURRENT_DISTANCE).toString()
     }
 
     override fun onResume() {
         super.onResume()
-        getTrackFromServer()
+
+        getTrackPoints()
     }
 
-    private fun getTrackFromServer() {
-        repo.getPointsForCurrentTrack(createPointsRequest())
-            .continueWith({
-                when {
-                    it.error != null -> {
-                        Log.e("key", "it.error")
-                    }
-                    it.result.status == "error" -> {
-                        Log.e("key", "status == error")
-                    }
-                    else -> {
-                        allDistanceOfTrack.addAll(it.result.points)
-                        allDistanceOfTrack.forEach { point ->
-                            allPointsInLatLng.add(LatLng(point.lat, point.lng))
-                            if(!checkThisPointIntoDb(arguments?.getInt(CURRENT_TRACK_ID)!!)){
-                                InsertDBHelper()
-                                    .setTableName("allPoints")
-                                    .addFieldsAndValuesToInsert(FitnessDatabase.ID_FROM_SERVER,
-                                        arguments?.getInt(CURRENT_TRACK_ID)!!.toString())
-                                    .addFieldsAndValuesToInsert(FitnessDatabase.LATITUDE, point.lat.toString())
-                                    .addFieldsAndValuesToInsert(FitnessDatabase.LONGITUDE, point.lng.toString())
-                                    .insertTheValues(App.INSTANCE.db)
-                            }
-                        }
-                        val startCoordinate = allDistanceOfTrack[0]
-                        val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
-                        val finishCoordinate = allDistanceOfTrack[allDistanceOfTrack.lastIndex]
-                        val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)
-                        googleMap?.addMarker(
-                            MarkerOptions().icon(
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_RED
-                                )
-                            ).position(startLatLng).title("Start")
-                        )
-                        googleMap?.addPolyline(
-                            PolylineOptions()
-                                .clickable(false)
-                                .addAll(allPointsInLatLng)
-                        )
-                        googleMap?.addMarker(
-                            MarkerOptions().icon(
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_BLUE
-                                )
-                            ).position(finishLatLng).title("Finish")
-                        )
-                        val builder = LatLngBounds.Builder()
-                        builder.include(startLatLng).include(finishLatLng)
-                        googleMap?.moveCamera(
-                            CameraUpdateFactory.newLatLngBounds(
-                                builder.build(),
-                                100
-                            )
-                        )
-                    }
-                }
-            }, Task.UI_THREAD_EXECUTOR)
+    private fun getTrackPoints() {
+        repo.getPointsForCurrentTrack(
+            pointsRequest = createPointsRequest(),
+            idInDb = arguments?.getInt(CURRENT_DB_ID) ?: ZERO_RESULT,
+            serverId = arguments?.getInt(CURRENT_TRACK_ID) ?: ZERO_RESULT
+        ).continueWith({
+            processResult(taskOfPoints = it)
+        }, Task.UI_THREAD_EXECUTOR)
     }
 
-    private fun checkThisPointIntoDb(id: Int): Boolean {
-        var cursor: Cursor? = null
-        try {
-            cursor = App.INSTANCE.db.rawQuery("SELECT * FROM allPoints WHERE _id=id", null)
-        } finally {
-            cursor?.close()
+    private fun processResult(taskOfPoints: Task<List<PointForData>>) {
+        when {
+            taskOfPoints.error != null -> {
+                createAlertDialog(error = taskOfPoints.error.message)
+            }
+            taskOfPoints.result.isEmpty() -> {
+                createAlertDialog(error = getString(R.string.track_fragment_error))
+            }
+            else -> {
+                allDistanceOfTrack.addAll(taskOfPoints.result)
+                showTrackOnMap(
+                    listOfPoints = allDistanceOfTrack,
+                    listOfLatLng = allPointsInLatLng
+                )
+            }
         }
-        return cursor!!.moveToFirst()
     }
 
-    private fun createPointsRequest() = PointsRequest(
-        arguments?.getString(CURRENT_TOKEN)!!, arguments?.getInt(
+    private fun createAlertDialog(error: String?) {
+        alertDialog?.setPositiveButton(R.string.ok_thanks) { dialog, _ ->
+            dialog.dismiss()
+        }
+        alertDialog?.setTitle(R.string.error)
+        alertDialog?.setMessage(error)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
+    }
+
+    private fun showTrackOnMap(
+        listOfPoints: List<PointForData>,
+        listOfLatLng: MutableList<LatLng>
+    ) {
+        val startCoordinate = listOfPoints.first()
+        val startLatLng = LatLng(startCoordinate.lat, startCoordinate.lng)
+        val finishCoordinate = listOfPoints.last()
+        val finishLatLng = LatLng(finishCoordinate.lat, finishCoordinate.lng)
+        listOfPoints.forEach { points ->
+            listOfLatLng.add(LatLng(points.lat, points.lng))
+        }
+        addMarker(
+            iconColor = BitmapDescriptorFactory.HUE_RED,
+            position = startLatLng,
+            title = getString(R.string.start)
+        )
+        addPolyline(allPointsInLatLng = listOfLatLng)
+        addMarker(
+            iconColor = BitmapDescriptorFactory.HUE_BLUE,
+            position = finishLatLng,
+            title = getString(R.string.finish)
+        )
+        val runningWayBuilder = LatLngBounds.Builder()
+        allPointsInLatLng.forEach {
+            runningWayBuilder.include(it)
+        }
+        val track = CameraUpdateFactory.newLatLngBounds(
+            runningWayBuilder.build(),
+            MAP_PADDING
+        )
+        googleMap?.animateCamera(track)
+    }
+
+    private fun addMarker(iconColor: Float, position: LatLng, title: String) {
+        googleMap?.addMarker(
+            MarkerOptions().icon(
+                BitmapDescriptorFactory.defaultMarker(
+                    iconColor
+                )
+            ).position(position).title(title)
+        )
+    }
+
+    private fun addPolyline(allPointsInLatLng: MutableList<LatLng>) {
+        googleMap?.addPolyline(
+            PolylineOptions()
+                .clickable(false)
+                .addAll(allPointsInLatLng)
+        )
+    }
+
+    private fun createPointsRequest(): PointsRequest? {
+        val token = arguments?.getString(CURRENT_TOKEN)
+        val trackId = arguments?.getInt(
             CURRENT_TRACK_ID
-        )!!
-    )
+        )
+        return if (token != null && trackId != null) {
+            PointsRequest(token, trackId)
+        } else {
+            null
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        googleMap = null
+        alertDialog = null
+        mapFragment = null
+        runningTime = null
+        distance = null
+    }
 }

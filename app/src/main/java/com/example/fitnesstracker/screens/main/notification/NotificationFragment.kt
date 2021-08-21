@@ -1,14 +1,12 @@
 package com.example.fitnesstracker.screens.main.notification
 
 import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.Context.ALARM_SERVICE
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,11 +15,11 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import bolts.Task
-import com.example.fitnesstracker.AlarmReceiver
+import com.example.fitnesstracker.screens.main.notification.receiver.AlarmReceiver
 import com.example.fitnesstracker.App
 import com.example.fitnesstracker.R
-import com.example.fitnesstracker.data.database.FitnessDatabase
-import com.example.fitnesstracker.data.database.helpers.InsertDBHelper
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.ID
+import com.example.fitnesstracker.data.database.FitnessDatabase.Companion.NOTIFICATION_TIME_NAME
 import com.example.fitnesstracker.models.notification.Notification
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -31,138 +29,141 @@ import java.util.*
 
 class NotificationFragment : Fragment() {
 
-    private lateinit var notificationRecyclerView: RecyclerView
-    private lateinit var addNotificationBtn: FloatingActionButton
-    private lateinit var alarmManager: AlarmManager
+    companion object {
+        const val NEW_REQUEST_CODE = "NEW_REQUEST_CODE"
+        private const val DATE_PICKER = "DATE_PICKER"
+        private const val TIME_PICKER = "TIME_PICKER"
+        private const val CURRENT_DATE = "CURRENT_DATE"
+        private const val CURRENT_ALARM_TIME = "CURRENT_ALARM_TIME"
+        private const val CURRENT_TIME = "CURRENT_TIME"
+        private const val CURRENT_POSITION = "CURRENT_POSITION"
+    }
+
+    private var notificationRecyclerView: RecyclerView? = null
+    private var addNotificationBtn: FloatingActionButton? = null
+    private var alarmManager: AlarmManager? = null
+    private var alertDialog: AlertDialog.Builder? = null
 
     private val notificationList = mutableListOf<Notification>()
-    private val repo = App.INSTANCE.repositoryImpl
+    private var calendar = Calendar.getInstance()
+    private val repo = App.INSTANCE.repositoryForDbImpl
     private var currentDate = 0L
-    private var currentTime = 0L
-    private var currentAlarmTime = 0L
+    private var currentHour = 0
+    private var currentMinutes = 0
+    private var scrollPositionOfRecycler = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
         val view = inflater.inflate(R.layout.fragment_notification, container, false)
-        initAll(view)
-        createNotifyChanel()
+        initAll(view = view)
         return view
-    }
-
-    private fun getNotificationFromDb() {
-        repo.getListOfNotification()
-            .continueWith({
-                if (it.error != null) {
-                    Log.e("key", "${it.error.message}")
-                } else {
-                    it.result.forEach { notification ->
-                        notificationList.add(Notification(notification.id, notification.time))
-                    }
-                    notificationRecyclerView.adapter?.notifyDataSetChanged()
-                }
-            }, Task.UI_THREAD_EXECUTOR)
-    }
-
-    private fun createNotifyChanel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notChan = NotificationChannel(
-                "alarmChanel",
-                "Alarm Chanel",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            val manager = activity?.getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(notChan)
-        }
     }
 
     private fun initAll(view: View) {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler)
         addNotificationBtn = view.findViewById(R.id.add_notification_btn)
-    }
-
-    private fun initRecycler() {
-        with(notificationRecyclerView) {
-            adapter = NotificationListAdapter(notificationList = notificationList,
-                enableNotification = {
-                    setAlarmManager(it.id, it.time)
-                }, closeNotification = {
-                    setCancelAlarmBtnClickListener()
-                }, setTime = {
-                    updateAlarm(it.id)
-                })
-            layoutManager =
-                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        }
-    }
-
-    private fun updateAlarm(currentId: Int) {
-        val datePicker = createDataBicker()
-        datePicker.show(childFragmentManager, "DATE_PICKER")
-        datePicker.addOnPositiveButtonClickListener {
-            currentDate = datePicker.selection!!
-            val timePicker = createTimePicker()
-            timePicker.show(childFragmentManager, "TIME_PICKER")
-            timePicker.addOnPositiveButtonClickListener {
-                currentTime = ((timePicker.hour * 3600000) + (timePicker.minute * 60000)).toLong()
-                currentAlarmTime = currentDate + currentTime
-                if (currentAlarmTime <= Calendar.getInstance().timeInMillis) {
-                    Toast.makeText(requireContext(), "Select a future date", Toast.LENGTH_LONG)
-                        .show()
-                } else {
-                    updateNotificationsInDb(currentAlarmTime, currentId)
-                    setAlarmManager(currentId+1, currentAlarmTime)
-                    notificationList[currentId-1].time = currentAlarmTime
-                    notificationRecyclerView.adapter?.notifyDataSetChanged()
-                }
-            }
-        }
-    }
-
-    private fun updateNotificationsInDb(updateValue: Long, id: Int) {
-        App.INSTANCE.db.compileStatement("UPDATE NotificationTime SET time = $updateValue WHERE id=$id")
-            .execute()
+        alertDialog = AlertDialog.Builder(requireContext())
+        alarmManager = requireContext().getSystemService(ALARM_SERVICE) as AlarmManager
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         getNotificationFromDb()
         initRecycler()
         if (savedInstanceState != null) {
-            currentDate = savedInstanceState.getLong("CURRENT_DATE")
-            currentAlarmTime = savedInstanceState.getLong("CURRENT_ALARM_TIME")
-            currentTime = savedInstanceState.getLong("CURRENT_TIME")
+            currentDate = savedInstanceState.getLong(CURRENT_DATE)
+            currentMinutes = savedInstanceState.getInt(CURRENT_ALARM_TIME)
+            currentHour = savedInstanceState.getInt(CURRENT_TIME)
+            scrollPositionOfRecycler = savedInstanceState.getInt(CURRENT_POSITION)
+            notificationRecyclerView?.scrollToPosition(scrollPositionOfRecycler)
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putLong("CURRENT_DATE", currentDate)
-        outState.putLong("CURRENT_ALARM_TIME", currentAlarmTime)
-        outState.putLong("CURRENT_TIME", currentTime)
+    private fun getNotificationFromDb() {
+        repo.getListOfNotification()
+            .continueWith({
+                notificationList.addAll(it.result)
+                notificationRecyclerView?.adapter?.notifyDataSetChanged()
+            }, Task.UI_THREAD_EXECUTOR)
     }
 
-    override fun onStart() {
-        super.onStart()
-        selectTimeBtnClickListener()
-    }
-
-    private fun selectTimeBtnClickListener() {
-        addNotificationBtn.setOnClickListener {
-            createAlarm()
+    private fun initRecycler() {
+        with(notificationRecyclerView) {
+            this?.adapter = NotificationListAdapter(
+                notificationList = notificationList,
+                enableNotification = {
+                    setAlarmManager(
+                        channelMustHave = it.id,
+                        date = it.date,
+                        hours = it.hours,
+                        minutes = it.minutes
+                    )
+                }, closeNotification = {
+                    createAlertDialogForRemoveNotification(notification = it)
+                }, changeNotification = {
+                    updateAlarm(currentId = it.id, position = it.position)
+                },
+                calendar = calendar
+            )
+            this?.layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
     }
 
-    private fun createAlarm() {
+    private fun setAlarmManager(channelMustHave: Int, date: Long, hours: Int, minutes: Int) {
+        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+            .putExtra(NEW_REQUEST_CODE, channelMustHave)
+        val pendingIntent =
+            PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
+        calendar.time = Date(date)
+        calendar[Calendar.HOUR_OF_DAY] = hours
+        calendar[Calendar.MINUTE] = minutes
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (System.currentTimeMillis() < calendar.time.time) {
+                val info = AlarmManager.AlarmClockInfo(calendar.time.time, pendingIntent)
+                alarmManager?.setAlarmClock(info, pendingIntent)
+            }
+        }
+    }
+
+    private fun createAlertDialogForRemoveNotification(notification: Notification) {
+        alertDialog?.setPositiveButton(R.string.yes) { dialog, _ ->
+            setCancelAlarmBtnClickListener(notification.id)
+            repo.clearDbWithWereArgs(NOTIFICATION_TIME_NAME, "$ID = ${notification.id}")
+                .continueWith({
+                    notificationList.removeAt(notification.position)
+                    notificationRecyclerView?.adapter?.notifyItemRemoved(notification.id)
+                    dialog.dismiss()
+                }, Task.UI_THREAD_EXECUTOR)
+        }
+        alertDialog?.setNegativeButton(R.string.no) { dialog, _ ->
+            dialog.dismiss()
+        }
+        alertDialog?.setTitle(R.string.alarm)
+        alertDialog?.setMessage(R.string.sure)
+        alertDialog?.setIcon(R.drawable.ic_baseline_error_outline_24)
+        alertDialog?.show()
+    }
+
+    private fun setCancelAlarmBtnClickListener(channelMustHave: Int) {
+        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
+        alarmManager?.cancel(pendingIntent)
+    }
+
+    private fun updateAlarm(currentId: Int, position: Int) {
         val datePicker = createDataBicker()
-        datePicker.show(childFragmentManager, "DATE_PICKER")
+        datePicker.show(childFragmentManager, DATE_PICKER)
         datePicker.addOnPositiveButtonClickListener {
             currentDate = datePicker.selection!!
             val timePicker = createTimePicker()
-            timePicker.show(childFragmentManager, "TIME_PICKER")
+            timePicker.show(childFragmentManager, TIME_PICKER)
             timePicker.addOnPositiveButtonClickListener {
-                createAlarmManagerForInsertIntoDb(timePicker)
+                setCalendarTime(timePicker = timePicker)
+                updateNotificationInDb(currentId = currentId, position = position)
             }
         }
     }
@@ -178,53 +179,130 @@ class NotificationFragment : Fragment() {
             .setTimeFormat(TimeFormat.CLOCK_24H)
             .setHour(12)
             .setMinute(0)
-            .setTitleText("Select Alarm Time")
+            .setTitleText(R.string.select_alarm_time)
             .build()
     }
 
-    private fun createAlarmManagerForInsertIntoDb(timePicker: MaterialTimePicker) {
-        currentTime = ((timePicker.hour * 3600000) + (timePicker.minute * 60000)).toLong()
-        currentAlarmTime = currentDate + currentTime
-        if (currentAlarmTime <= Calendar.getInstance().timeInMillis) {
-            Toast.makeText(requireContext(), "Select a future date", Toast.LENGTH_LONG)
+    private fun setCalendarTime(timePicker: MaterialTimePicker) {
+        calendar.time = Date(currentDate)
+        currentHour = timePicker.hour
+        currentMinutes = timePicker.minute
+        calendar[Calendar.HOUR_OF_DAY] = currentHour
+        calendar[Calendar.MINUTE] = currentMinutes
+    }
+
+    private fun updateNotificationInDb(currentId: Int, position: Int) {
+        if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
+            Toast.makeText(requireContext(), R.string.toast_waring, Toast.LENGTH_LONG)
                 .show()
         } else {
-            insertNotificationInDb()
-            setAlarmManager(notificationList.size + 1, currentAlarmTime)
-            notificationList.add(Notification(notificationList.size, currentAlarmTime))
-            notificationRecyclerView.adapter?.notifyDataSetChanged()
-        }
-
-    }
-
-    private fun insertNotificationInDb() {
-        InsertDBHelper()
-            .setTableName("NotificationTime")
-            .addFieldsAndValuesToInsert(
-                FitnessDatabase.NOTIFICATION_TIME,
-                currentAlarmTime.toString()
+            repo.updateNotifications(currentDate, currentHour, currentMinutes, currentId)
+            setAlarmManager(
+                channelMustHave = currentId,
+                date = currentDate,
+                hours = currentHour,
+                minutes = currentMinutes
             )
-            .insertTheValues(App.INSTANCE.db)
-    }
-
-    private fun setAlarmManager(channelMustHave: Int, triggerAtMillis: Long) {
-        val alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), AlarmReceiver::class.java)
-            .putExtra("NEW_REQUEST_CODE", channelMustHave)
-        val pendingIntent =
-            PendingIntent.getBroadcast(requireContext(), channelMustHave, intent, 0)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setRepeating(
-                AlarmManager.RTC_WAKEUP, triggerAtMillis,
-                AlarmManager.INTERVAL_DAY, pendingIntent
-            )
+            notificationList[position].date = currentDate
+            notificationList[position].hours = currentHour
+            notificationList[position].minutes = currentMinutes
+            notificationRecyclerView?.adapter?.notifyDataSetChanged()
         }
     }
 
-    private fun setCancelAlarmBtnClickListener() {
-        alarmManager = activity?.getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, 0)
-        alarmManager.cancel(pendingIntent)
+
+    override fun onStart() {
+        super.onStart()
+
+        selectTimeBtnClickListener()
+        addScrollListener()
+    }
+
+    private fun selectTimeBtnClickListener() {
+        addNotificationBtn?.setOnClickListener {
+            createAlarm()
+        }
+    }
+
+    private fun addScrollListener() {
+        notificationRecyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                scrollPositionOfRecycler = layoutManager.findFirstVisibleItemPosition()
+            }
+        })
+    }
+
+    private fun createAlarm() {
+        val datePicker = createDataBicker()
+        datePicker.show(childFragmentManager, DATE_PICKER)
+        datePicker.addOnPositiveButtonClickListener {
+            currentDate = datePicker.selection!!
+            val timePicker = createTimePicker()
+            timePicker.show(childFragmentManager, TIME_PICKER)
+            timePicker.addOnPositiveButtonClickListener {
+                createAlarmManagerForInsertIntoDb(timePicker = timePicker)
+            }
+        }
+    }
+
+    private fun createAlarmManagerForInsertIntoDb(
+        timePicker: MaterialTimePicker
+    ) {
+        setCalendarTime(timePicker = timePicker)
+        if (calendar.time.time <= Calendar.getInstance().timeInMillis) {
+            Toast.makeText(requireContext(), R.string.toast_waring, Toast.LENGTH_LONG)
+                .show()
+        } else {
+            repo.insertNotification(currentDate, currentHour, currentMinutes, notificationList)
+                .continueWith({
+                    val id = it.result
+                    createNotificationList(id = id)
+                    setAlarmManager(
+                        channelMustHave = id,
+                        date = currentDate,
+                        hours = currentHour,
+                        minutes = currentMinutes
+                    )
+                    notificationRecyclerView?.adapter?.notifyDataSetChanged()
+                }, Task.UI_THREAD_EXECUTOR)
+        }
+    }
+
+    private fun createNotificationList(id: Int) {
+        notificationList.add(
+            Notification(
+                id = id,
+                date = currentDate,
+                position = notificationList.size,
+                hours = currentHour,
+                minutes = currentMinutes
+            )
+        )
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        addNotificationBtn?.setOnClickListener(null)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putLong(CURRENT_DATE, currentDate)
+        outState.putInt(CURRENT_ALARM_TIME, currentMinutes)
+        outState.putInt(CURRENT_TIME, currentHour)
+        outState.putInt(CURRENT_POSITION, scrollPositionOfRecycler)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        notificationRecyclerView = null
+        addNotificationBtn = null
+        alertDialog = null
+        alarmManager = null
     }
 }

@@ -16,4 +16,4 @@ data class LoginResponse(
     val lastName: String?,
     @SerializedName("code")
     val error: String?
-): Parcelable
+) : Parcelable

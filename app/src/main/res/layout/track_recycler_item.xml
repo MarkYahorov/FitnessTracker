@@ -1,37 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="@dimen/running_activity_btns_height"
+    android:layout_margin="@dimen/item_list_margin_top"
+    android:backgroundTint="@color/non"
+    app:cardCornerRadius="@dimen/radius"
+    tools:targetApi="lollipop">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/begin_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/begin_time"
-        app:layout_constraintBottom_toTopOf="@+id/time_running"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/begin_time"
+            style="@style/TextColor.item_recycler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/begin_time"
+            app:layout_constraintEnd_toEndOf="@+id/begin_running_time_text"
+            app:layout_constraintStart_toStartOf="@+id/begin_running_time_text"
+            app:layout_constraintTop_toBottomOf="@+id/begin_running_time_text" />
 
-    <TextView
-        android:id="@+id/time_running"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/time_running"
-        app:layout_constraintBottom_toTopOf="@+id/distance"
-        app:layout_constraintEnd_toEndOf="@+id/begin_time"
-        app:layout_constraintStart_toStartOf="@+id/begin_time"
-        app:layout_constraintTop_toBottomOf="@+id/begin_time" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/time_running"
+            style="@style/TextColor.item_recycler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_running"
+            app:layout_constraintEnd_toEndOf="@+id/time_running_text"
+            app:layout_constraintStart_toStartOf="@+id/time_running_text"
+            app:layout_constraintTop_toBottomOf="@+id/time_running_text" />
 
-    <TextView
-        android:id="@+id/distance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/distance"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/time_running"
-        app:layout_constraintStart_toStartOf="@+id/time_running"
-        app:layout_constraintTop_toBottomOf="@+id/time_running" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/distance"
+            android:textColor="@color/colorTextInList"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/distance_text_descr"
+            app:layout_constraintStart_toStartOf="@+id/distance_text_descr" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/running_image"
+            android:layout_width="@dimen/running_activity_btns_height"
+            android:layout_height="0dp"
+            android:layout_margin="@dimen/item_list_margin_image"
+            android:textColor="@color/colorTextInList"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/logo" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/begin_running_time_text"
+            style="@style/TextColor.item_recycler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/item_list_margin_start"
+            android:layout_marginEnd="@dimen/item_list_margin_end"
+            android:text="@string/begin_time"
+            app:layout_constraintBottom_toTopOf="@+id/begin_time"
+            app:layout_constraintEnd_toStartOf="@+id/time_running_text"
+            app:layout_constraintStart_toEndOf="@+id/running_image"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/time_running_text"
+            style="@style/TextColor.item_recycler"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_running"
+            app:layout_constraintBottom_toTopOf="@+id/time_running"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/begin_running_time_text"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/distance_text_descr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_list_margin_top"
+            android:text="@string/distance"
+            android:textColor="@color/colorTextInList"
+            app:layout_constraintBottom_toTopOf="@+id/distance"
+            app:layout_constraintEnd_toStartOf="@+id/time_running"
+            app:layout_constraintStart_toEndOf="@+id/begin_time" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

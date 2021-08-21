@@ -2,7 +2,6 @@ package com.example.fitnesstracker.screens.running.calculate
 
 import android.os.Handler
 import android.os.Looper
-import android.os.SystemClock
 import android.widget.TextView
 import java.util.*
 

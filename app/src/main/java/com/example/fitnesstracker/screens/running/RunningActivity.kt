@@ -55,7 +55,6 @@ class RunningActivity : AppCompatActivity() {
         private const val DISTANCE = "DISTANCE"
         private const val RUNNING_VISIBLE = "RUNNING_VISIBLE"
         private const val FINISH_VISIBLE = "FINISH_VISIBLE"
-        private const val START_TIME = "start"
         private const val FINISH_TIME = "FINISH_TIME"
         private const val DEFAULT_REQUEST_CODE = 100
         private const val HANDLER_DELAY = 0L
@@ -87,8 +86,6 @@ class RunningActivity : AppCompatActivity() {
     private var isFinish = true
     private var distance = 0
     private var beginTime = 0L
-
-    private var startTime = 0L
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -136,13 +133,14 @@ class RunningActivity : AppCompatActivity() {
             finishTimeRunningTextView?.text = savedInstanceState.getString(FINISH_TIME)
             runningLayout?.isVisible = savedInstanceState.getBoolean(RUNNING_VISIBLE)
             finishLayout?.isVisible = savedInstanceState.getBoolean(FINISH_VISIBLE)
-            startTime = savedInstanceState.getLong(START_TIME)
             calculator?.setView(timeRunningTextView)
-            timer = calculator?.createTimer(
-                tStart = beginTime,
-                calendar = calendar
-            )
-            handler?.postDelayed(timer!!, HANDLER_DELAY)
+            if (getMarkerActivity() == 1) {
+                timer = calculator?.createTimer(
+                    tStart = beginTime,
+                    calendar = calendar
+                )
+                handler?.postDelayed(timer!!, HANDLER_DELAY)
+            }
             checkLayoutsVisibility()
         } else if (getMarkerActivity() == 1) {
             startBtnLayout?.isVisible = false
@@ -358,7 +356,6 @@ class RunningActivity : AppCompatActivity() {
         outState.putLong(BEGIN_TIME, beginTime)
         runningLayout?.let { outState.putBoolean(RUNNING_VISIBLE, it.isVisible) }
         finishLayout?.let { outState.putBoolean(FINISH_VISIBLE, it.isVisible) }
-        outState.putLong(START_TIME, startTime)
         outState.putString(DISTANCE, distanceTextView?.text.toString())
         outState.putString(FINISH_TIME, finishTimeRunningTextView?.text.toString())
     }

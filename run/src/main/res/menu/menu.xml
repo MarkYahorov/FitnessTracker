@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/group">
+        <item
+            android:id="@+id/go_to_main_screen"
+            android:icon="@drawable/ic_baseline_home_24"
+            android:title="@string/main_screen" />
+        <item
+            android:id="@+id/go_to_notification_screen"
+            android:icon="@drawable/ic_baseline_navigation_24"
+            android:title="@string/notification" />
+    </group>
+</menu>

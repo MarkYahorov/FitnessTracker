@@ -1,2 +1,8 @@
 rootProject.name = "FitnessTracker"
 include ':app'
+include ':run'
+include ':main'
+include ':auth'
+include ':splash'
+include ':base'
+include ':core'

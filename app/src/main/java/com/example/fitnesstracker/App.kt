@@ -1,36 +1,24 @@
 package com.example.fitnesstracker
 
 import android.app.Application
-import android.database.sqlite.SQLiteDatabase
-import com.example.fitnesstracker.data.database.FitnessDatabase
-import com.example.fitnesstracker.data.retrofit.ApiService
-import com.example.fitnesstracker.data.retrofit.RetrofitBuilder
-import com.example.fitnesstracker.repository.serverRepo.RepositoryFromServer
-import com.example.fitnesstracker.repository.dataBaseRepo.RepositoryForDB
-import com.example.fitnesstracker.repository.dataBaseRepo.RepositoryForDbImpl
-import com.example.fitnesstracker.repository.serverRepo.RepositoryFromServerImpl
+import android.content.Context
+import android.content.Intent
+import com.example.core.Provider
+import com.example.core.di.BaseComponent
+import com.example.core.di.DaggerBaseComponent
+import com.example.run.screen.RunningActivity
 
-class App : Application() {
+class App : Application(), Provider{
 
-    companion object {
-        lateinit var INSTANCE: App
-        const val PATTERN_WITH_SECONDS = "HH:mm:ss,SS"
-        const val PATTERN_DATE_HOURS_MINUTES= "dd.MM.yyyy HH:mm"
-        const val UTC = "UTC"
-        const val RUNNING_ACTIVITY_MARKER = 1
-        const val MAIN_ACTIVITY_MARKER = 0
+    private val appComponent: BaseComponent by lazy {
+        DaggerBaseComponent.factory()
+            .create(this)
     }
-
-    lateinit var myDataBase: SQLiteDatabase
-    lateinit var apiService: ApiService
-    val repositoryFromServerImpl: RepositoryFromServer = RepositoryFromServerImpl()
-    val repositoryForDbImpl: RepositoryForDB = RepositoryForDbImpl()
 
     override fun onCreate() {
         super.onCreate()
-
-        INSTANCE = this
-        myDataBase = FitnessDatabase(this).writableDatabase
-        apiService = RetrofitBuilder().apiService
+        appComponent.inject(this)
     }
+
+    override fun provideComponent(): BaseComponent = appComponent
 }

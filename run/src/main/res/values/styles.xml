@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Login_And_Register_Screen_Edit_Texts">
+        <item name="android:textSize">@dimen/login_screen_text_size</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.login_field">
+        <item name="android:layout_marginTop">@dimen/login_screen_login_fields_margin_top</item>
+        <item name="android:layout_marginEnd">
+            @dimen/login_screen_login_fields_margin_end_and_start
+        </item>
+        <item name="android:layout_marginStart">
+            @dimen/login_screen_login_fields_margin_end_and_start
+        </item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.password_field">
+        <item name="android:layout_marginTop">@dimen/login_screen_margin_top</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.register_fields">
+        <item name="android:layout_marginTop">@dimen/login_screen_margin_top</item>
+    </style>
+
+    <style name="Login_And_Register_Screen_Edit_Texts.password_field_in_login">
+        <item name="android:layout_marginTop">@dimen/login_screen_password_field_in_login</item>
+    </style>
+
+    <style name="login_btn">
+        <item name="android:layout_marginStart">@dimen/login_screen_login_btn_margin_start</item>
+        <item name="android:layout_marginEnd">@dimen/login_screen_login_btn_margin_end</item>
+    </style>
+
+    <style name="register_btn">
+        <item name="android:layout_marginTop">@dimen/login_screen_margin_top</item>
+        <item name="android:layout_marginBottom">@dimen/login_screen_registr_btn_margin_bottom</item>
+        <item name="android:layout_marginEnd">@dimen/login_screen_registr_btn_margin_end</item>
+        <item name="android:layout_marginStart">@dimen/login_screen_registr_btn_margin_start</item>
+    </style>
+
+    <style name="main_activity_nav_drawer_log_out_text">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginStart">@dimen/logout_text_margin_start</item>
+    </style>
+
+    <style name="running_activity_layouts_margin">
+        <item name="android:layout_margin">@dimen/running_layouts_margin</item>
+    </style>
+
+    <style name="TextColor.running_activity_btns">
+        <item name="android:layout_marginTop">@dimen/running_activity_btns_margin_top</item>
+    </style>
+
+    <style name="TextColor">
+        <item name="android:textColor">@color/colorTextInList</item>
+    </style>
+
+    <style name="TextColor.running_activity_main_text">
+        <item name="android:textSize">@dimen/main_text_size</item>
+    </style>
+
+    <style name="TextColor.running_activity_no_main_text">
+        <item name="android:textSize">@dimen/running_activity_no_main_text_size</item>
+    </style>
+
+    <style name="TextColor.item_recycler">
+        <item name="android:layout_marginTop">@dimen/item_list_margin_top</item>
+        <item name="layout_goneMarginBottom">@dimen/item_list_margin_top</item>
+    </style>
+</resources>
